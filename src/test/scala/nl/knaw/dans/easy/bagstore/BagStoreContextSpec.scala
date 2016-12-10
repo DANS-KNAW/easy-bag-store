@@ -141,82 +141,80 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
     }
   }
 
+  "fromUri" should "return a Failure for a URI that is not under the base-uri" in {
+    val uuid = UUID.randomUUID()
+    val fail = fromUri(new URI(s"http://some-other-base/$uuid"))
+    inside(fail) {
+      case Failure(e) =>
+        e shouldBe a[NoItemUriException]
+    }
+  }
 
-//  "fromUri" should "return a Failure for a URI that is not under the base-uri" in {
-//    val uuid = UUID.randomUUID()
-//    val fail = fromUri(new URI(s"http://some-other-base/$uuid"))
-//    inside(fail) {
-//      case Failure(e) =>
-//        e shouldBe a[NoItemUriException]
-//    }
-//  }
-//
-//  it should "return a bag-sequence-id for valid UUID-path base-uri" in {
-//    val uuid = UUID.randomUUID()
-//    val id = fromUri(new URI(s"$baseUri/$uuid"))
-//    id shouldBe a[Success[_]]
-//    inside(id) {
-//      case Success(BagSequenceId(foundUuid)) => foundUuid shouldBe uuid
-//    }
-//  }
-//
-//  it should "return a bag-id for base-uri/uuid.bag-rev" in {
-//    val uuid = UUID.randomUUID()
-//    val revision = 1
-//    val id = fromUri(new URI(s"$baseUri/$uuid.$revision"))
-//    id shouldBe a[Success[_]]
-//    inside(id) {
-//      case Success(BagId(BagSequenceId(foundUuid), revision)) =>
-//        foundUuid shouldBe uuid
-//        revision shouldBe 1
-//    }
-//  }
-//
-//  it should "return a file-id for base-uri/uuid.bag-rev/ even though it can never resolve to a file" in {
-//    val uuid = UUID.randomUUID()
-//    val id = fromUri(new URI(s"$baseUri/$uuid.1/"))
-//    id shouldBe a[Success[_]]
-//    inside(id) {
-//      case Success(FileId(BagId(BagSequenceId(foundUuid), revision), path)) =>
-//        foundUuid shouldBe uuid
-//        revision shouldBe 1
-//        path shouldBe Paths.get("")
-//    }
-//
-//  }
-//
-//  it should "return a file-id for base-uri/uuid.bag-rev/filename" in {
-//    val uuid = UUID.randomUUID()
-//    val id = fromUri(new URI(s"$baseUri/$uuid.1/filename"))
-//    id shouldBe a[Success[_]]
-//    inside(id) {
-//      case Success(FileId(BagId(BagSequenceId(foundUuid), revision), filepath)) =>
-//        foundUuid shouldBe uuid
-//        revision shouldBe 1
-//        filepath shouldBe Paths.get("filename")
-//    }
-//  }
-//
-//  it should "return a file-id for base-uri/uuid.bag-rev/a/longer/path" in {
-//    val uuid = UUID.randomUUID()
-//    val id = fromUri(new URI(s"$baseUri/$uuid.1234/a/longer/path"))
-//    id shouldBe a[Success[_]]
-//
-//    inside(id) {
-//      case Success(FileId(BagId(BagSequenceId(foundUuid), revision), filepath)) =>
-//        foundUuid shouldBe uuid
-//        revision shouldBe 1234
-//        filepath shouldBe Paths.get("a", "longer", "path")
-//    }
-//  }
-//
-//  it should "return a Failure if only the base-uri is passed" in {
-//    val fail = fromUri(baseUri)
-//    fail shouldBe a[Failure[_]]
-//    inside(fail) {
-//      case Failure(e) => e shouldBe a[IncompleteItemUriException]
-//    }
-//  }
+  it should "return a bag-id for valid UUID-path after the base-uri" in {
+    val uuid = UUID.randomUUID()
+    val id = fromUri(new URI(s"$baseUri/$uuid"))
+    id shouldBe a[Success[_]]
+    inside(id) {
+      case Success(BagId(foundUuid)) => foundUuid shouldBe uuid
+    }
+  }
+
+  it should "return a bag-id for valid UUID-path after the base-uri even if base-uri contains part of path" in {
+    new BagStoreContext {
+      override implicit val baseDir: Path = BagStoreContextSpec.this.baseDir
+      override implicit val baseUri: URI = new URI("http://example-archive.org/base-path/")
+      override implicit val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
+
+      val uuid = UUID.randomUUID()
+      val id = fromUri(new URI(s"$baseUri/$uuid"))
+      id shouldBe a[Success[_]]
+      inside(id) {
+        case Success(BagId(foundUuid)) => foundUuid shouldBe uuid
+      }
+    }
+  }
+
+  it should "return a file-id for base-uri/uuid/ even though it can never resolve to a file" in {
+    val uuid = UUID.randomUUID()
+    val id = fromUri(new URI(s"$baseUri/$uuid/"))
+    id shouldBe a[Success[_]]
+    inside(id) {
+      case Success(FileId(BagId(foundUuid), path)) =>
+        foundUuid shouldBe uuid
+        path shouldBe Paths.get("")
+    }
+  }
+
+  it should "return a file-id for base-uri/uuid/filename" in {
+    val uuid = UUID.randomUUID()
+    val id = fromUri(new URI(s"$baseUri/$uuid/filename"))
+    id shouldBe a[Success[_]]
+    inside(id) {
+      case Success(FileId(BagId(foundUuid), filepath)) =>
+        foundUuid shouldBe uuid
+        filepath shouldBe Paths.get("filename")
+    }
+  }
+
+  it should "return a file-id for base-uri/uuid/a/longer/path" in {
+    val uuid = UUID.randomUUID()
+    val id = fromUri(new URI(s"$baseUri/$uuid/a/longer/path"))
+    id shouldBe a[Success[_]]
+
+    inside(id) {
+      case Success(FileId(BagId(foundUuid), filepath)) =>
+        foundUuid shouldBe uuid
+        filepath shouldBe Paths.get("a", "longer", "path")
+    }
+  }
+
+  it should "return a Failure if only the base-uri is passed" in {
+    val fail = fromUri(baseUri)
+    fail shouldBe a[Failure[_]]
+    inside(fail) {
+      case Failure(e) => e shouldBe a[IncompleteItemUriException]
+    }
+  }
 //
 //  "fromUri followed by toUri" should "be no-op" in {
 //    val uuid = UUID.randomUUID()

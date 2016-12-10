@@ -82,53 +82,40 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
    * @param uri the item-uri
    * @return the item-id
    */
-//  protected def fromUri(uri: URI): Try[ItemId] = {
-//    object UriComponents {
-//      def unapply(uri: URI): Option[(String, String, String, Int, Path, String, String)] = Some((
-//        uri.getScheme,
-//        uri.getUserInfo,
-//        uri.getHost,
-//        uri.getPort,
-//        Paths.get(uri.getPath),
-//        uri.getQuery,
-//        uri.getFragment))
-//    }
-//
-//
-//    val UriComponents(scheme, _, host, port, path, _, _) = uri
-//    val UriComponents(baseUriScheme, _, baseUriHost, baseUriPort, baseUriPath, _, _) = baseUri
-//
-//    if (scheme == baseUriScheme && host == baseUriHost && port == baseUriPort && path.startsWith(baseUriPath)) {
-//      // The path part after the base-uri is basically the item-id, but in a Path object.
-//      val itemIdPath = baseUriPath.relativize(path)
-//      if (StringUtils.isBlank(itemIdPath.toString))
-//        Failure(IncompleteItemUriException("base-uri is not an item-uri"))
-//      else {
-//        val bagSequenceOrBagId = itemIdPath.getName(0).toString
-//        val uuidEndIndex = bagSequenceOrBagId.indexOf('.')
-//        val uuidStr = if (uuidEndIndex > 0) bagSequenceOrBagId.substring(0, uuidEndIndex) else bagSequenceOrBagId
-//        assertUuidValid(uuidStr)
-//        val bagSequenceId = BagSequenceId(UUID.fromString(uuidStr))
-//        if (uuidEndIndex > 0) {
-//          val revision = bagSequenceOrBagId.substring(uuidEndIndex + 1)
-//          assertValidRevision(revision)
-//          val bagId = BagId(bagSequenceId, revision.toInt)
-//          if (itemIdPath.getNameCount > 1)
-//            Success(FileId(bagId, itemIdPath.subpath(1, itemIdPath.getNameCount)))
-//          else if (uri.toString.endsWith("/")) // Special case: a persistent file-uri that can actually never resolve to a real file
-//            Success(FileId(bagId, Paths.get("")))
-//          else
-//            Success(bagId)
-//        } else if (itemIdPath.getNameCount > 1) {
-//          // Non-persistent file-uri
-//          getLatestRevisionNumber(bagSequenceId).map {
-//            case revision => FileId(BagId(bagSequenceId, revision), itemIdPath.subpath(1, itemIdPath.getNameCount))
-//          }
-//        } else Success(bagSequenceId)
-//      }
-//    }
-//    else Failure(NoItemUriException(uri, baseUri))
-//  }
+  protected def fromUri(uri: URI): Try[ItemId] = {
+    object UriComponents {
+      def unapply(uri: URI): Option[(String, String, String, Int, Path, String, String)] = Some((
+        uri.getScheme,
+        uri.getUserInfo,
+        uri.getHost,
+        uri.getPort,
+        Paths.get(uri.getPath),
+        uri.getQuery,
+        uri.getFragment))
+    }
+
+
+    val UriComponents(scheme, _, host, port, path, _, _) = uri
+    val UriComponents(baseUriScheme, _, baseUriHost, baseUriPort, baseUriPath, _, _) = baseUri
+
+    if (scheme == baseUriScheme && host == baseUriHost && port == baseUriPort && (baseUriPath.toString == "" || path.startsWith(baseUriPath))) {
+      // The path part after the base-uri is basically the item-id, but in a Path object.
+      val itemIdPath = if (baseUriPath.toString != "") baseUriPath.relativize(path) else path
+      if (StringUtils.isBlank(itemIdPath.toString))
+        Failure(IncompleteItemUriException("base-uri by itself is not an item-uri"))
+      else {
+        val uuidStr = formatUuidStrCanonically(itemIdPath.getName(0).toString.filterNot(_ == '-'))
+        assertUuidValid(uuidStr)
+        val bagId = BagId(UUID.fromString(uuidStr))
+        if (itemIdPath.getNameCount > 1)
+          Try(FileId(bagId, itemIdPath.subpath(1, itemIdPath.getNameCount)))
+        else if (uri.toString.endsWith("/"))
+          Try(FileId(bagId, Paths.get("")))
+        else
+          Try(bagId)
+      }
+    } else Failure(NoItemUriException(uri, baseUri))
+  }
 
   /**
    * Returns the location in the file system for a given item. Since the bag's base directory name is not part of
@@ -161,6 +148,42 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
       case f: FileId => bagDir.resolve(f.path)
     }
   }
+
+  /**
+   * Returns the path at which the File with the specified file-id is actually stored in the BagStore.
+   *
+   * @param fileId
+   */
+  protected def toRealLocation(fileId: FileId): Try[Path] = {
+    toLocation(fileId)
+        .flatMap {
+          path =>
+            if (Files.exists(path))
+              Try(path)
+            else
+              getFetchUri(fileId).flatMap(fromUri).flatMap {
+                case fileId: FileId => toRealLocation(fileId)
+              }
+        }
+  }
+
+  private def getFetchUri(fileId: FileId): Try[URI] = {
+    toLocation(fileId.bagId)
+      .flatMap {
+        bagDir =>
+          bagFacade.getFetchItems(bagDir)
+            .flatMap {
+              items =>
+                Try {
+                  items.find(_.path == fileId.path)
+                    .map(item => item.uri).get
+                }
+            }
+      }
+  }
+
+
+
 //
 //
 //  /**
@@ -223,18 +246,48 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
 //  }
 
   protected def isVirtuallyValid(bagDir: Path): Try[Boolean] =  {
-    if (Files.exists(bagDir.resolve("fetch.txt"))) {
-      // TODO: convert to constant
+//    import nl.knaw.dans.lib.error._
+//
+//    def getMappings(fetchItems: Seq[FetchItem]): Try[Seq[(Path, Path)]] = {
+//      fetchItems.map {
+//        case item =>
+//          val archivedCopy = fromUri(item.uri).flatMap(toLocation)
+//
+//
+//      }
+//
+//      ???
+//    }
+//
+//
+//    val fetchTxt = bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)
+//    if (Files.exists(fetchTxt)) {
+//      // TODO: convert to constant
+//
+//      for {
+//        items <- bagFacade.getFetchItems(bagDir)
+//        mappings <- getMappings(items)
+//      } yield mappings
+//
+//
+////      // Resolve fetch.txt to hard links
+////      (bagFacade.getFetchItems(bagDir) flatMap {
+////        items =>
+////          items.map(item => fromUri(item.uri)
+////            .flatMap(toLocation)
+////            .map((_, item.path))).collectResults
+////      } map (links => links.foreach { case (existing, pathInBag) => Files.createLink(bagDir.resolve(pathInBag), existing) }))
+////        .flatMap { _ =>
+////          val tempFetchTxt = Files.createTempFile("fetchtxt-backup", ".txt")
+////          Files.delete(tempFetchTxt)
+////          Files.move(fetchTxt, tempFetchTxt)
+////          val result = bagFacade.isValid(bagDir)
+////          Files.move(tempFetchTxt, fetchTxt)
+////        }
+//    } else
+//      bagFacade.isValid(bagDir)
 
-      // Resolve fetch.txt to hard links
-
-      //bagFacade.isValid(bagDir)
-
-
-      // Restore fetch.txt and remove hard links
-      ???
-    } else
-      bagFacade.isValid(bagDir)
+    ???
   }
 
   private def assertUuidValid(uuid: String) = {

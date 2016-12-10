@@ -36,11 +36,13 @@ case class InvalidAfterFetchException(msg: String) extends Exception(msg)
 case class BagNotFoundException(bagDir: Path, cause: Throwable) extends Exception(s"A bag could not be loaded at $bagDir", cause)
 
 trait BagFacade {
+  val FETCH_TXT_FILENAME = "fetch.txt"
+
   def isValid(bagDir: Path): Try[Boolean]
 
   def getPayloadManifest(bagDir: Path, algorithm: Algorithm): Try[Map[Path, String]]
 
-  def getFetchItems(bagDir: Path): Try[Map[Path, FetchItem]]
+  def getFetchItems(bagDir: Path): Try[Seq[FetchItem]]
 
   def getSupportedManifestAlgorithms(bagDir: Path): Try[Set[Algorithm]]
 
@@ -79,14 +81,13 @@ class Bagit4Facade(bagFactory: BagFactory = new BagFactory) extends BagFacade {
         .map { case (path, c) => (Paths.get(path), c) }
         .toMap)
 
-  def getFetchItems(bagDir: Path): Try[Map[Path, FetchItem]] =
+  def getFetchItems(bagDir: Path): Try[Seq[FetchItem]] =
     getFetchTxt(bagDir).map(
       _.map(
         _.asScala
           .map(fi => FetchItem(new URI(fi.getUrl), fi.getSize, Paths.get(fi.getFilename)))
-          .map(fi => fi.path -> fi)
-          .toMap)
-        .getOrElse(Map.empty))
+          .toSeq)
+        .getOrElse(Seq.empty))
 
   def getSupportedManifestAlgorithms(bagDir: Path): Try[Set[Algorithm]] =
     getBagFromDir(bagDir)
