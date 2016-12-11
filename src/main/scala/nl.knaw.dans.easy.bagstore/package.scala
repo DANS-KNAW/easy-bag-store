@@ -16,7 +16,11 @@
 package nl.knaw.dans.easy
 
 import java.net.URI
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
+import collection.JavaConverters._
+import org.apache.commons.io.FileUtils
+
+import scala.annotation.tailrec
 
 package object bagstore {
   case class NoItemUriException(uri: URI, baseUri: URI) extends Exception(s"Base of URI $uri is not an item-uri: does not match base-uri; base-uri is $baseUri")
@@ -29,5 +33,40 @@ package object bagstore {
   case class MoveToStoreFailedException(bag: Path, containerDir: Path) extends Exception(s"Failed to move $bag to container at $containerDir")
   case class NoItemException(p: Path) extends Exception(s"Not a bag-store item: $p")
   case class NoItemIdException(s: String) extends Exception(s"Not a valid item-id string: $s")
+
+
+  def pathsEqual(f1: Path, f2: Path, excludeFiles: String*): Boolean = {
+
+    @tailrec
+    def rec(todo: List[(Path, Path)], acc: Boolean = true): Boolean = {
+      if (acc) {
+        todo match {
+          case Nil => acc
+          case (file1, file2) :: tail if Files.isDirectory(file1) && Files.isDirectory(file2) =>
+            val subs =
+              Files.list(file1).iterator().asScala.toSeq.sorted
+                .zip(Files.list(file2).iterator().asScala.toSeq.sorted).toList
+
+            rec(tail ::: subs, acc)
+          case (file1, file2) :: tail if Files.isRegularFile(file1) && Files.isRegularFile(file2) =>
+            rec(tail, excludeFiles.contains(f1.relativize(file1).toString) ||
+              (acc &&
+                file1.getFileName == file2.getFileName &&
+                FileUtils.contentEquals(file1.toFile, file2.toFile)))
+          case _ => false
+        }
+      }
+      else
+        false
+    }
+    rec(List((f1, f2)))
+  }
+
+  def walkTree(file: Path): Iterable[Path] = {
+    val children = new Iterable[Path] {
+      def iterator: Iterator[Path] = if (Files.isDirectory(file)) Files.list(file).iterator().asScala else Iterator.empty
+    }
+    children.flatMap(walkTree) ++: Seq(file)
+  }
 
 }

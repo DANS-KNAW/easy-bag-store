@@ -16,6 +16,7 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.net.URI
+import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Path, Paths}
 import java.util.UUID
 
@@ -24,6 +25,7 @@ import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
 
 import scala.collection.JavaConverters._
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -118,6 +120,25 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
   }
 
   /**
+   * Returns the location of the Bag's container directory.
+   *
+   * @param id
+   * @return
+   */
+  def toContainer(id: ItemId): Try[Path] = Try {
+    def uuidToPath(uuid: UUID): Path = {
+      val (result, _) = uuidPathComponentSizes.foldLeft((Seq[String](), uuid.toString.filterNot(_ == '-'))) {
+        case ((acc, rest), size) =>
+          val (next, newRest) = rest.splitAt(size)
+          (acc :+ next, newRest)
+      }
+      Paths.get(result.head, result.tail: _*)
+    }
+
+    baseDir.resolve(uuidToPath(id.getUuid))
+  }
+
+  /**
    * Returns the location in the file system for a given item. Since the bag's base directory name is not part of
    * the bag-id, only one directory is allowed under the UUID-part of the path which must be the bag directory. If there is more
    * than one directory, the function fails indicating a corrupt BagStore.
@@ -128,24 +149,18 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
    * @param id the item-id
    * @return the item-location
    */
-  protected def toLocation(id: ItemId): Try[Path] = Try {
-    def uuidToPath(uuid: UUID): Path = {
-      val (result, _) = uuidPathComponentSizes.foldLeft((Seq[String](), uuid.toString.filterNot(_ == '-'))) {
-        case ((acc, rest), size) =>
-          val (next, newRest) = rest.splitAt(size)
-          (acc :+ next, newRest)
+  protected def toLocation(id: ItemId): Try[Path] = {
+    toContainer(id).flatMap {
+      container => Try {
+        val containedFiles = Files.list(container).iterator().asScala.toList
+        assert(containedFiles.size == 1, s"Corrupt BagStore, container with less or more than one file: $container")
+        val bagDir = container.resolve(containedFiles.head)
+
+        id match {
+          case b: BagId => bagDir
+          case f: FileId => bagDir.resolve(f.path)
+        }
       }
-      Paths.get(result.head, result.tail: _*)
-    }
-
-    val container = baseDir.resolve(uuidToPath(id.getUuid))
-    val containedFiles = Files.list(container).iterator().asScala.toList
-    assert(containedFiles.size == 1, s"Corrupt BagStore, container with less or more than one file: $container")
-    val bagDir = container.resolve(containedFiles.head)
-
-    id match {
-      case b: BagId => bagDir
-      case f: FileId => bagDir.resolve(f.path)
     }
   }
 
@@ -221,29 +236,21 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
 //   */
 //  protected def toUri(id: ItemId): URI = baseUri.resolve(id.toString)
 //
-//  /**
-//   * Utility function that copies a directory to a staging area. This is used to stage bag directories for
-//   * ingest or dissemination.
-//   *
-//   * @param dir the directory to stage
-//   * @return the location of the staged directory
-//   */
-//  protected def stageDirectory(dir: Path): Try[Path] = Try {
-//    trace(dir)
-//    val staged = Files.createTempFile("staged-bag-", "")
-//    Files.deleteIfExists(staged)
-//    FileUtils.copyDirectory(dir.toFile, staged.toFile)
-//    debug(s"Staged directory $dir in $staged")
-//    staged
-//  }
-//
-//  protected def resolvePossiblyFileItemUri(uri: URI): URI = {
-//    trace(uri)
-//    (fromUri(uri) map {
-//      case fileId: FileId => toLocation(fileId).toUri
-//      case _ => sys.error(s"Non-file-uri item-uri: $uri.")
-//    }).get  // TODO: refactor calling function to handle Tries
-//  }
+  /**
+   * Utility function that copies a directory to a staging area. This is used to stage bag directories for
+   * ingest or dissemination.
+   *
+   * @param dir the directory to stage
+   * @return the location of the staged directory
+   */
+  protected def stageDirectory(dir: Path): Try[Path] = Try {
+    trace(dir)
+    val staged = Files.createTempFile("staged-bag-", "")
+    Files.deleteIfExists(staged)
+    FileUtils.copyDirectory(dir.toFile, staged.toFile)
+    debug(s"Staged directory $dir in $staged")
+    staged
+  }
 
   protected def isVirtuallyValid(bagDir: Path): Try[Boolean] =  {
     def getLinkMappings: Try[Seq[(Path, Path)]] = {

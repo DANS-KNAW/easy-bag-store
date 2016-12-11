@@ -16,7 +16,8 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.net.URI
-import java.nio.file.Paths
+import java.nio.file.attribute.PosixFilePermissions
+import java.nio.file.{Files, Paths}
 
 import org.apache.commons.io.FileUtils
 import org.scalatest.{FlatSpec, Matchers, OneInstancePerTest}
@@ -30,4 +31,14 @@ abstract class BagStoreFixture extends TestSupportFixture with BagStoreContext {
   implicit val baseUri = new URI("http://example-archive.org")
   implicit val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
   baseDir.toFile.mkdirs()
+
+  after {
+    /*
+     * Set all files created to writable, otherwise things such as mvn clean will require sudo.
+     */
+    walkTree(testDir).foreach {
+      Files.setPosixFilePermissions(_, PosixFilePermissions.fromString("rwxrwxrwx"))
+    }
+  }
+
 }
