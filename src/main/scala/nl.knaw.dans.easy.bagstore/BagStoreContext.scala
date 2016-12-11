@@ -255,43 +255,84 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
               for {
                 id <- fromUri(item.uri)
                 fileId <- ItemId.toFileId(id)
-                location <- toLocation(fileId)
+                location <- toRealLocation(fileId)
               } yield (bagDir.resolve(item.path), location)).collectResults
       }
     }
 
-    def moveFetchTxtToTempLocation(): Try[Path] = {
-
-      ???
+    def getExtraDirectories(links: Seq[Path]): Try[Seq[Path]] = Try {
+      val dirs =
+      links.flatMap {
+        link =>
+          val comps = link.iterator().asScala.toList
+          bagDir.getNameCount until comps.size map comps.take map (comps =>
+            Paths.get("/" + comps.mkString("/"))) filterNot {
+            Files.exists(_)
+          }
+      }
+      debug(s"extra directories to create: $dirs")
+      dirs
     }
 
-    def moveFetchTxtBackFromTempLocationAt(path: Path): Try[Unit] = {
 
-      ???
+    def moveFetchTxtAndTagmanifestsToTempdir(): Try[Path] = Try {
+      val tempDir = Files.createTempDirectory("fetch-temp-")
+      debug(s"created temporary directory: $tempDir")
+      debug(s"moving ${bagFacade.FETCH_TXT_FILENAME}")
+      Files.move(bagDir.resolve(bagFacade.FETCH_TXT_FILENAME), tempDir.resolve(bagFacade.FETCH_TXT_FILENAME))
+      // Attention the `toString` after `getFileName` is necessary because Path.startsWith only matches complete path components!
+      val tagmanifests = Files.list(bagDir).iterator().asScala.withFilter(_.getFileName.toString.startsWith("tagmanifest-")).toList
+      debug(s"tagmanifests: $tagmanifests")
+      tagmanifests.foreach(t => Files.move(t, tempDir.resolve(t.getFileName)))
+      tempDir
+    }
+
+    def moveFetchTxtAndTagmanifestsBack(path: Path): Try[Unit] = Try {
+      Files.list(path).iterator().asScala.foreach(f => {
+        debug(s"Moving $f -> ${bagDir.resolve(f.getFileName)}")
+        Files.move(f, bagDir.resolve(f.getFileName))
+      })
+      Files.delete(path)
     }
 
     def createLinks(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
       mappings.foreach {
-        case (link, to) => Files.createLink(link, to)
+        case (link, to) =>
+          if (!Files.exists(link.getParent))
+            Files.createDirectories(link.getParent)
+          Files.createLink(link, to)
       }
     }
 
     def removeLinks(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
+      debug(s"mappings (link -> real location): $mappings")
       mappings.foreach {
-        case (link, _) => Files.deleteIfExists(link)
+        case (link, _) =>
+          debug(s"Deleting: $link")
+          Files.deleteIfExists(link)
       }
+    }
+
+    def removeDirectories(dirs: Seq[Path]): Try[Unit] = Try {
+      debug(s"directories: $dirs")
+      dirs.foreach(Files.delete)
     }
 
     val fetchTxt = bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)
     if (Files.exists(fetchTxt)) {
         for {
           mappings <- getLinkMappings
-          tempLocFetch <- moveFetchTxtToTempLocation()
+          extraDirs <- getExtraDirectories(mappings.map { case (link, to) => link })
+          validTagManifests <- bagFacade.hasValidTagManifests(bagDir)
+          _ = debug(s"valid tagmanifests: $validTagManifests")
+          tempLocFetch <- moveFetchTxtAndTagmanifestsToTempdir()
           _ <- createLinks(mappings)
           valid <- bagFacade.isValid(bagDir)
+          _ = debug(s"valid bag: $valid")
           _ <- removeLinks(mappings)
-          _ <- moveFetchTxtBackFromTempLocationAt(tempLocFetch)
-        } yield valid
+          _ <- removeDirectories(extraDirs)
+          _ <- moveFetchTxtAndTagmanifestsBack(tempLocFetch)
+        } yield validTagManifests && valid
     }
     else
       bagFacade.isValid(bagDir)

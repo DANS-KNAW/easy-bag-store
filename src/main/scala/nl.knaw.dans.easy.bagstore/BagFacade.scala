@@ -19,6 +19,7 @@ import java.net.URI
 import java.nio.file.{Files, Path, Paths}
 
 import gov.loc.repository.bagit.{Bag, BagFactory, FetchTxt}
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import resource.Using
 
 import scala.collection.JavaConverters._
@@ -35,10 +36,12 @@ case class FetchItem(uri: URI, size: Long, path: Path)
 case class InvalidAfterFetchException(msg: String) extends Exception(msg)
 case class BagNotFoundException(bagDir: Path, cause: Throwable) extends Exception(s"A bag could not be loaded at $bagDir", cause)
 
-trait BagFacade {
+trait BagFacade extends DebugEnhancedLogging{
   val FETCH_TXT_FILENAME = "fetch.txt"
 
   def isValid(bagDir: Path): Try[Boolean]
+
+  def hasValidTagManifests(bagDir: Path): Try[Boolean]
 
   def getPayloadManifest(bagDir: Path, algorithm: Algorithm): Try[Map[Path, String]]
 
@@ -67,12 +70,30 @@ class Bagit4Facade(bagFactory: BagFactory = new BagFactory) extends BagFacade {
     SHA512 -> gov.loc.repository.bagit.Manifest.Algorithm.SHA512)
   val algorithmReverseMap = algorithmMap.map(_.swap)
 
-  def isValid(bagDir: Path): Try[Boolean] =
+  def isValid(bagDir: Path): Try[Boolean] = {
     for {
       bag <- getBagFromDir(bagDir)
-      result <- Try { bag.verifyValid() }
-      valid <- Try { result.isSuccess }
+      result <- Try {
+        bag.verifyValid()
+      }
+      valid <- Try {
+        result.isSuccess
+      }
     } yield valid
+  }
+
+  def hasValidTagManifests(bagDir: Path): Try[Boolean] = {
+    for {
+      bag <- getBagFromDir(bagDir)
+      result <- Try {
+        bag.verifyTagManifests()
+      }
+      valid <- Try {
+        result.isSuccess
+      }
+    } yield valid
+  }
+
 
   def getPayloadManifest(bagDir: Path, algorithm: Algorithm): Try[Map[Path, String]] =
     getBagFromDir(bagDir)

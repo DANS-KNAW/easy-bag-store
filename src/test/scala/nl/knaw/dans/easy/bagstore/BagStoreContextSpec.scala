@@ -299,4 +299,24 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
       case Success(path) => path shouldBe baseDir.resolve("00/000000000000000000000000000001/bag-revision-1/data/x")
     }
   }
+
+  "isVirtuallyValid" should "return true for a valid bag" in {
+    FileUtils.copyDirectory(Paths.get("src/test/resources/bags/valid-bag").toFile, testDir.resolve("valid-bag").toFile)
+    val result = isVirtuallyValid(testDir.resolve("valid-bag"))
+    result shouldBe a[Success[_]]
+    inside(result) {
+      case Success(valid) => valid shouldBe true
+    }
+  }
+
+  it should "return true for a virtually-valid bag" in {
+    FileUtils.copyDirectory(Paths.get("src/test/resources/bags/virtually-valid-bag").toFile, testDir.resolve("virtually-valid-bag").toFile)
+    val result = isVirtuallyValid(testDir.resolve("virtually-valid-bag"))
+    result shouldBe a[Success[_]]
+    inside(result) {
+      case Success(valid) => valid shouldBe true
+    }
+
+  }
+
 }
