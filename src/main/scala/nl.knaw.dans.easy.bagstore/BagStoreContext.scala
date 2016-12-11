@@ -228,14 +228,14 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
 //  }
 //
 //
-//  /**
-//   * Returns the item-uri for a given item-id.
-//   *
-//   * @param id the item-id
-//   * @return the item-uri
-//   */
-//  protected def toUri(id: ItemId): URI = baseUri.resolve(id.toString)
-//
+  /**
+   * Returns the item-uri for a given item-id.
+   *
+   * @param id the item-id
+   * @return the item-uri
+   */
+  protected def toUri(id: ItemId): URI = baseUri.resolve("/" + id.toString)
+
   /**
    * Utility function that copies a directory to a staging area. This is used to stage bag directories for
    * ingest or dissemination.
