@@ -7,12 +7,13 @@ Manage a bag store
 SYNOPSIS
 --------
 
-    easy-bag-store [--base-dir|-d <dir>] \
+    easy-bag-store [--base-dir|-b <bag-dir>] \
                      | add <bag> <uuid>
-                     | get [{--skip-file-fetching|-s}] <item-id>
-                     | enum <item-id>
-                     | hide <item-id>
-                     | prune <dir> <bag-id>...
+                     | get <item-id>
+                     | enum [--hidden|--all] [<item-id>]
+                     | {hide|unhide} <item-id>
+                     | prune <bag-dir> <ref-bag-id>...
+                     | complete <bag-dir>
                      | index <bag-id>
                      | erase {--authority-name|-n} <name> {--authority-password|-p} <password> \
                           {--tombstone-message|-m <message>} <file-id>
