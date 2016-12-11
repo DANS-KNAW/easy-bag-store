@@ -27,7 +27,7 @@ import org.scalatest.{FlatSpec, Matchers, OneInstancePerTest}
  */
 abstract class BagStoreFixture extends TestSupportFixture with BagStoreContext {
   implicit val baseDir = testDir.resolve("bag-store")
-  implicit val baseUri = new URI("http://example-archive")
+  implicit val baseUri = new URI("http://example-archive.org")
   implicit val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
   baseDir.toFile.mkdirs()
 }

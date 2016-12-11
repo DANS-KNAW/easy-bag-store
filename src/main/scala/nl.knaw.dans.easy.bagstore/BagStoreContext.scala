@@ -246,48 +246,55 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
 //  }
 
   protected def isVirtuallyValid(bagDir: Path): Try[Boolean] =  {
-//    import nl.knaw.dans.lib.error._
-//
-//    def getMappings(fetchItems: Seq[FetchItem]): Try[Seq[(Path, Path)]] = {
-//      fetchItems.map {
-//        case item =>
-//          val archivedCopy = fromUri(item.uri).flatMap(toLocation)
-//
-//
-//      }
-//
-//      ???
-//    }
-//
-//
-//    val fetchTxt = bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)
-//    if (Files.exists(fetchTxt)) {
-//      // TODO: convert to constant
-//
-//      for {
-//        items <- bagFacade.getFetchItems(bagDir)
-//        mappings <- getMappings(items)
-//      } yield mappings
-//
-//
-////      // Resolve fetch.txt to hard links
-////      (bagFacade.getFetchItems(bagDir) flatMap {
-////        items =>
-////          items.map(item => fromUri(item.uri)
-////            .flatMap(toLocation)
-////            .map((_, item.path))).collectResults
-////      } map (links => links.foreach { case (existing, pathInBag) => Files.createLink(bagDir.resolve(pathInBag), existing) }))
-////        .flatMap { _ =>
-////          val tempFetchTxt = Files.createTempFile("fetchtxt-backup", ".txt")
-////          Files.delete(tempFetchTxt)
-////          Files.move(fetchTxt, tempFetchTxt)
-////          val result = bagFacade.isValid(bagDir)
-////          Files.move(tempFetchTxt, fetchTxt)
-////        }
-//    } else
-//      bagFacade.isValid(bagDir)
+    def getLinkMappings: Try[Seq[(Path, Path)]] = {
+      import nl.knaw.dans.lib.error._
+      bagFacade.getFetchItems(bagDir) flatMap {
+        items =>
+          items.map(
+            item =>
+              for {
+                id <- fromUri(item.uri)
+                fileId <- ItemId.toFileId(id)
+                location <- toLocation(fileId)
+              } yield (bagDir.resolve(item.path), location)).collectResults
+      }
+    }
 
-    ???
+    def moveFetchTxtToTempLocation(): Try[Path] = {
+
+      ???
+    }
+
+    def moveFetchTxtBackFromTempLocationAt(path: Path): Try[Unit] = {
+
+      ???
+    }
+
+    def createLinks(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
+      mappings.foreach {
+        case (link, to) => Files.createLink(link, to)
+      }
+    }
+
+    def removeLinks(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
+      mappings.foreach {
+        case (link, _) => Files.deleteIfExists(link)
+      }
+    }
+
+    val fetchTxt = bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)
+    if (Files.exists(fetchTxt)) {
+        for {
+          mappings <- getLinkMappings
+          tempLocFetch <- moveFetchTxtToTempLocation()
+          _ <- createLinks(mappings)
+          valid <- bagFacade.isValid(bagDir)
+          _ <- removeLinks(mappings)
+          _ <- moveFetchTxtBackFromTempLocationAt(tempLocFetch)
+        } yield valid
+    }
+    else
+      bagFacade.isValid(bagDir)
   }
 
   private def assertUuidValid(uuid: String) = {

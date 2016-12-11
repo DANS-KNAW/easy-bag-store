@@ -106,11 +106,11 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
   }
 
   "toLocation" should "return location of bag when given a bag-id"  in {
-    val bagId = BagId(UUID.fromString("00000000-0000-0000-0000-000000000000"))
+    val bagId = BagId(UUID.fromString("00000000-0000-0000-0000-000000000001"))
     val result = toLocation(bagId)
     result shouldBe a[Success[_]]
     inside(result) {
-      case Success(p) => p shouldBe baseDir.resolve("00/000000000000000000000000000000/bag-revision-1")
+      case Success(p) => p shouldBe baseDir.resolve("00/000000000000000000000000000001/bag-revision-1")
     }
   }
 
@@ -124,20 +124,20 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
   }
 
   it should "return location of a file when given a file-id" in {
-    val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000000"), Paths.get("data/x"))
+    val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000001"), Paths.get("data/x"))
     val result = toLocation(fileId)
     result shouldBe a[Success[_]]
     inside(result) {
-      case Success(p) => p shouldBe baseDir.resolve("00/000000000000000000000000000000/bag-revision-1/data/x")
+      case Success(p) => p shouldBe baseDir.resolve("00/000000000000000000000000000001/bag-revision-1/data/x")
     }
   }
 
   it should "return location of a file when given a file-id, even if it does not exist, as long as bag base does exist" in {
-    val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000000"), Paths.get("non-existent/file"))
+    val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000001"), Paths.get("non-existent/file"))
     val result = toLocation(fileId)
     result shouldBe a[Success[_]]
     inside(result) {
-      case Success(p) => p shouldBe baseDir.resolve("00/000000000000000000000000000000/bag-revision-1/non-existent/file")
+      case Success(p) => p shouldBe baseDir.resolve("00/000000000000000000000000000001/bag-revision-1/non-existent/file")
     }
   }
 
@@ -281,4 +281,22 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
 //    }
 //  }
 //
+
+  "toRealLocation" should "resolve to the location pointed to in the fetch.txt" in {
+    val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000003"), Paths.get("data/sub-copy/u"))
+    val result = toRealLocation(fileId)
+    result shouldBe a[Success[_]]
+    inside(result) {
+      case Success(path) => path shouldBe baseDir.resolve("00/000000000000000000000000000001/bag-revision-1/data/sub/u")
+    }
+  }
+
+  it should "resolve to real location if fetch references other fetch reference" in {
+    val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000003"), Paths.get("data/x"))
+    val result = toRealLocation(fileId)
+    result shouldBe a[Success[_]]
+    inside(result) {
+      case Success(path) => path shouldBe baseDir.resolve("00/000000000000000000000000000001/bag-revision-1/data/x")
+    }
+  }
 }
