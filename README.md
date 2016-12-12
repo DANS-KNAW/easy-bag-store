@@ -17,6 +17,7 @@ SYNOPSIS
                      | index <bag-id>
                      | erase {--authority-name|-n} <name> {--authority-password|-p} <password> \
                           {--tombstone-message|-m <message>} <file-id>
+                          
 
 DESCRIPTION
 -----------

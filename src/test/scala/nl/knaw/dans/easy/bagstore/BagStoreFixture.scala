@@ -16,11 +16,8 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.net.URI
+import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermissions
-import java.nio.file.{Files, Paths}
-
-import org.apache.commons.io.FileUtils
-import org.scalatest.{FlatSpec, Matchers, OneInstancePerTest}
 
 /**
  * Common base class for tests that need to set up a test bag store. This class should only do the set-up that is

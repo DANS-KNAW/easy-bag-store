@@ -23,7 +23,7 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import resource.Using
 
 import scala.collection.JavaConverters._
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 sealed abstract class Algorithm(val strength: Int)
 case object MD5 extends Algorithm(1)

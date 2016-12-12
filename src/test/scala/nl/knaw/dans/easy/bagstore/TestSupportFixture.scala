@@ -15,7 +15,6 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Paths}
 
 import org.apache.commons.io.FileUtils

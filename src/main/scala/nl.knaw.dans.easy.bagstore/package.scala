@@ -17,10 +17,11 @@ package nl.knaw.dans.easy
 
 import java.net.URI
 import java.nio.file.{Files, Path}
-import collection.JavaConverters._
+
 import org.apache.commons.io.FileUtils
 
 import scala.annotation.tailrec
+import scala.collection.JavaConverters._
 
 package object bagstore {
   case class NoItemUriException(uri: URI, baseUri: URI) extends Exception(s"Base of URI $uri is not an item-uri: does not match base-uri; base-uri is $baseUri")
@@ -43,11 +44,12 @@ package object bagstore {
         todo match {
           case Nil => acc
           case (file1, file2) :: tail if Files.isDirectory(file1) && Files.isDirectory(file2) =>
-            val subs =
-              Files.list(file1).iterator().asScala.toSeq.sorted
-                .zip(Files.list(file2).iterator().asScala.toSeq.sorted).toList
-
-            rec(tail ::: subs, acc)
+            val files1 = Files.list(file1).iterator().asScala.toSeq
+            val files2 = Files.list(file2).iterator().asScala.toSeq
+            if (files1.size != files2.size)
+              false
+            else
+              rec(tail ::: files1.sorted.zip(files2.sorted).toList, acc)
           case (file1, file2) :: tail if Files.isRegularFile(file1) && Files.isRegularFile(file2) =>
             rec(tail, excludeFiles.contains(f1.relativize(file1).toString) ||
               (acc &&

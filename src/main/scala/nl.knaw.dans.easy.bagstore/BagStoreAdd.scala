@@ -19,14 +19,10 @@ import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Path}
 import java.util.UUID
 
-import scala.collection.JavaConverters._
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-
-import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Try}
 
 trait BagStoreAdd extends BagStoreContext {
-  import logger._
 
   def add(bagDir: Path, uuid: Option[UUID] = None): Try[BagId] = {
     trace(bagDir)

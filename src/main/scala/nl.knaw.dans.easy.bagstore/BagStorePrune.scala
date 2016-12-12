@@ -16,10 +16,9 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.net.URI
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{Files, Path}
+
 import nl.knaw.dans.lib.error._
-
-
 import org.apache.commons.io.FileUtils
 
 import scala.collection.mutable

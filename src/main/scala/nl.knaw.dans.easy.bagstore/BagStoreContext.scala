@@ -16,7 +16,6 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.net.URI
-import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Path, Paths}
 import java.util.UUID
 
@@ -25,8 +24,7 @@ import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
 
 import scala.collection.JavaConverters._
-import scala.util.control.NonFatal
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 /**
  * Provides the bag-store context, which consists of:
@@ -252,20 +250,22 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
     staged
   }
 
-  protected def isVirtuallyValid(bagDir: Path): Try[Boolean] =  {
-    def getLinkMappings: Try[Seq[(Path, Path)]] = {
-      import nl.knaw.dans.lib.error._
-      bagFacade.getFetchItems(bagDir) flatMap {
-        items =>
-          items.map(
-            item =>
-              for {
-                id <- fromUri(item.uri)
-                fileId <- ItemId.toFileId(id)
-                location <- toRealLocation(fileId)
-              } yield (bagDir.resolve(item.path), location)).collectResults
-      }
+  protected def mapProjectedToRealLocation(bagDir: Path): Try[Seq[(Path, Path)]] = {
+    import nl.knaw.dans.lib.error._
+    bagFacade.getFetchItems(bagDir) flatMap {
+      items =>
+        items.map(
+          item =>
+            for {
+              id <- fromUri(item.uri)
+              fileId <- ItemId.toFileId(id)
+              location <- toRealLocation(fileId)
+            } yield (bagDir.resolve(item.path), location)).collectResults
     }
+  }
+
+  protected def isVirtuallyValid(bagDir: Path): Try[Boolean] =  {
+
 
     def getExtraDirectories(links: Seq[Path]): Try[Seq[Path]] = Try {
       val dirs =
@@ -328,7 +328,7 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
     val fetchTxt = bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)
     if (Files.exists(fetchTxt)) {
         for {
-          mappings <- getLinkMappings
+          mappings <- mapProjectedToRealLocation(bagDir)
           extraDirs <- getExtraDirectories(mappings.map { case (link, to) => link })
           validTagManifests <- bagFacade.hasValidTagManifests(bagDir)
           _ = debug(s"valid tagmanifests: $validTagManifests")
