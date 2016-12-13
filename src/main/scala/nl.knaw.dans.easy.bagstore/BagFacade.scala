@@ -18,6 +18,7 @@ package nl.knaw.dans.easy.bagstore
 import java.net.URI
 import java.nio.file.{Files, Path, Paths}
 
+import gov.loc.repository.bagit.writer.impl.FileSystemHelper
 import gov.loc.repository.bagit.{Bag, BagFactory, FetchTxt}
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import resource.Using
@@ -58,21 +59,21 @@ trait BagFacade extends DebugEnhancedLogging{
       })
       .tried
 
-  def resolveFetchItems(bagDir: Path, resolveUri: URI => URI): Try[Unit]
+  def removeFetchTxtFromTagManifests(bagDir: Path): Try[Unit]
 }
 
 class Bagit4Facade(bagFactory: BagFactory = new BagFactory) extends BagFacade {
 
-  val algorithmMap = Map[Algorithm, gov.loc.repository.bagit.Manifest.Algorithm](
+  private val algorithmMap = Map[Algorithm, gov.loc.repository.bagit.Manifest.Algorithm](
     MD5 -> gov.loc.repository.bagit.Manifest.Algorithm.MD5,
     SHA1 -> gov.loc.repository.bagit.Manifest.Algorithm.SHA1,
     SHA256 -> gov.loc.repository.bagit.Manifest.Algorithm.SHA256,
     SHA512 -> gov.loc.repository.bagit.Manifest.Algorithm.SHA512)
-  val algorithmReverseMap = algorithmMap.map(_.swap)
+  private val algorithmReverseMap = algorithmMap.map(_.swap)
 
-  def isValid(bagDir: Path): Try[Boolean] = {
+  override def isValid(bagDir: Path): Try[Boolean] = {
     for {
-      bag <- getBagFromDir(bagDir)
+      bag <- getBag(bagDir)
       result <- Try {
         bag.verifyValid()
       }
@@ -82,9 +83,9 @@ class Bagit4Facade(bagFactory: BagFactory = new BagFactory) extends BagFacade {
     } yield valid
   }
 
-  def hasValidTagManifests(bagDir: Path): Try[Boolean] = {
+  override def hasValidTagManifests(bagDir: Path): Try[Boolean] = {
     for {
-      bag <- getBagFromDir(bagDir)
+      bag <- getBag(bagDir)
       result <- Try {
         bag.verifyTagManifests()
       }
@@ -95,14 +96,14 @@ class Bagit4Facade(bagFactory: BagFactory = new BagFactory) extends BagFacade {
   }
 
 
-  def getPayloadManifest(bagDir: Path, algorithm: Algorithm): Try[Map[Path, String]] =
-    getBagFromDir(bagDir)
+  override def getPayloadManifest(bagDir: Path, algorithm: Algorithm): Try[Map[Path, String]] =
+    getBag(bagDir)
       .map(_.getPayloadManifest(algorithmMap(algorithm))
         .asScala
         .map { case (path, c) => (Paths.get(path), c) }
         .toMap)
 
-  def getFetchItems(bagDir: Path): Try[Seq[FetchItem]] =
+  override def getFetchItems(bagDir: Path): Try[Seq[FetchItem]] =
     getFetchTxt(bagDir).map(
       _.map(
         _.asScala
@@ -110,32 +111,34 @@ class Bagit4Facade(bagFactory: BagFactory = new BagFactory) extends BagFacade {
           .toSeq)
         .getOrElse(Seq.empty))
 
-  def getSupportedManifestAlgorithms(bagDir: Path): Try[Set[Algorithm]] =
-    getBagFromDir(bagDir)
+  private def getFetchTxt(bagDir: Path): Try[Option[FetchTxt]] = getBag(bagDir).map(bag => Option(bag.getFetchTxt))
+
+  override def getSupportedManifestAlgorithms(bagDir: Path): Try[Set[Algorithm]] =
+    getBag(bagDir)
       .map(_.getPayloadManifests
         .asScala
         .map(manifest => algorithmReverseMap(manifest.getAlgorithm))
         .toSet)
 
-  def getWeakestCommonAlgorithm(algorithmSets: Set[Set[Algorithm]]): Option[Algorithm] = {
+  override def getWeakestCommonAlgorithm(algorithmSets: Set[Set[Algorithm]]): Option[Algorithm] = {
     val commonAlgorithms = algorithmSets.reduce((n, a) => a.intersect(n))
     val weakToStrong = algorithmMap.keys.toSeq.sortBy(_.strength)
     weakToStrong.find(commonAlgorithms.contains)
   }
 
-  def getBagFromDir(dir: Path): Try[Bag] = Try {
+  private def getBag(dir: Path): Try[Bag] = Try {
     bagFactory.createBag(dir.toFile, BagFactory.Version.V0_97, BagFactory.LoadOption.BY_MANIFESTS)
   }.recoverWith { case cause => Failure(BagNotFoundException(dir, cause)) }
 
-  def resolveFetchItems(bagDir: Path, resolveUri: URI => URI): Try[Unit] =
-    getFetchTxt(bagDir)
-      .map(_.foreach(_.asScala.foreach(item =>
-        Using.urlInputStream(resolveUri(new URI(item.getUrl)).toURL)
-          .foreach(src => Files.copy(src, bagDir.toAbsolutePath.resolve(item.getFilename))))))
+  override def removeFetchTxtFromTagManifests(bagDir: Path): Try[Unit] = {
+    getBag(bagDir).map {
+      bag =>
+        bag.getTagManifests.asScala.foreach {
+          m =>
+            m.remove(FETCH_TXT_FILENAME)
+            FileSystemHelper.write(m, bagDir.resolve(m.getFilepath).toFile)
+        }
+    }
+  }
 
-  def deleteFetchItems(bagDir: Path): Try[Unit] =
-    getFetchTxt(bagDir)
-      .map(_.foreach(_.asScala.foreach(item => Files.delete(bagDir.toAbsolutePath.resolve(item.getFilename)))))
-
-  def getFetchTxt(bagDir: Path): Try[Option[FetchTxt]] = getBagFromDir(bagDir).map(bag => Option(bag.getFetchTxt))
 }
