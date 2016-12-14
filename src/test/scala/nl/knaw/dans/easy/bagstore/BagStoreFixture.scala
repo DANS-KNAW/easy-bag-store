@@ -19,6 +19,8 @@ import java.net.URI
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermissions
 
+import scala.collection.JavaConverters._
+
 /**
  * Common base class for tests that need to set up a test bag store. This class should only do the set-up that is
  * common to all these tests, nothing more!
@@ -33,9 +35,8 @@ abstract class BagStoreFixture extends TestSupportFixture with BagStoreContext {
     /*
      * Set all files created to writable, otherwise things such as mvn clean will require sudo.
      */
-    walkTree(testDir).foreach {
+    Files.walk(testDir).iterator().asScala.toList.foreach {
       Files.setPosixFilePermissions(_, PosixFilePermissions.fromString("rwxrwxrwx"))
     }
   }
-
 }

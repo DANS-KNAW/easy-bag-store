@@ -16,7 +16,7 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.net.URI
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{Path, Paths}
 
 import gov.loc.repository.bagit.writer.impl.FileSystemHelper
 import gov.loc.repository.bagit.{Bag, BagFactory, FetchTxt}

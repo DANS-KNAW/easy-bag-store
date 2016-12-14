@@ -20,6 +20,7 @@ import java.nio.file.{Files, Path}
 
 import org.apache.commons.io.FileUtils
 
+import scala.collection.JavaConverters._
 import scala.util.Try
 
 trait BagStoreGet extends BagStoreContext {
@@ -31,7 +32,7 @@ trait BagStoreGet extends BagStoreContext {
           val target = if (Files.isDirectory(output)) output.resolve(path.getFileName) else output
           Files.createDirectory(target)
           FileUtils.copyDirectory(path.toFile, target.toFile)
-          walkTree(output).foreach {
+          Files.walk(output).iterator().asScala.toList.foreach {
             path => Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rwxr-xr--")) // TODO: make configurable
           }
       }

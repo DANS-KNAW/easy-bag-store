@@ -64,12 +64,4 @@ package object bagstore {
     }
     rec(List((f1, f2)))
   }
-
-  def walkTree(file: Path): Iterable[Path] = {
-    val children = new Iterable[Path] {
-      def iterator: Iterator[Path] = if (Files.isDirectory(file)) Files.list(file).iterator().asScala else Iterator.empty
-    }
-    children.flatMap(walkTree) ++: Seq(file)
-  }
-
 }

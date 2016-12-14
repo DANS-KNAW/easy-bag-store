@@ -20,7 +20,6 @@ import java.nio.file.Paths
 import org.apache.commons.io.FileUtils
 
 import scala.util.Success
-import org.scalatest.Inside.inside
 
 class BagStoreGetSpec extends BagStoreFixture with BagStoreGet with BagStoreAdd {
   private val TEST_BAGS_DIR = Paths.get("src/test/resources/bags")

@@ -19,6 +19,7 @@ import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Path}
 import java.util.UUID
 
+import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 import scala.util.{Failure, Try}
 
@@ -49,7 +50,7 @@ trait BagStoreAdd extends BagStoreContext {
     val moved = container.resolve(bagName)
     Try {
       Files.move(staged, moved)
-      walkTree(moved).foreach {
+      Files.walk(moved).iterator().asScala.toList.foreach {
         f => Files.setPosixFilePermissions(f, PosixFilePermissions.fromString("r-xr-xr-x")) // TODO: make configurable
       }
     }.recoverWith {

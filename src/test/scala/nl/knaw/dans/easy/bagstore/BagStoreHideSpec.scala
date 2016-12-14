@@ -17,8 +17,9 @@ package nl.knaw.dans.easy.bagstore
 
 import java.nio.file.{Files, Paths}
 
-import scala.util.{Failure, Success}
 import org.scalatest.Inside.inside
+
+import scala.util.{Failure, Success}
 
 class BagStoreHideSpec extends BagStoreFixture with BagStoreHide with BagStoreAdd {
   private val TEST_BAGS_DIR = Paths.get("src/test/resources/bags")

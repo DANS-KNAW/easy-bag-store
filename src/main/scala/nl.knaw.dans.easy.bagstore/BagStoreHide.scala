@@ -15,11 +15,11 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.nio.file.{Files, Path}
 import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.{Files, Path}
 
+import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
-import collection.JavaConverters._
 
 trait BagStoreHide extends BagStoreContext {
   implicit val makeBaseDirTemporarilyWritable = true

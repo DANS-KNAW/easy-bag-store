@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagstore
 import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Path}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 trait BagStoreComplete extends BagStoreContext {
 
