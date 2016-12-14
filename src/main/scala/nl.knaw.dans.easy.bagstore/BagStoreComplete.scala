@@ -22,6 +22,7 @@ import scala.util.{Failure, Success, Try}
 
 trait BagStoreComplete extends BagStoreContext {
 
+  // TODO: This function looks a lot like BagStoreContext.isVirtuallyValid.createLinks, refactor?
   def complete(bagDir: Path): Try[Unit] = {
     trace(bagDir)
     def copyFiles(mappings: Seq[(Path, Path)]): Try[Unit] = Try {

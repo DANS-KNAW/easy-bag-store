@@ -34,6 +34,7 @@ package object bagstore {
   case class MoveToStoreFailedException(bag: Path, containerDir: Path) extends Exception(s"Failed to move $bag to container at $containerDir")
   case class NoItemException(p: Path) extends Exception(s"Not a bag-store item: $p")
   case class NoItemIdException(s: String) extends Exception(s"Not a valid item-id string: $s")
+  case class AlreadyHiddenException(bagId: BagId) extends Exception(s"$bagId is already hidden")
 
 
   def pathsEqual(f1: Path, f2: Path, excludeFiles: String*): Boolean = {
