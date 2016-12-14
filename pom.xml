@@ -24,7 +24,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>nl.knaw.dans.easy</groupId>
-    <artifactId>easy-bag-store3</artifactId>
+    <artifactId>easy-bag-store</artifactId>
     <version>1.x-SNAPSHOT</version>
     <name>EASY Bag Store</name>
     <url>https://github.com/DANS-KNAW/easy-bag-store</url>

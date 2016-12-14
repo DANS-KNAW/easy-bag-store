@@ -17,6 +17,7 @@ package nl.knaw.dans.easy
 
 import java.net.URI
 import java.nio.file.{Files, Path}
+import java.util.Properties
 
 import org.apache.commons.io.FileUtils
 
@@ -36,6 +37,13 @@ package object bagstore {
   case class NoItemIdException(s: String) extends Exception(s"Not a valid item-id string: $s")
   case class AlreadyHiddenException(bagId: BagId) extends Exception(s"$bagId is already hidden")
 
+  object Version {
+    def apply(): String = {
+      val props = new Properties()
+      props.load(getClass.getResourceAsStream("/Version.properties"))
+      props.getProperty("application.version")
+    }
+  }
 
   def pathsEqual(f1: Path, f2: Path, excludeFiles: String*): Boolean = {
 
