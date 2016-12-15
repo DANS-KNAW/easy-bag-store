@@ -76,7 +76,7 @@ object Command extends App with BagStoreApp {
           .map(valid => s"done validating. Result: virtually-valid = $valid")
     case _ => throw new IllegalArgumentException(s"Unknown command: ${opts.subcommand}")
       Try {
-        "Unknown "
+        "Unknown command"
       }
   }
 
