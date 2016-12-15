@@ -26,7 +26,8 @@ trait BagStoreApp extends BagStoreContext
   with BagStoreEnum
   with BagStoreGet
   with BagStoreComplete
-  with BagStoreHide {
+  with BagStoreHide
+  with BagStorePrune {
   val properties = new PropertiesConfiguration(new File(new File(System.getProperty("app.home")), "cfg/application.properties"))
   implicit val baseDir: Path = Paths.get(properties.getString("bag-store.base-dir"))
   implicit val baseUri = new URI(properties.getString("bag-store.base-uri"))

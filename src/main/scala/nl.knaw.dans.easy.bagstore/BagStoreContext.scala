@@ -367,7 +367,7 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
          * If the container exists, the Bag must exist. This function does not check for corruption of the BagStore.
          */
         if(Files.exists(f) && Files.isDirectory(f)) Success(())
-        else throw NonExistentBagException(bagId)
+        else throw NoSuchBagException(bagId)
     }
   }
 }
