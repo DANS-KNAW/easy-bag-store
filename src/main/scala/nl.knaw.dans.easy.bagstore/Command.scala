@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *         http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,7 +68,13 @@ object Command extends App with BagStoreApp {
           .flatMap(refBagIds => prune(cmd.bagDir(), refBagIds: _*))
           .map(_ => "done pruning"))
         .getOrElse(Success("No reference Bags specified: nothing to do"))
-    case _ => throw new IllegalArgumentException(s"Unkown command: ${opts.subcommand}")
+    case Some(cmd@opts.complete) =>
+      complete(cmd.bagDir())
+          .map(_ => s"done completing ${cmd.bagDir()}")
+    case Some(cmd@opts.validate) =>
+      isVirtuallyValid(cmd.bagDir())
+          .map(valid => s"done validating. Result: virtually-valid = $valid")
+    case _ => throw new IllegalArgumentException(s"Unknown command: ${opts.subcommand}")
       Try {
         "Unknown "
       }

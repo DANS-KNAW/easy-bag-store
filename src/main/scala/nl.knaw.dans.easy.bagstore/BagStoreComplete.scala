@@ -26,10 +26,14 @@ trait BagStoreComplete extends BagStoreContext {
   def complete(bagDir: Path): Try[Unit] = {
     trace(bagDir)
     def copyFiles(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
+      debug(s"copying ${mappings.size} files to projected locations")
       mappings.foreach {
         case (to, from) =>
-          if (!Files.exists(to.getParent))
+          if (!Files.exists(to.getParent)) {
+            debug(s"creating missing parent directory: ${to.getParent}")
             Files.createDirectories(to.getParent)
+          }
+          debug(s"copy $from -> $to")
           Files.copy(from, to)
           Files.setPosixFilePermissions(to, PosixFilePermissions.fromString("rwxr-xr--")) // TODO: make configurable
       }
@@ -37,12 +41,14 @@ trait BagStoreComplete extends BagStoreContext {
 
     for {
       virtuallyValid <- isVirtuallyValid(bagDir)
+      _ = debug(s"input virtually-valid?: $virtuallyValid")
       if virtuallyValid
       mappings <- mapProjectedToRealLocation(bagDir)
       _ <- copyFiles(mappings)
       _ <- bagFacade.removeFetchTxtFromTagManifests(bagDir)
-      _ <- Try { Files.delete(bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)) }
+      _ <- Try { Files.deleteIfExists(bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)) }
       valid <- bagFacade.isValid(bagDir)
+      _ = debug(s"result valid?: $valid")
       if valid
     } yield ()
   }

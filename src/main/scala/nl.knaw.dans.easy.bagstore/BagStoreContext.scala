@@ -260,7 +260,7 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
               id <- fromUri(item.uri)
               fileId <- ItemId.toFileId(id)
               location <- toRealLocation(fileId)
-            } yield (bagDir.resolve(item.path), location)).collectResults
+            } yield (bagDir.toAbsolutePath.resolve(item.path), location)).collectResults
     }
   }
 

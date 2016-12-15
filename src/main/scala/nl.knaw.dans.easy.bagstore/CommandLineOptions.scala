@@ -40,6 +40,7 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
             |${_________}  | hide <item-id>
             |${_________}  | prune <bag-dir> <ref-bag-id>...
             |${_________}  | complete <bag-dir>
+            |${_________}  | validate <bag-dir>
             |${_________}  | index <bag-id>
             |${_________}  | erase {--authority-name|-n} <name> {--authority-password|-p} <password> \\
             |${_________}      {--tombstone-message|-m <message>} <file-id>
@@ -107,6 +108,21 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
   }
   addSubcommand(prune)
 
+  val complete = new Subcommand("complete") {
+    descr("Resolves fetch.txt references from the BagStore and copies them into <bag-dir>")
+    val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
+      descr = "Bag directory to complete",
+      required = true)
+  }
+  addSubcommand(complete)
+
+  val validate = new Subcommand("validate") {
+    descr("Checks that <bag-dir> is a virtually-valid Bag")
+    val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
+      descr = "Bag directory to validate",
+      required = true)
+  }
+  addSubcommand(validate)
 
   footer("")
 }
