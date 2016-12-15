@@ -26,16 +26,10 @@ import scala.collection.JavaConverters._
 
 package object bagstore {
   case class NoItemUriException(uri: URI, baseUri: URI) extends Exception(s"Base of URI $uri is not an item-uri: does not match base-uri; base-uri is $baseUri")
-  case class NoBagSequenceUriException(uri: URI, baseUri: URI) extends Exception(s"Base of URI $uri not a bagsequence uri: does not match base-uri; base-uri is $baseUri")
   case class IncompleteItemUriException(msg: String) extends Exception(s"URI is an item-uri but missing parts: $msg")
-  case class IncompleteBagSequenceUriException(msg: String) extends Exception(s"URI is a bagsequence uri but missing parts: $msg")
-  case class InvalidUuidInItemUriException(msg: String) extends Exception(s"Invalid UUID in item-uri URI: $msg")
-  case class NoBagException2(bagId: BagId)(implicit baseDir: Path) extends Exception(s"Bagstore at $baseDir does not contain bag with bag-id: $bagId")
-  case class NoBagException(bagId: BagId)(implicit baseDir: Path) extends Exception(s"Bagstore at $baseDir does not contain bag with bag-id: $bagId")
   case class MoveToStoreFailedException(bag: Path, containerDir: Path) extends Exception(s"Failed to move $bag to container at $containerDir")
-  case class NoItemException(p: Path) extends Exception(s"Not a bag-store item: $p")
-  case class NoItemIdException(s: String) extends Exception(s"Not a valid item-id string: $s")
   case class AlreadyHiddenException(bagId: BagId) extends Exception(s"$bagId is already hidden")
+  case class NonExistentBagException(bagId: BagId) extends Exception(s"$bagId does not exist in BagStore")
 
   object Version {
     def apply(): String = {

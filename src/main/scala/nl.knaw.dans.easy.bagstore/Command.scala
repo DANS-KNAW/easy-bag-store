@@ -23,7 +23,7 @@ object Command extends App with BagStoreApp {
   import scala.language.reflectiveCalls
   val opts = CommandLineOptions(args, properties)
   opts.verify()
-  override implicit val baseDir = opts.bagStoreBaseDir().toPath
+  override implicit val baseDir = opts.bagStoreBaseDir().toPath.toAbsolutePath
 
   val result = opts.subcommand match {
     case Some(cmd@opts.add) =>
@@ -56,7 +56,9 @@ object Command extends App with BagStoreApp {
         bagId <- ItemId.toBagId(itemId)
         _ <- hide(bagId)
       } yield s"Marked ${cmd.bagId()} as hidden"
-//    case Some(cmd@opts.prune) =>
+    //case Some(cmd@opts.prune) =>
+
+
 
     case _ => throw new IllegalArgumentException(s"Unkown command: ${opts.subcommand}")
       Try { "Unknown "}

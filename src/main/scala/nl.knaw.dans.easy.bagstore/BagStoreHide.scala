@@ -26,12 +26,13 @@ trait BagStoreHide extends BagStoreContext {
 
   def hide(bagId: BagId): Try[Unit] = {
     for {
+      _ <- checkBagExists(bagId)
       path <- toLocation(bagId)
       _ <- if (Files.isHidden(path)) Failure(AlreadyHiddenException(bagId)) else Success(())
       oldPerm <- makeWritable(path)
       newPath <- Try { path.getParent.resolve(s".${path.getFileName}") }
       _ <- Try { Files.move(path, newPath)}
-      _ <- resetPermissions(newPath, oldPerm)
+      _ <- restorePermissions(newPath, oldPerm)
     } yield ()
   }
 
@@ -42,7 +43,7 @@ trait BagStoreHide extends BagStoreContext {
     oldPermissions
   }
 
-  private def resetPermissions(dir: Path, permissions: Set[PosixFilePermission]): Try[Unit] = Try {
+  private def restorePermissions(dir: Path, permissions: Set[PosixFilePermission]): Try[Unit] = Try {
     Files.setPosixFilePermissions(dir, permissions.asJava)
   }
 }
