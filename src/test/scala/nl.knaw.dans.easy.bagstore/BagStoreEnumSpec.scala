@@ -19,7 +19,7 @@ import java.nio.file.Paths
 
 import org.apache.commons.io.FileUtils
 
-class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAdd with BagStorePrune {
+class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAdd with BagStorePrune with BagStoreHide {
   FileUtils.copyDirectory(Paths.get("src/test/resources/bags/basic-sequence-unpruned").toFile, testDir.toFile)
   private val TEST_BAG_A = testDir.resolve("a")
   private val TEST_BAG_B = testDir.resolve("b")
@@ -38,6 +38,47 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   it should "return empty stream if BagStore is empty" in {
     val bagIds = enumBags() .iterator.toList
     bagIds.size shouldBe 0
+  }
+
+  it should "skip hidden Bags by default" in {
+    val ais = add(TEST_BAG_A).get
+    val bis = add(TEST_BAG_B).get
+    val cis = add(TEST_BAG_C).get
+    hide(bis)
+    val bagIds = enumBags().iterator.toList
+    bagIds.size shouldBe 2
+    bagIds.toSet shouldBe Set(ais, cis)
+  }
+
+  it should "include hidden Bags if requested" in {
+    val ais = add(TEST_BAG_A).get
+    val bis = add(TEST_BAG_B).get
+    val cis = add(TEST_BAG_C).get
+    hide(bis)
+    val bagIds = enumBags(includeHidden = true).iterator.toList
+    bagIds.size shouldBe 3
+    bagIds.toSet shouldBe Set(ais, bis, cis)
+  }
+
+  it should "skip visible Bags if requested" in {
+    val ais = add(TEST_BAG_A).get
+    val bis = add(TEST_BAG_B).get
+    val cis = add(TEST_BAG_C).get
+    hide(bis)
+    val bagIds = enumBags(includeVisible = false, includeHidden = true).iterator.toList
+    bagIds.size shouldBe 1
+    bagIds.toSet shouldBe Set(bis)
+
+  }
+
+  it should "skip all Bags if requested" in {
+    val ais = add(TEST_BAG_A).get
+    val bis = add(TEST_BAG_B).get
+    val cis = add(TEST_BAG_C).get
+    hide(bis)
+    val bagIds = enumBags(includeVisible = false, includeHidden = false).iterator.toList
+    bagIds.size shouldBe 0
+    bagIds.toSet shouldBe Set()
   }
 
   "enumFiles" should "return all FileIds in a valid Bag" in {

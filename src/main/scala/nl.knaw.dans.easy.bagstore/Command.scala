@@ -20,7 +20,6 @@ import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 object Command extends App with BagStoreApp {
-
   import scala.language.reflectiveCalls
 
   val opts = CommandLineOptions(args, properties)
@@ -50,7 +49,9 @@ object Command extends App with BagStoreApp {
             } yield enumFiles(bagId)
               .iterator.foreach(println(_))
         } getOrElse {
-        enumBags().iterator.foreach(println(_))
+          val includeVisible = cmd.all() || !cmd.hidden()
+          val includeHidden = cmd.all() || cmd.hidden()
+          enumBags(includeVisible, includeHidden).iterator.foreach(println(_))
       }
       "Finished enumerating"
     }

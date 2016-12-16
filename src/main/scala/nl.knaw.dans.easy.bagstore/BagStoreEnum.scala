@@ -25,11 +25,12 @@ trait BagStoreEnum extends BagStoreContext {
     Files.walk(baseDir, uuidPathComponentSizes.size).iterator().asScala
       .map(baseDir.relativize)
       .withFilter(_.getNameCount == uuidPathComponentSizes.size)
-      .withFilter(Files.isHidden(_) == includeHidden)
-      .withFilter(!Files.isHidden(_) == includeVisible)
       .map(p => fromLocation(baseDir.resolve(p)).flatMap(ItemId.toBagId))
       .map(_.get) // TODO: is there a better way to fail fast ?
-      .toStream
+      .withFilter { b =>
+      val hiddenBag = isHidden(b).get
+      hiddenBag && includeHidden || !hiddenBag && includeVisible
+    }.toStream
   }
 
   def enumFiles(bagId: BagId): Stream[FileId] = {

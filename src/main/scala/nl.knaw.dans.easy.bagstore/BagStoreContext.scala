@@ -370,4 +370,9 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
         else throw NoSuchBagException(bagId)
     }
   }
+
+  protected def isHidden(bagId: BagId): Try[Boolean] = {
+    toLocation(bagId).map(Files.isHidden)
+  }
+
 }

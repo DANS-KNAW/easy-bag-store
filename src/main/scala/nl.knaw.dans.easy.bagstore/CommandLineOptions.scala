@@ -86,6 +86,7 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
     val bagId: ScallopOption[String] = trailArg[String](name = "<bagId>",
       descr = "Bag of which to enumerate the Files",
       required = false)
+    mutuallyExclusive(all, hidden)
   }
   addSubcommand(enum)
 
