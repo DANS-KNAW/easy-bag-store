@@ -54,6 +54,7 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
       override implicit val baseDir: Path = BagStoreContextSpec.this.baseDir
       override implicit val baseUri: URI = BagStoreContextSpec.this.baseUri
       override implicit val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
+      override implicit val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
 
       val uuid = UUID.randomUUID()
       val dirs = uuid.toString.filterNot(_ == '-').grouped(1).toList
@@ -105,7 +106,7 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
     }
   }
 
-  "toLocation" should "return location of bag when given a bag-id"  in {
+  "toLocation" should "return location of bag when given a bag-id" in {
     val bagId = BagId(UUID.fromString("00000000-0000-0000-0000-000000000001"))
     val result = toLocation(bagId)
     result shouldBe a[Success[_]]
@@ -164,6 +165,7 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
       override implicit val baseDir: Path = BagStoreContextSpec.this.baseDir
       override implicit val baseUri: URI = new URI("http://example-archive.org/base-path/")
       override implicit val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
+      override implicit val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
 
       val uuid = UUID.randomUUID()
       val id = fromUri(new URI(s"$baseUri/$uuid"))
@@ -215,72 +217,6 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
       case Failure(e) => e shouldBe a[IncompleteItemUriException]
     }
   }
-//
-//  "fromUri followed by toUri" should "be no-op" in {
-//    val uuid = UUID.randomUUID()
-//    val rev = 42
-//    val uri = baseUri.resolve(s"$uuid.$rev/some/path")
-//    val id = fromUri(uri)
-//    id shouldBe a[Success[_]]
-//    inside(id) {
-//      case Success(id) => toUri(id) shouldBe uri
-//    }
-//  }
-//
-//  "fromLocation followed by toLocation" should "be no-op" in {
-//    val (parentDir, childDir) = UUID.randomUUID().toString.filterNot(_ == '-').splitAt(2)
-//    val rev = 42
-//    val path = baseDir.resolve(s"$parentDir/$childDir/$rev/some/path")
-//    val id = fromLocation(path)
-//    id shouldBe a[Success[_]]
-//    inside(id) {
-//      case Success(id) => toLocation(id) shouldBe path
-//    }
-//
-//  }
-//
-//  "getFetchPath" should "return Failure for path not in bag-store" in {
-//    getFetchPath(baseDir.getParent) shouldBe a[Failure[_]]
-//  }
-//
-//  it should "return a bag-sequence-path unchanged" in {
-//    val orgPath = baseDir.resolve("10/53546d80e14c27bccfdd839c8d16d9")
-//    val tryPath = getFetchPath(orgPath)
-//    tryPath shouldBe a[Success[_]]
-//    inside(tryPath) {
-//      case Success(path) => path shouldBe orgPath
-//    }
-//  }
-//
-//  it should "return a bag-path unchanged" in {
-//    val orgPath = baseDir.resolve("10/53546d80e14c27bccfdd839c8d16d9/1")
-//    val tryPath = getFetchPath(orgPath)
-//    tryPath shouldBe a[Success[_]]
-//    inside(tryPath) {
-//      case Success(path) => path shouldBe orgPath
-//    }
-//  }
-//
-//  it should "return a file-path that exists unchanged" in {
-//    val orgPath = baseDir.resolve("10/53546d80e14c27bccfdd839c8d16d9/1/data/x")
-//    val tryPath = getFetchPath(orgPath)
-//    tryPath shouldBe a[Success[_]]
-//    inside(tryPath) {
-//      case Success(path) => path shouldBe orgPath
-//    }
-//  }
-//
-//  it should "return the actual path for a file-path that would be created during fetching" in {
-//    val orgPath = baseDir.resolve("10/53546d80e14c27bccfdd839c8d16d9/2/data/v")
-//    val tryPath = getFetchPath(orgPath)
-//    tryPath shouldBe a[Success[_]]
-//    inside(tryPath) {
-//      case Success(path) =>
-//        path shouldNot be(orgPath)
-//        path shouldBe baseDir.resolve(Paths.get("10/53546d80e14c27bccfdd839c8d16d9/1/data/sub/v"))
-//    }
-//  }
-//
 
   "toRealLocation" should "resolve to the location pointed to in the fetch.txt" in {
     val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000003"), Paths.get("data/sub-copy/u"))
@@ -316,7 +252,5 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
     inside(result) {
       case Success(valid) => valid shouldBe true
     }
-
   }
-
 }

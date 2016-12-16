@@ -16,27 +16,22 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.net.URI
-import java.nio.file.Files
-import java.nio.file.attribute.PosixFilePermissions
-
-import scala.collection.JavaConverters._
+import java.nio.file.Path
 
 /**
  * Common base class for tests that need to set up a test bag store. This class should only do the set-up that is
  * common to all these tests, nothing more!
  */
 abstract class BagStoreFixture extends TestSupportFixture with BagStoreContext {
-  implicit val baseDir = testDir.resolve("bag-store")
-  implicit val baseUri = new URI("http://example-archive.org")
+  implicit val baseDir: Path = testDir.resolve("bag-store")
+  implicit val baseUri: URI = new URI("http://example-archive.org")
   implicit val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
-  baseDir.toFile.mkdirs()
 
-  after {
-    /*
-     * Set all files created to writable, otherwise things such as mvn clean will require sudo.
-     */
-    Files.walk(testDir).iterator().asScala.toList.foreach {
-      Files.setPosixFilePermissions(_, PosixFilePermissions.fromString("rwxrwxrwx"))
-    }
-  }
+  /*
+   * In a production environment you will set bag file permissions also to read-only for the owner.
+   * However, for testing this is not handy, as it would require sudo to do a simple mvn clean install.
+   */
+  implicit val bagPermissions: String = "rwxr-xr-x"
+  baseDir.toFile.mkdirs()
 }
+

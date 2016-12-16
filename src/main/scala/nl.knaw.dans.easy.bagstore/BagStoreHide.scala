@@ -15,28 +15,22 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.{Files, Path}
+import java.nio.file.Files
 
-import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 trait BagStoreHide extends BagStoreContext {
-  implicit val makeBaseDirTemporarilyWritable = true
-
   def hide(bagId: BagId): Try[Unit] = {
     for {
       _ <- checkBagExists(bagId)
       path <- toLocation(bagId)
       _ <- if (Files.isHidden(path)) Failure(AlreadyHiddenException(bagId)) else Success(())
-      oldPerm <- makeWritable(path)
       newPath <- Try {
         path.getParent.resolve(s".${path.getFileName}")
       }
       _ <- Try {
         Files.move(path, newPath)
       }
-      _ <- restorePermissions(newPath, oldPerm)
     } yield ()
   }
 
@@ -45,26 +39,13 @@ trait BagStoreHide extends BagStoreContext {
       _ <- checkBagExists(bagId)
       path <- toLocation(bagId)
       _ <- if (!Files.isHidden(path)) Failure(AlreadyVisibleException(bagId)) else Success(())
-      oldPerm <- makeWritable(path)
       newPath <- Try {
         path.getParent.resolve(s"${path.getFileName.toString.substring(1)}")
       }
       _ <- Try {
         Files.move(path, newPath)
       }
-      _ <- restorePermissions(newPath, oldPerm)
     } yield ()
 
-  }
-
-  private def makeWritable(dir: Path): Try[Set[PosixFilePermission]] = Try {
-    val oldPermissions = Files.getPosixFilePermissions(dir).asScala.toSet
-    val newPermissions = Set(PosixFilePermission.OWNER_WRITE) | oldPermissions
-    Files.setPosixFilePermissions(dir, newPermissions.asJava)
-    oldPermissions
-  }
-
-  private def restorePermissions(dir: Path, permissions: Set[PosixFilePermission]): Try[Unit] = Try {
-    Files.setPosixFilePermissions(dir, permissions.asJava)
   }
 }

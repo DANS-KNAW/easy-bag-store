@@ -32,5 +32,7 @@ trait BagStoreApp extends BagStoreContext
   implicit val baseDir: Path = Paths.get(properties.getString("bag-store.base-dir"))
   implicit val baseUri = new URI(properties.getString("bag-store.base-uri"))
   implicit val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-component-sizes").map(_.toInt).toSeq
+  implicit val bagPermissions: String = properties.getString("bag-store.bag-file-permissions")
+  implicit val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
 }
 

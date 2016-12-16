@@ -15,8 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.io.File
-import java.nio.file.Path
+import java.nio.file.{Path, Paths}
 
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.rogach.scallop.{ScallopConf, ScallopOption, Subcommand, singleArgConverter}
@@ -27,6 +26,7 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
 
   printedName = "easy-bag-store"
   private val _________ = " " * printedName.length
+  private val SUBCOMMAND_SEPARATOR = "---\n"
   version(s"$printedName v${Version()}")
   banner(s"""
             |Manage a BagStore
@@ -49,22 +49,23 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
             |""".stripMargin)
 
 
-  private implicit val fileConverter = singleArgConverter[File](s => new File(resolveTildeToHomeDir(s)))
+  private implicit val fileConverter = singleArgConverter[Path](s => Paths.get(resolveTildeToHomeDir(s)))
   private def resolveTildeToHomeDir(s: String): String = if (s.startsWith("~")) s.replaceFirst("~", System.getProperty("user.home")) else s
 
-  val bagStoreBaseDir: ScallopOption[File] = opt[File](name = "base-dir", short = 'b',
+  val bagStoreBaseDir: ScallopOption[Path] = opt[Path](name = "base-dir", short = 'b',
     descr = "bag-store base-dir to use",
-    default = Some(new File(properties.getString("bag-store.base-dir"))))
-  validateFileExists(bagStoreBaseDir)
+    default = Some(Paths.get(properties.getString("bag-store.base-dir"))))
+  validatePathExists(bagStoreBaseDir)
 
   val add = new Subcommand("add") {
     descr("Adds a bag to the bag-store")
-    val bag: ScallopOption[File] = trailArg[File](name = "bag",
+    val bag: ScallopOption[Path] = trailArg[Path](name = "bag",
       descr = "the (unserialized) Bag to add")
-      validateFileExists(bag)
+      validatePathExists(bag)
     val uuid: ScallopOption[String] = opt[String](name = "uuid", short = 'u',
       descr = "UUID to use as name for the Bag",
       required = false)
+    footer(SUBCOMMAND_SEPARATOR)
   }
   addSubcommand(add)
 
@@ -72,8 +73,9 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
     descr("Retrieves a Bag or File in it")
     val itemId: ScallopOption[String] = trailArg[String](name = "item-id",
       descr = "ID of the Bag or File to retrieve")
-    val outputDir: ScallopOption[File] = trailArg[File](name = "<output-dir>",
+    val outputDir: ScallopOption[Path] = trailArg[Path](name = "<output-dir>",
       descr = "directory in which to put the Bag or File")
+    footer(SUBCOMMAND_SEPARATOR)
   }
   addSubcommand(get)
 
@@ -87,6 +89,7 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
       descr = "Bag of which to enumerate the Files",
       required = false)
     mutuallyExclusive(all, hidden)
+    footer(SUBCOMMAND_SEPARATOR)
   }
   addSubcommand(enum)
 
@@ -95,6 +98,7 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
     val bagId: ScallopOption[String] = trailArg[String](name = "<bag-id>",
       descr = "Bag to mark as hidden",
       required = true)
+    footer(SUBCOMMAND_SEPARATOR)
   }
   addSubcommand(hide)
 
@@ -103,17 +107,19 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
     val bagId: ScallopOption[String] = trailArg[String](name = "<bag-id>",
       descr = "Hidden Bag to make visible again",
       required = true)
+    footer(SUBCOMMAND_SEPARATOR)
   }
   addSubcommand(reveal)
 
   val prune = new Subcommand("prune") {
-    descr("Removes Files from Bag, that are already found in reference Bags, replacing them by fetch.txt references")
+    descr("Removes Files from Bag, that are already found in reference Bags, replacing them with fetch.txt references")
     val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
       descr = "Bag directory to prune",
       required = true)
     val referenceBags: ScallopOption[List[String]] = trailArg[List[String]](name = "<ref-bag-id>...",
       descr = "One or more bag-ids of Bags in the BagStore to check for redundant Files",
       required = true)
+    footer(SUBCOMMAND_SEPARATOR)
   }
   addSubcommand(prune)
 
@@ -122,6 +128,7 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
     val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
       descr = "Bag directory to complete",
       required = true)
+    footer(SUBCOMMAND_SEPARATOR)
   }
   addSubcommand(complete)
 
@@ -130,6 +137,7 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
     val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
       descr = "Bag directory to validate",
       required = true)
+    footer(SUBCOMMAND_SEPARATOR)
   }
   addSubcommand(validate)
 

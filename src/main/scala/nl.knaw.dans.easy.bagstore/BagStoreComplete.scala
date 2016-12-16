@@ -15,12 +15,11 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Path}
 
 import scala.util.Try
 
-trait BagStoreComplete extends BagStoreContext {
+trait BagStoreComplete extends BagStoreContext with BagStoreOutputContext {
 
   // TODO: This function looks a lot like BagStoreContext.isVirtuallyValid.createLinks, refactor?
   def complete(bagDir: Path): Try[Unit] = {
@@ -35,7 +34,7 @@ trait BagStoreComplete extends BagStoreContext {
           }
           debug(s"copy $from -> $to")
           Files.copy(from, to)
-          Files.setPosixFilePermissions(to, PosixFilePermissions.fromString("rwxr-xr--")) // TODO: make configurable
+          setPermissions(outputBagPermissions)(to)
       }
     }
 

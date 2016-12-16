@@ -16,6 +16,7 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.net.URI
+import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Path, Paths}
 import java.util.UUID
 
@@ -40,6 +41,7 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
   // Must be absolute.
   implicit val baseUri: URI
   implicit val uuidPathComponentSizes: Seq[Int]
+  implicit val bagPermissions: String
 
   /**
    * Creates an item-id from a location inside the bag-store. Returns a `Failure` if the path does not point
@@ -195,37 +197,6 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
       }
   }
 
-
-
-//
-//
-//  /**
-//   * Returns the actual path of the item pointed to by path. For bag-sequences and bags this is always the same
-//   * as `path`. For file-items this may be a different location, pointed to in the bag's `fetch.txt` file.
-//   *
-//   * @param path the item-location
-//   * @return the actual location
-//   */
-//  protected def getFetchPath(path: Path): Try[Path] = {
-//    if (Files.exists(path)) fromLocation(path).map(toLocation) // A bit wasteful, but we'll catch out-of-store paths this way.
-//    else
-//      fromLocation(path)
-//        .flatMap(ItemId.toFileId)
-//        .map(_.bagId)
-//        .map(toLocation)
-//        .map {
-//          case bagPath =>
-//            val filePathInBag = bagPath.relativize(path)
-//            bagFacade.getFetchItems(bagPath).flatMap {
-//              case fetchItems => fetchItems.get(filePathInBag)
-//                .map {
-//                  case fi => fromUri(fi.uri).map(toLocation)
-//                }.get // TODO: refactor away get
-//            }
-//        }.get // TODO: refactor away get
-//  }
-//
-//
   /**
    * Returns the item-uri for a given item-id.
    *
@@ -373,6 +344,12 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
 
   protected def isHidden(bagId: BagId): Try[Boolean] = {
     toLocation(bagId).map(Files.isHidden)
+  }
+
+  protected def setPermissions(permissions: String)(bagDir: Path): Try[Unit] = Try {
+    Files.walk(bagDir).iterator().asScala.toList.foreach {
+      f => Files.setPosixFilePermissions(f, PosixFilePermissions.fromString(permissions))
+    }
   }
 
 }

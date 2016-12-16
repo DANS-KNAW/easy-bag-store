@@ -24,21 +24,21 @@ object Command extends App with BagStoreApp {
 
   val opts = CommandLineOptions(args, properties)
   opts.verify()
-  override implicit val baseDir = opts.bagStoreBaseDir().toPath.toAbsolutePath
+  override implicit val baseDir = opts.bagStoreBaseDir().toAbsolutePath
 
   val result: Try[String] = opts.subcommand match {
     case Some(cmd@opts.add) =>
       val bagUuid = cmd.uuid.toOption.map(UUID.fromString)
-      add(cmd.bag().toPath, bagUuid).map {
+      add(cmd.bag(), bagUuid).map {
         bagId => s"Added Bag with bag-id: $bagId"
       }
     case Some(cmd@opts.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
         _ <- Try {
-          get(itemId, cmd.outputDir().toPath)
+          get(itemId, cmd.outputDir())
         }
-      } yield s"Retrieved item with item-id: $itemId to ${cmd.outputDir().toPath}"
+      } yield s"Retrieved item with item-id: $itemId to ${cmd.outputDir()}"
     case Some(cmd@opts.enum) => Try {
       cmd.bagId.toOption
         .map {
@@ -65,7 +65,7 @@ object Command extends App with BagStoreApp {
       for {
         itemId <- ItemId.fromString(cmd.bagId())
         bagId <- ItemId.toBagId(itemId)
-        _ <- hide(bagId)
+        _ <- reveal(bagId)
       } yield s"Made ${cmd.bagId()} visible again"
     case Some(cmd@opts.prune) =>
       import nl.knaw.dans.lib.error._
