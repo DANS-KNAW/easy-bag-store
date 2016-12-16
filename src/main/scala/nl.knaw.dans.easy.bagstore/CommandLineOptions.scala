@@ -38,12 +38,12 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
             |${_________}  | get <item-id>
             |${_________}  | enum [--hidden|--all] [<item-id>]
             |${_________}  | hide <item-id>
+            |${_________}  | reveal <item-id>            |
             |${_________}  | prune <bag-dir> <ref-bag-id>...
             |${_________}  | complete <bag-dir>
             |${_________}  | validate <bag-dir>
-            |${_________}  | index <bag-id>
             |${_________}  | erase {--authority-name|-n} <name> {--authority-password|-p} <password> \\
-            |${_________}      {--tombstone-message|-m <message>} <file-id>
+            |${_________}      {--tombstone-message|-m <message>} <file-id> <bag-id>...
             |
             |Options:
             |""".stripMargin)
@@ -91,12 +91,20 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
   addSubcommand(enum)
 
   val hide = new Subcommand("hide") {
-    descr("Permanently marks a Bag as hidden")
+    descr("Marks a Bag as hidden")
     val bagId: ScallopOption[String] = trailArg[String](name = "<bag-id>",
       descr = "Bag to mark as hidden",
       required = true)
   }
   addSubcommand(hide)
+
+  val reveal = new Subcommand("reveal") {
+    descr("Reverses the effect of hide")
+    val bagId: ScallopOption[String] = trailArg[String](name = "<bag-id>",
+      descr = "Hidden Bag to make visible again",
+      required = true)
+  }
+  addSubcommand(reveal)
 
   val prune = new Subcommand("prune") {
     descr("Removes Files from Bag, that are already found in reference Bags, replacing them by fetch.txt references")

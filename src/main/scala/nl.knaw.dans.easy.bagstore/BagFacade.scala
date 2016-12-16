@@ -34,7 +34,6 @@ case object SHA512 extends Algorithm(4)
 
 case class FetchItem(uri: URI, size: Long, path: Path)
 
-case class InvalidAfterFetchException(msg: String) extends Exception(msg)
 case class BagNotFoundException(bagDir: Path, cause: Throwable) extends Exception(s"A bag could not be loaded at $bagDir", cause)
 
 trait BagFacade extends DebugEnhancedLogging{

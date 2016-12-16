@@ -61,6 +61,12 @@ object Command extends App with BagStoreApp {
         bagId <- ItemId.toBagId(itemId)
         _ <- hide(bagId)
       } yield s"Marked ${cmd.bagId()} as hidden"
+    case Some(cmd@opts.reveal) =>
+      for {
+        itemId <- ItemId.fromString(cmd.bagId())
+        bagId <- ItemId.toBagId(itemId)
+        _ <- hide(bagId)
+      } yield s"Made ${cmd.bagId()} visible again"
     case Some(cmd@opts.prune) =>
       import nl.knaw.dans.lib.error._
       cmd.referenceBags.toOption.map(refBags =>

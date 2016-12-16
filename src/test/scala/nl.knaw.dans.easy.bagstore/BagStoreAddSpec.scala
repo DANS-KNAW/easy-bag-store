@@ -15,8 +15,11 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.nio.file.Paths
+import java.nio.file.{Files, Paths}
 import java.util.UUID
+
+import org.apache.commons.io.FileUtils
+import org.scalatest.Inside._
 
 import scala.util._
 
@@ -49,5 +52,15 @@ class BagStoreAddSpec extends BagStoreFixture with BagStoreAdd {
      */
     add(TEST_BAG_PRUNED_B, Some(UUID.fromString("00000000-0000-0000-0000-000000000002")))
     add(TEST_BAG_PRUNED_C, Some(UUID.fromString("00000000-0000-0000-0000-000000000003")))
+  }
+
+  it should "refuse to ingest hidden bag directories" in {
+    val HIDDEN_BAGDIR = testDir.resolve(".some-hidden-bag")
+    FileUtils.copyDirectory(TEST_BAG_MINIMAL.toFile, HIDDEN_BAGDIR.toFile)
+    val result = add(HIDDEN_BAGDIR)
+    result shouldBe a[Failure[_]]
+    inside(result) {
+      case Failure(e) => e shouldBe a[CannotIngestHiddenBagDirectory]
+    }
   }
 }

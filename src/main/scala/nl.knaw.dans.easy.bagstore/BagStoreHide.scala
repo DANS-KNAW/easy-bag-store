@@ -30,10 +30,31 @@ trait BagStoreHide extends BagStoreContext {
       path <- toLocation(bagId)
       _ <- if (Files.isHidden(path)) Failure(AlreadyHiddenException(bagId)) else Success(())
       oldPerm <- makeWritable(path)
-      newPath <- Try { path.getParent.resolve(s".${path.getFileName}") }
-      _ <- Try { Files.move(path, newPath)}
+      newPath <- Try {
+        path.getParent.resolve(s".${path.getFileName}")
+      }
+      _ <- Try {
+        Files.move(path, newPath)
+      }
       _ <- restorePermissions(newPath, oldPerm)
     } yield ()
+  }
+
+  def reveal(bagId: BagId): Try[Unit] = {
+    for {
+      _ <- checkBagExists(bagId)
+      path <- toLocation(bagId)
+      _ <- if (!Files.isHidden(path)) Failure(AlreadyVisibleException(bagId)) else Success(())
+      oldPerm <- makeWritable(path)
+      newPath <- Try {
+        path.getParent.resolve(s"${path.getFileName.toString.substring(1)}")
+      }
+      _ <- Try {
+        Files.move(path, newPath)
+      }
+      _ <- restorePermissions(newPath, oldPerm)
+    } yield ()
+
   }
 
   private def makeWritable(dir: Path): Try[Set[PosixFilePermission]] = Try {

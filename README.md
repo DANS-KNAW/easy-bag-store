@@ -12,6 +12,7 @@ SYNOPSIS
                      | get <item-id>
                      | enum [--hidden|--all] [<item-id>]
                      | hide <item-id>
+                     | reveal <item-id>
                      | prune <bag-dir> <ref-bag-id>...
                      | complete <bag-dir>
                      | erase {--authority-name|-n} <name> {--authority-password|-p} <password> \

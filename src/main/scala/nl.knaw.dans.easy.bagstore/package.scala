@@ -29,7 +29,9 @@ package object bagstore {
   case class IncompleteItemUriException(msg: String) extends Exception(s"URI is an item-uri but missing parts: $msg")
   case class MoveToStoreFailedException(bag: Path, containerDir: Path) extends Exception(s"Failed to move $bag to container at $containerDir")
   case class AlreadyHiddenException(bagId: BagId) extends Exception(s"$bagId is already hidden")
+  case class AlreadyVisibleException(bagId: BagId) extends Exception(s"$bagId is already visible")
   case class NoSuchBagException(bagId: BagId) extends Exception(s"$bagId does not exist in BagStore")
+  case class CannotIngestHiddenBagDirectory(bagDir: Path) extends Exception(s"Cannot ingest hidden directory $bagDir")
 
   object Version {
     def apply(): String = {

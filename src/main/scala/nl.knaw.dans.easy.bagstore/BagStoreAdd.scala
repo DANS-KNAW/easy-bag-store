@@ -27,22 +27,27 @@ trait BagStoreAdd extends BagStoreContext {
 
   def add(bagDir: Path, uuid: Option[UUID] = None): Try[BagId] = {
     trace(bagDir)
+    if(Files.isHidden(bagDir))
+      Failure(CannotIngestHiddenBagDirectory(bagDir))
+    else {
+      val bagId = BagId(uuid.getOrElse {
+        val newUuid = UUID.randomUUID()
+        debug(s"generated UUID voor new Bag: $newUuid")
+        newUuid
+      })
 
-    val bagId = BagId(uuid.getOrElse {
-      val newUuid = UUID.randomUUID()
-      debug(s"generated UUID voor new Bag: $newUuid")
-      newUuid
-    })
-
-    for {
-      staged <- stageDirectory(bagDir)
-      valid <- isVirtuallyValid(staged)
-      if valid
-      container <- toContainer(bagId)
-      _ <- Try { Files.createDirectories(container) }
-      _ = debug(s"container for Bag: $container")
-      _ <- ingest(bagDir.getFileName, staged, container)
-    } yield bagId
+      for {
+        staged <- stageDirectory(bagDir)
+        valid <- isVirtuallyValid(staged)
+        if valid
+        container <- toContainer(bagId)
+        _ <- Try {
+          Files.createDirectories(container)
+        }
+        _ = debug(s"created container for Bag: $container")
+        _ <- ingest(bagDir.getFileName, staged, container)
+      } yield bagId
+    }
   }
 
   private def ingest(bagName: Path, staged: Path, container: Path): Try[Unit] = {

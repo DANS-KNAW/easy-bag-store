@@ -44,4 +44,24 @@ class BagStoreHideSpec extends BagStoreFixture with BagStoreHide with BagStoreAd
       case Failure(e) => e shouldBe a[AlreadyHiddenException]
     }
   }
+
+  "reveal" should "be able to unhide a hidden Bag" in {
+    val tryBagId = add(TEST_BAG_MINIMAL)
+    hide(tryBagId.get)
+    isHidden(tryBagId.get).get shouldBe true
+    val result = reveal(tryBagId.get)
+    result shouldBe a[Success[_]]
+    Files.isHidden(toLocation(tryBagId.get).get) shouldBe false
+  }
+
+  it should "result in a Failure if Bag is already visible" in {
+    val tryBagId = add(TEST_BAG_MINIMAL)
+    val result = reveal(tryBagId.get)
+    result shouldBe a[Failure[_]]
+    inside(result) {
+      case Failure(e) => e shouldBe a[AlreadyVisibleException]
+    }
+  }
+
+
 }
