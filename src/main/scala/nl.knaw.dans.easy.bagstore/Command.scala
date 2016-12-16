@@ -50,7 +50,7 @@ object Command extends App with BagStoreApp {
             } yield enumFiles(bagId)
               .iterator.foreach(println(_))
         } getOrElse {
-        enumBags.iterator.foreach(println(_))
+        enumBags().iterator.foreach(println(_))
       }
       "Finished enumerating"
     }

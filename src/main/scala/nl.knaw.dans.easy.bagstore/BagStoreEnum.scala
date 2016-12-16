@@ -21,10 +21,12 @@ import scala.collection.JavaConverters._
 
 trait BagStoreEnum extends BagStoreContext {
 
-  def enumBags: Stream[BagId] = {
+  def enumBags(includeVisible: Boolean = true, includeHidden: Boolean = false): Stream[BagId] = {
     Files.walk(baseDir, uuidPathComponentSizes.size).iterator().asScala
       .map(baseDir.relativize)
-      .filter(_.getNameCount == uuidPathComponentSizes.size)
+      .withFilter(_.getNameCount == uuidPathComponentSizes.size)
+      .withFilter(Files.isHidden(_) == includeHidden)
+      .withFilter(!Files.isHidden(_) == includeVisible)
       .map(p => fromLocation(baseDir.resolve(p)).flatMap(ItemId.toBagId))
       .map(_.get) // TODO: is there a better way to fail fast ?
       .toStream
@@ -32,12 +34,8 @@ trait BagStoreEnum extends BagStoreContext {
 
   def enumFiles(bagId: BagId): Stream[FileId] = {
     toLocation(bagId)
-      .map(path =>
-        Files.walk(path).iterator().asScala
-          .filter(Files.isRegularFile(_))
-          .map(p => fromLocation(p).flatMap(ItemId.toFileId))
-          .map(_.get)
-          .toStream).get
+      .flatMap(path =>
+        bagFacade.getPayloadFilePaths(path)
+          .map(ppaths => (Files.list(path).iterator().asScala.withFilter(Files.isRegularFile(_)).toSet | ppaths).map(p => FileId(bagId, p)).toStream)).get
   }
-
 }

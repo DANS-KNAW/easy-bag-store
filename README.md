@@ -11,10 +11,9 @@ SYNOPSIS
                      | add <bag> <uuid>
                      | get <item-id>
                      | enum [--hidden|--all] [<item-id>]
-                     | {hide|unhide} <item-id>
+                     | hide <item-id>
                      | prune <bag-dir> <ref-bag-id>...
                      | complete <bag-dir>
-                     | index <bag-id>
                      | erase {--authority-name|-n} <name> {--authority-password|-p} <password> \
                           {--tombstone-message|-m <message>} <file-id>
                           
@@ -33,7 +32,7 @@ immutable after they have been added.
    they are incomplete, but contain a `fetch.txt` file and can be made valid by dereferencing the URIs in it. By 
    using **file-uri**s (see point 3 below) in `fetch.txt`, storing files redundantly can be avoided. A Bag must not include 
    files from other BagStores in this way.
-3. **ITEM-URI:** there are two types of identifiable **Item**s that are stored in a BagStore: Bags and **File**s.
+3. **ITEM-ID:** there are two types of identifiable **Item**s that are stored in a BagStore: Bags and **File**s.
    Their respective **item-id**s are constructed in the following manner:
     * **bag-id** ::= `<uuid>`, that is a [UUID]
     * **file-id** ::= `<bag-id>/percent-encoded(path-in-bag)`, where **percent-encoded** means that the path-components are percent

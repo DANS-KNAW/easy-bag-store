@@ -60,6 +60,9 @@ trait BagFacade extends DebugEnhancedLogging{
       .tried
 
   def removeFetchTxtFromTagManifests(bagDir: Path): Try[Unit]
+
+  def getPayloadFilePaths(bagDir: Path): Try[Set[Path]]
+
 }
 
 class Bagit4Facade(bagFactory: BagFactory = new BagFactory) extends BagFacade {
@@ -141,4 +144,12 @@ class Bagit4Facade(bagFactory: BagFactory = new BagFactory) extends BagFacade {
     }
   }
 
+  override def getPayloadFilePaths(bagDir: Path): Try[Set[Path]] =  {
+    getBag(bagDir).map {
+      bag =>
+        bag.getPayloadManifests.get(0).asScala.map {
+          case (path, _) => Paths.get(path)
+        }.toSet
+    }
+  }
 }

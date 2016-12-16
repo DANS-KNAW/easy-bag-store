@@ -19,7 +19,7 @@ import java.nio.file.Paths
 
 import org.apache.commons.io.FileUtils
 
-class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAdd {
+class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAdd with BagStorePrune {
   FileUtils.copyDirectory(Paths.get("src/test/resources/bags/basic-sequence-unpruned").toFile, testDir.toFile)
   private val TEST_BAG_A = testDir.resolve("a")
   private val TEST_BAG_B = testDir.resolve("b")
@@ -30,13 +30,13 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val bis = add(TEST_BAG_B).get
     val cis = add(TEST_BAG_C).get
 
-    val bagIds = enumBags.iterator.toList
+    val bagIds = enumBags().iterator.toList
     bagIds.size shouldBe 3
     bagIds.toSet shouldBe Set(ais, bis, cis)
   }
 
   it should "return empty stream if BagStore is empty" in {
-    val bagIds = enumBags.iterator.toList
+    val bagIds = enumBags() .iterator.toList
     bagIds.size shouldBe 0
   }
 
@@ -46,5 +46,18 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
 
     files.size shouldBe 10
     files.map(_.path.getFileName.toString).toSet shouldBe Set("u", "v", "w", "x", "y", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "tagmanifest-md5.txt")
+  }
+
+  it should "return all FileIds in a virtually-valid Bag" in {
+    val ais = add(TEST_BAG_A).get
+    prune(TEST_BAG_B, ais)
+    val bis = add(TEST_BAG_B).get
+    prune(TEST_BAG_C, ais, bis)
+    val cis = add(TEST_BAG_C).get
+    val files = enumFiles(cis).iterator.toList
+
+    files.size shouldBe 13
+    files.map(_.path.getFileName.toString).toSet shouldBe Set("q", "w", "u", "p", "x", "y", "y-old", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "tagmanifest-md5.txt", "fetch.txt")
+
   }
 }

@@ -42,9 +42,4 @@ class BagStoreCompleteSpec extends BagStoreFixture with BagStoreComplete with Ba
     pathsEqual(TEST_BAG_UNPRUNED_C, testDirBagC) shouldBe true
   }
 
-
-
-
-
-
 }
