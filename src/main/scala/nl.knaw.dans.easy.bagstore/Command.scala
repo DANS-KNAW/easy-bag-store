@@ -59,25 +59,25 @@ object Command extends App with BagStoreApp {
       for {
         itemId <- ItemId.fromString(cmd.bagId())
         bagId <- ItemId.toBagId(itemId)
-        _ <- hide(bagId)
-      } yield s"Marked ${cmd.bagId()} as hidden"
+        _ <- delete(bagId)
+      } yield s"Marked ${cmd.bagId()} as deleted"
     case Some(cmd@opts.reveal) =>
       for {
         itemId <- ItemId.fromString(cmd.bagId())
         bagId <- ItemId.toBagId(itemId)
-        _ <- reveal(bagId)
-      } yield s"Made ${cmd.bagId()} visible again"
+        _ <- undelete(bagId)
+      } yield s"Removed deleted mark from ${cmd.bagId()}"
     case Some(cmd@opts.prune) =>
       import nl.knaw.dans.lib.error._
       cmd.referenceBags.toOption.map(refBags =>
         refBags.map(ItemId.fromString).map(_.flatMap(ItemId.toBagId))
           .collectResults
           .flatMap(refBagIds => prune(cmd.bagDir(), refBagIds: _*))
-          .map(_ => "done pruning"))
+          .map(_ => "Done pruning"))
         .getOrElse(Success("No reference Bags specified: nothing to do"))
     case Some(cmd@opts.complete) =>
       complete(cmd.bagDir())
-          .map(_ => s"done completing ${cmd.bagDir()}")
+          .map(_ => s"Done completing ${cmd.bagDir()}")
     case Some(cmd@opts.validate) =>
       isVirtuallyValid(cmd.bagDir())
           .map(valid => s"done validating. Result: virtually-valid = $valid")

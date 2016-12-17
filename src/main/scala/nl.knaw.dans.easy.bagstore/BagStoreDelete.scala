@@ -19,12 +19,12 @@ import java.nio.file.Files
 
 import scala.util.{Failure, Success, Try}
 
-trait BagStoreHide extends BagStoreContext {
-  def hide(bagId: BagId): Try[Unit] = {
+trait BagStoreDelete extends BagStoreContext {
+  def delete(bagId: BagId): Try[Unit] = {
     for {
       _ <- checkBagExists(bagId)
       path <- toLocation(bagId)
-      _ <- if (Files.isHidden(path)) Failure(AlreadyHiddenException(bagId)) else Success(())
+      _ <- if (Files.isHidden(path)) Failure(AlreadyDeletedException(bagId)) else Success(())
       newPath <- Try {
         path.getParent.resolve(s".${path.getFileName}")
       }
@@ -34,11 +34,11 @@ trait BagStoreHide extends BagStoreContext {
     } yield ()
   }
 
-  def reveal(bagId: BagId): Try[Unit] = {
+  def undelete(bagId: BagId): Try[Unit] = {
     for {
       _ <- checkBagExists(bagId)
       path <- toLocation(bagId)
-      _ <- if (!Files.isHidden(path)) Failure(AlreadyVisibleException(bagId)) else Success(())
+      _ <- if (!Files.isHidden(path)) Failure(NotDeletedException(bagId)) else Success(())
       newPath <- Try {
         path.getParent.resolve(s"${path.getFileName.toString.substring(1)}")
       }

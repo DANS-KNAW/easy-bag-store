@@ -19,7 +19,7 @@ import java.nio.file.Paths
 
 import org.apache.commons.io.FileUtils
 
-class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAdd with BagStorePrune with BagStoreHide {
+class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAdd with BagStorePrune with BagStoreDelete {
   FileUtils.copyDirectory(Paths.get("src/test/resources/bags/basic-sequence-unpruned").toFile, testDir.toFile)
   private val TEST_BAG_A = testDir.resolve("a")
   private val TEST_BAG_B = testDir.resolve("b")
@@ -44,7 +44,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val ais = add(TEST_BAG_A).get
     val bis = add(TEST_BAG_B).get
     val cis = add(TEST_BAG_C).get
-    hide(bis)
+    delete(bis)
     val bagIds = enumBags().iterator.toList
     bagIds.size shouldBe 2
     bagIds.toSet shouldBe Set(ais, cis)
@@ -54,7 +54,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val ais = add(TEST_BAG_A).get
     val bis = add(TEST_BAG_B).get
     val cis = add(TEST_BAG_C).get
-    hide(bis)
+    delete(bis)
     val bagIds = enumBags(includeHidden = true).iterator.toList
     bagIds.size shouldBe 3
     bagIds.toSet shouldBe Set(ais, bis, cis)
@@ -64,7 +64,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val ais = add(TEST_BAG_A).get
     val bis = add(TEST_BAG_B).get
     val cis = add(TEST_BAG_C).get
-    hide(bis)
+    delete(bis)
     val bagIds = enumBags(includeVisible = false, includeHidden = true).iterator.toList
     bagIds.size shouldBe 1
     bagIds.toSet shouldBe Set(bis)
@@ -75,7 +75,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val ais = add(TEST_BAG_A).get
     val bis = add(TEST_BAG_B).get
     val cis = add(TEST_BAG_C).get
-    hide(bis)
+    delete(bis)
     val bagIds = enumBags(includeVisible = false, includeHidden = false).iterator.toList
     bagIds.size shouldBe 0
     bagIds.toSet shouldBe Set()

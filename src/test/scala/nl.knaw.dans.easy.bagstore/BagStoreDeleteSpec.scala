@@ -21,45 +21,45 @@ import org.scalatest.Inside.inside
 
 import scala.util.{Failure, Success}
 
-class BagStoreHideSpec extends BagStoreFixture with BagStoreHide with BagStoreAdd {
+class BagStoreDeleteSpec extends BagStoreFixture with BagStoreDelete with BagStoreAdd {
   private val TEST_BAGS_DIR = Paths.get("src/test/resources/bags")
   private val TEST_BAG_MINIMAL = TEST_BAGS_DIR.resolve("minimal-bag")
 
 
-  "hide" should "be able to hide an unhidden Bag" in {
+  "delete" should "be able to delete a Bag that is not yet deleted" in {
     val tryBagId = add(TEST_BAG_MINIMAL)
     tryBagId shouldBe a[Success[_]]
 
-    val tryHiddenBagId = hide(tryBagId.get)
+    val tryHiddenBagId = delete(tryBagId.get)
     tryHiddenBagId shouldBe a[Success[_]]
     Files.isHidden(toLocation(tryBagId.get).get) shouldBe true
   }
 
-  it should "result in a Failure if Bag is already hidden" in {
+  it should "result in a Failure if Bag is already deleted" in {
     val tryBagId = add(TEST_BAG_MINIMAL)
-    hide(tryBagId.get)
-    val tryHiddenBagId = hide(tryBagId.get)
+    delete(tryBagId.get)
+    val tryHiddenBagId = delete(tryBagId.get)
     tryHiddenBagId shouldBe a[Failure[_]]
     inside(tryHiddenBagId) {
-      case Failure(e) => e shouldBe a[AlreadyHiddenException]
+      case Failure(e) => e shouldBe a[AlreadyDeletedException]
     }
   }
 
-  "reveal" should "be able to unhide a hidden Bag" in {
+  "undelete" should "be able to undelete a deleted Bag" in {
     val tryBagId = add(TEST_BAG_MINIMAL)
-    hide(tryBagId.get)
+    delete(tryBagId.get)
     isHidden(tryBagId.get).get shouldBe true
-    val result = reveal(tryBagId.get)
+    val result = undelete(tryBagId.get)
     result shouldBe a[Success[_]]
     Files.isHidden(toLocation(tryBagId.get).get) shouldBe false
   }
 
-  it should "result in a Failure if Bag is already visible" in {
+  it should "result in a Failure if Bag is not marked as deleted" in {
     val tryBagId = add(TEST_BAG_MINIMAL)
-    val result = reveal(tryBagId.get)
+    val result = undelete(tryBagId.get)
     result shouldBe a[Failure[_]]
     inside(result) {
-      case Failure(e) => e shouldBe a[AlreadyVisibleException]
+      case Failure(e) => e shouldBe a[NotDeletedException]
     }
   }
 
