@@ -53,7 +53,7 @@ object Command extends App with BagStoreApp {
           val includeHidden = cmd.all() || cmd.hidden()
           enumBags(includeVisible, includeHidden).iterator.foreach(println(_))
       }
-      "Finished enumerating"
+      "Done enumerating"
     }
     case Some(cmd@opts.hide) =>
       for {
@@ -80,7 +80,7 @@ object Command extends App with BagStoreApp {
           .map(_ => s"Done completing ${cmd.bagDir()}")
     case Some(cmd@opts.validate) =>
       isVirtuallyValid(cmd.bagDir())
-          .map(valid => s"done validating. Result: virtually-valid = $valid")
+          .map(valid => s"Done validating. Result: virtually-valid = $valid")
     case _ => throw new IllegalArgumentException(s"Unknown command: ${opts.subcommand}")
       Try {
         "Unknown command"
