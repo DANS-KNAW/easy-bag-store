@@ -11,10 +11,11 @@ SYNOPSIS
                      | add <bag> <uuid>
                      | get <item-id>
                      | enum [--hidden|--all] [<item-id>]
-                     | hide <item-id>
-                     | reveal <item-id>
+                     | (un)delete <item-id>
                      | prune <bag-dir> <ref-bag-id>...
                      | complete <bag-dir>
+                     | validate <bag-dir>
+                     | verify [<bag-id>]
                      | erase {--authority-name|-n} <name> {--authority-password|-p} <password> \
                           {--tombstone-message|-m <message>} <file-id>
                           

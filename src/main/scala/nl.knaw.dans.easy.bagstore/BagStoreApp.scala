@@ -29,7 +29,7 @@ trait BagStoreApp extends BagStoreContext
   with BagStoreDelete
   with BagStorePrune {
   val properties = new PropertiesConfiguration(new File(new File(System.getProperty("app.home")), "cfg/application.properties"))
-  implicit val baseDir: Path = Paths.get(properties.getString("bag-store.base-dir"))
+  implicit val baseDir: Path = Paths.get(properties.getString("bag-store.base-dir")).toAbsolutePath
   implicit val baseUri = new URI(properties.getString("bag-store.base-uri"))
   implicit val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-component-sizes").map(_.toInt).toSeq
   implicit val bagPermissions: String = properties.getString("bag-store.bag-file-permissions")
