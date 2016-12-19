@@ -1,0 +1,51 @@
+#
+# Copyright (C) 2016 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+- hosts: bagstore
+  become: yes
+  tasks:
+  - name: Install Java 8
+    yum: name=java-1.8.0-openjdk
+
+  - name: Remove any previously installed copy of the same version
+    file: dest=/usr/share/easy-bag-store-1.x-SNAPSHOT state=absent
+
+  - name: Untar installation package to the server
+    unarchive: src=../../../target/easy-bag-store-1.x-SNAPSHOT.tar.gz
+               dest=/usr/share/
+
+  - name: Make this the currently active version
+    file: path=/usr/bin/easy-bag-store
+          src=/usr/share/easy-bag-store-1.x-SNAPSHOT/bin/easy-bag-store
+          state=link
+
+  - name: Configure the application
+    template: src=../assembly/dist/cfg/application.properties dest=/usr/share/easy-bag-store-1.x-SNAPSHOT/cfg/
+
+  - name: Create a user for the bag-store
+    user: name=easy-bag-store
+
+  - name: Make vagrant member of easy-bag-store group
+    user: name=vagrant group=easy-bag-store
+
+  - name: Create bag-store base directory
+    file: path=/data/bag-store state=directory owner=easy-bag-store group=easy-bag-store mode=0775
+
+  - name: Create a staging directory
+    file: path=/data/bag-staging state=directory owner=easy-bag-store group=easy-bag-store mode=0775
+
+  - name: Create a directory for the log files
+    file: path=/var/log/easy-bag-store/ state=directory owner=easy-bag-store group=easy-bag-store mode=0775

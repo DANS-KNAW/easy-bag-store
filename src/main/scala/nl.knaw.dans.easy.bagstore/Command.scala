@@ -55,13 +55,13 @@ object Command extends App with BagStoreApp {
       }
       "Done enumerating"
     }
-    case Some(cmd@opts.hide) =>
+    case Some(cmd@opts.delete) =>
       for {
         itemId <- ItemId.fromString(cmd.bagId())
         bagId <- ItemId.toBagId(itemId)
         _ <- delete(bagId)
       } yield s"Marked ${cmd.bagId()} as deleted"
-    case Some(cmd@opts.reveal) =>
+    case Some(cmd@opts.undelete) =>
       for {
         itemId <- ItemId.fromString(cmd.bagId())
         bagId <- ItemId.toBagId(itemId)

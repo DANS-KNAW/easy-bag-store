@@ -80,10 +80,10 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
 
   val enum = new Subcommand("enum") {
     descr("Enumerates Bags or Files")
-    val hidden: ScallopOption[Boolean] = opt[Boolean](name = "hidden", short = 'h',
-      descr = "only enumerate hidden Bags")
+    val hidden: ScallopOption[Boolean] = opt[Boolean](name = "deleted", short = 'd',
+      descr = "only enumerate deleted Bags")
     val all: ScallopOption[Boolean] = opt[Boolean](name = "all", short = 'a',
-      descr = "enumerate visible and hidden Bags")
+      descr = "enumerate all Bags, including deleted ones")
     val bagId: ScallopOption[String] = trailArg[String](name = "<bagId>",
       descr = "Bag of which to enumerate the Files",
       required = false)
@@ -92,23 +92,23 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
   }
   addSubcommand(enum)
 
-  val hide = new Subcommand("hide") {
-    descr("Marks a Bag as hidden")
+  val delete = new Subcommand("delete") {
+    descr("Marks a Bag as deleted")
     val bagId: ScallopOption[String] = trailArg[String](name = "<bag-id>",
-      descr = "Bag to mark as hidden",
+      descr = "Bag to mark as deleted",
       required = true)
     footer(SUBCOMMAND_SEPARATOR)
   }
-  addSubcommand(hide)
+  addSubcommand(delete)
 
-  val reveal = new Subcommand("reveal") {
-    descr("Reverses the effect of hide")
+  val undelete = new Subcommand("undelete") {
+    descr("Reverses the effect of delete")
     val bagId: ScallopOption[String] = trailArg[String](name = "<bag-id>",
-      descr = "Hidden Bag to make visible again",
+      descr = "Deleted Bag to restore",
       required = true)
     footer(SUBCOMMAND_SEPARATOR)
   }
-  addSubcommand(reveal)
+  addSubcommand(undelete)
 
   val prune = new Subcommand("prune") {
     descr("Removes Files from Bag, that are already found in reference Bags, replacing them with fetch.txt references")

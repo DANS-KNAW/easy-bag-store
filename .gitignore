@@ -23,3 +23,7 @@ out/
 /.classpath
 /.cache
 /NOTES.txt
+
+# Vagrant/Ansible
+*.retry
+.vagrant/
