@@ -47,6 +47,11 @@ class BagStoreService extends BagStoreApp with DebugEnhancedLogging {
   }
 }
 
+object BagStoreService extends App {
+  new BagStoreService().start()
+  println("Service started ...")
+}
+
 class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhancedLogging {
 
   get("/") {

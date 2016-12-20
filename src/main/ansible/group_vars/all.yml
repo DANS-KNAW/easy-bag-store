@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-easy_bag_store_basedir: "/data/bag-store"
+easy_bag_store_basedir: "/data/store"
 easy_bag_store_baseuri: "http://localhost/"
 easy_bag_store_uuid_component_sizes: "2,30"
 easy_bag_store_bag_file_permissions: "r-xr-xr-x"

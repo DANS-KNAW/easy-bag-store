@@ -175,7 +175,7 @@
                         <artifactId>exec-maven-plugin</artifactId>
                         <configuration>
                             <classpathScope>test</classpathScope>
-                            <mainClass>nl.knaw.dans.easy.bagstore.ServiceTest</mainClass>
+                            <mainClass>nl.knaw.dans.easy.bagstore.BagStoreService</mainClass>
                         </configuration>
                     </plugin>
                 </plugins>
