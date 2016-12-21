@@ -33,10 +33,15 @@ class BagStoreService extends BagStoreApp with DebugEnhancedLogging {
   val context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS)
   context.addEventListener(new ScalatraListener())
   server.setHandler(context)
-  val ajp = new Ajp13SocketConnector()
-  ajp.setPort(properties.getInt("daemon.ajp.port"))
-  server.addConnector(ajp)
-  info(s"listening on port $port")
+  info(s"HTTP port is $port")
+
+  if (properties.containsKey("daemon.ajp.port")) {
+    val ajp = new Ajp13SocketConnector()
+    val ajpPort = properties.getInt("daemon.ajp.port")
+    ajp.setPort(ajpPort)
+    server.addConnector(ajp)
+    info(s"AJP port is $ajpPort")
+  }
 
   def start(): Try[Unit] = Try {
     server.start()
