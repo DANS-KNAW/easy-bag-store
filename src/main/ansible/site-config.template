@@ -1,0 +1,13 @@
+<VirtualHost *:80>
+  ServerAdmin applicatiebeheer@easy.dans.knaw.nl
+  ServerName {{ apache_httpd_host }}
+
+  ErrorLog logs/{{ apache_httpd_host }}-error.log
+  CustomLog logs/{{ apache_httpd_host }}-access.log common
+  ProxyTimeout 600
+
+  <Location / >
+    ProxyPass ajp://localhost:{{ easy_bag_store_ajp_port}}/
+    ProxyPassReverse ajp://localhost:{{ easy_bag_store_ajp_port}}/
+  </Location>
+</VirtualHost>

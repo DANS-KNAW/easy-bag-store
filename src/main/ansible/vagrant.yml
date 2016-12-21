@@ -17,8 +17,22 @@
 - hosts: bagstore
   become: yes
   tasks:
-  - name: Install Java 8
-    yum: name=java-1.8.0-openjdk
+  - name: Install standard software
+    yum: name="{{ item }}"
+    with_items:
+      - java-1.8.0-openjdk
+      - httpd
+
+  - name: Enable Apache HTTP Server
+    service: name=httpd enabled=true
+
+  - name: Configure server name
+    lineinfile: dest=/etc/httpd/conf/httpd.conf
+      line='ServerName {{ apache_httpd_host }}'
+      insertafter='^# ServerName.*$'
+
+  - name: Add configuration for site
+    template: src=site-config.template dest=/etc/httpd/conf.d/{{ apache_httpd_host }}.conf
 
   - name: Remove any previously installed copy of the same version
     file: dest=/usr/local/easy-bag-store-1.x-SNAPSHOT state=absent
@@ -60,4 +74,7 @@
 
   - name: Start and enable service
     service: name=easy-bag-store state=started enabled=true
+
+  - name: Reload Apache HTTP server
+    service: name=httpd state=reloaded
 

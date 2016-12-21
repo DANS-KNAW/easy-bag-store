@@ -16,6 +16,7 @@
 package nl.knaw.dans.easy.bagstore
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.eclipse.jetty.ajp.Ajp13SocketConnector
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.joda.time.DateTime
@@ -27,11 +28,14 @@ import scala.util.{Failure, Success, Try}
 class BagStoreService extends BagStoreApp with DebugEnhancedLogging {
   import logger._
 
-  private val port = properties.getInt("daemon.port")
+  private val port = properties.getInt("daemon.http.port")
   val server = new Server(port)
   val context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS)
   context.addEventListener(new ScalatraListener())
   server.setHandler(context)
+  val ajp = new Ajp13SocketConnector()
+  ajp.setPort(properties.getInt("daemon.ajp.port"))
+  server.addConnector(ajp)
   info(s"listening on port $port")
 
   def start(): Try[Unit] = Try {
