@@ -30,7 +30,7 @@ trait BagStoreAdd extends BagStoreContext {
 
   def add(bagDir: Path, uuid: Option[UUID] = None): Try[BagId] = {
     trace(bagDir)
-    if(Files.isHidden(bagDir))
+    if (Files.isHidden(bagDir))
       Failure(CannotIngestHiddenBagDirectory(bagDir))
     else {
       val bagId = BagId(uuid.getOrElse {
@@ -46,7 +46,7 @@ trait BagStoreAdd extends BagStoreContext {
         _ <- Try {
           Files.createDirectories(container)
         }
-        _ <-  setGroupWritable(container)
+        _ <- makePathAndParentsInBagStoreGroupWritable(container)
         _ = debug(s"created container for Bag: $container")
         _ <- ingest(bagDir.getFileName, staged, container)
       } yield bagId
@@ -62,20 +62,34 @@ trait BagStoreAdd extends BagStoreContext {
       .recoverWith {
         case NonFatal(e) =>
           logger.error(s"Failed to move staged directory into container: $staged -> $moved", e)
-          FileUtils.deleteDirectory(container.toFile)
+          removeEmptyParentDirectoriesInBagStore(container)
           Failure(MoveToStoreFailedException(staged, container))
       }
   }
 
-  private def setGroupWritable(container: Path): Try[Seq[Path]] = {
-    trace(container)
-    val pathComponents =  baseDir.relativize(container).iterator().asScala.toList
+  private def makePathAndParentsInBagStoreGroupWritable(path: Path): Try[Unit] = {
+    getPathsInBagStore(path).map(_.map(makeGroupWritable))
+  }
+
+  private def makeGroupWritable(path: Path): Try[Unit] = Try {
+    val permissions = Files.getPosixFilePermissions(path).asScala
+    Files.setPosixFilePermissions(path, (permissions | Set(PosixFilePermission.GROUP_WRITE)).asJava)
+  }
+
+  private def removeEmptyParentDirectoriesInBagStore(container: Path): Try[Unit] = {
+    getPathsInBagStore(container).flatMap(paths => removeDirectoriesIfEmpty(paths.reverse))
+  }
+
+  private def removeDirectoriesIfEmpty(paths: Seq[Path]): Try[Unit] = {
+    paths.map(removeDirectoryIfEmpty).collectResults.map(_ => ())
+  }
+
+  private def removeDirectoryIfEmpty(path: Path): Try[Unit] = Try {
+    if (!Files.list(path).iterator().hasNext) Files.delete(path)
+  }
+
+  private def getPathsInBagStore(path: Path): Try[Seq[Path]] = Try {
+    val pathComponents = baseDir.relativize(path).iterator().asScala.toList
     pathComponents.indices.map(i => baseDir.resolve(pathComponents.slice(0, i + 1).mkString("/")))
-      .map {
-        path => Try {
-          val permissions = Files.getPosixFilePermissions(path).asScala
-          Files.setPosixFilePermissions(path, (permissions | Set(PosixFilePermission.GROUP_WRITE)).asJava)
-        }
-      }.collectResults
   }
 }
