@@ -2,7 +2,13 @@
 
 BINPATH=`command readlink -f $0 2> /dev/null || command grealpath $0 2> /dev/null`
 APPHOME=`dirname \`dirname $BINPATH \``
+if [ -f $HOME/logback.xml ]
+then
+    LOGCONFIG=$HOME/logback.xml
+else
+    LOGCONFIG=$APPHOME/cfg/logback.xml
+fi
 
-java -Dlogback.configurationFile=$APPHOME/cfg/logback.xml \
+java -Dlogback.configurationFile=$LOGCONFIG \
      -Dapp.home=$APPHOME \
      -jar $APPHOME/bin/easy-bag-store.jar $@

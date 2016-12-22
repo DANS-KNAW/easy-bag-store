@@ -15,9 +15,14 @@
  */
 package nl.knaw.dans.easy.bagstore
 
+import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.{Files, Path}
 import java.util.UUID
 
+import nl.knaw.dans.lib.error._
+import org.apache.commons.io.FileUtils
+
+import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 import scala.util.{Failure, Try}
 
@@ -33,7 +38,6 @@ trait BagStoreAdd extends BagStoreContext {
         debug(s"generated UUID voor new Bag: $newUuid")
         newUuid
       })
-
       for {
         staged <- stageDirectory(bagDir)
         valid <- isVirtuallyValid(staged)
@@ -42,6 +46,7 @@ trait BagStoreAdd extends BagStoreContext {
         _ <- Try {
           Files.createDirectories(container)
         }
+        _ <-  setGroupWritable(container)
         _ = debug(s"created container for Bag: $container")
         _ <- ingest(bagDir.getFileName, staged, container)
       } yield bagId
@@ -55,8 +60,21 @@ trait BagStoreAdd extends BagStoreContext {
       Files.move(staged, moved)
     }.flatMap(setPermissions(bagPermissions))
       .recoverWith {
-        case NonFatal(e) => Failure(MoveToStoreFailedException(staged, container))
+        case NonFatal(e) =>
+          FileUtils.deleteDirectory(container.toFile)
+          Failure(MoveToStoreFailedException(staged, container))
       }
   }
 
+  private def setGroupWritable(container: Path): Try[Seq[Path]] = {
+    trace(container)
+    val pathComponents =  baseDir.relativize(container).iterator().asScala.toList
+    pathComponents.indices.map(i => baseDir.resolve(pathComponents.slice(0, i + 1).mkString("/")))
+      .map {
+        path => Try {
+          val permissions = Files.getPosixFilePermissions(path).asScala
+          Files.setPosixFilePermissions(path, (permissions | Set(PosixFilePermission.GROUP_WRITE)).asJava)
+        }
+      }.collectResults
+  }
 }

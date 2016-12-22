@@ -1,25 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
-	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-		<encoder>
-			<pattern>%-5level %msg%n</pattern>
-		</encoder>
-	</appender>
 	<appender name="FILE"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>/var/log/easy-bag-store/easy-bag-store.log</file>
+		<file>${user.home}/easy-bag-store.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<!-- daily rollover -->
-			<fileNamePattern>/var/log/easy-bag-store/easy-bag-store.%d{yyyy-MM-dd}.log</fileNamePattern>
-			<!-- keep 30 days' worth of history -->
+			<fileNamePattern>${user.home}/easy-bag-store.%d{yyyy-MM-dd}.log</fileNamePattern>
 			<maxHistory>30</maxHistory>
 		</rollingPolicy>
 		<encoder>
-			<pattern>%-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>
+			<pattern>[%thread] %-5level %logger{15} - %msg%n</pattern>
 		</encoder>
 	</appender>
 	<root level="warn">
-		<appender-ref ref="STDOUT" />
 		<appender-ref ref="FILE" />
 	</root>
 	<logger name="nl.knaw.dans.easy" level="info" />

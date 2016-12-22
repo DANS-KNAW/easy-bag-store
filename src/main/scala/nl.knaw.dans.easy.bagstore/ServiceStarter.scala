@@ -15,10 +15,6 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.io.File
-
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.commons.daemon.{Daemon, DaemonContext}
 import org.slf4j.{Logger, LoggerFactory}
 
