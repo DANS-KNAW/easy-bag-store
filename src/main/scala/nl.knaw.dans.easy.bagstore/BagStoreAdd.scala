@@ -61,6 +61,7 @@ trait BagStoreAdd extends BagStoreContext {
     }.flatMap(setPermissions(bagPermissions))
       .recoverWith {
         case NonFatal(e) =>
+          logger.error(s"Failed to move staged directory into container: $staged -> $moved", e)
           FileUtils.deleteDirectory(container.toFile)
           Failure(MoveToStoreFailedException(staged, container))
       }

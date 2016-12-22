@@ -40,6 +40,7 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
   implicit val baseDir: Path
   // Must be absolute.
   implicit val baseUri: URI
+  implicit val stagingBaseDir: Path
   implicit val uuidPathComponentSizes: Seq[Int]
   implicit val bagPermissions: String
 
@@ -214,7 +215,7 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
    */
   protected def stageDirectory(dir: Path): Try[Path] = Try {
     trace(dir)
-    val staged = Files.createTempFile("staged-bag-", "")
+    val staged = Files.createTempFile(stagingBaseDir, "staged-bag-", "")
     Files.deleteIfExists(staged)
     FileUtils.copyDirectory(dir.toFile, staged.toFile)
     debug(s"Staged directory $dir in $staged")

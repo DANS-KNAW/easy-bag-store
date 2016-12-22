@@ -53,6 +53,7 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
     new BagStoreContext {
       override implicit val baseDir: Path = BagStoreContextSpec.this.baseDir
       override implicit val baseUri: URI = BagStoreContextSpec.this.baseUri
+      override implicit val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir
       override implicit val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
       override implicit val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
 
@@ -164,6 +165,7 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
     new BagStoreContext {
       override implicit val baseDir: Path = BagStoreContextSpec.this.baseDir
       override implicit val baseUri: URI = new URI("http://example-archive.org/base-path/")
+      override implicit val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir
       override implicit val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
       override implicit val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
 

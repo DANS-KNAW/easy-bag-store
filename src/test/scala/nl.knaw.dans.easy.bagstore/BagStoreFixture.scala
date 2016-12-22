@@ -16,7 +16,7 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.net.URI
-import java.nio.file.Path
+import java.nio.file.{Path, Paths}
 
 /**
  * Common base class for tests that need to set up a test bag store. This class should only do the set-up that is
@@ -25,6 +25,7 @@ import java.nio.file.Path
 abstract class BagStoreFixture extends TestSupportFixture with BagStoreContext {
   implicit val baseDir: Path = testDir.resolve("bag-store")
   implicit val baseUri: URI = new URI("http://example-archive.org")
+  implicit val stagingBaseDir: Path = testDir
   implicit val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
 
   /*

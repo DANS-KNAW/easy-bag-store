@@ -28,53 +28,14 @@
 
   - name: Configure server name
     lineinfile: dest=/etc/httpd/conf/httpd.conf
-      line='ServerName {{ apache_httpd_host }}'
+      line='ServerName bagstore'
       insertafter='^# ServerName.*$'
 
   - name: Add configuration for site
-    template: src=site-config.template dest=/etc/httpd/conf.d/{{ apache_httpd_host }}.conf
+    template: src=site-config.template dest=/etc/httpd/conf.d/bagstore.conf
 
-  - name: Remove any previously installed copy of the same version
-    file: dest=/usr/local/easy-bag-store-1.x-SNAPSHOT state=absent
-
-  - name: Untar installation package to the server
-    unarchive: src=../../../target/easy-bag-store-1.x-SNAPSHOT.tar.gz
-               dest=/usr/local/
-
-  - name: Make this the currently active version
-    file: path=/usr/local/easy-bag-store
-          src=/usr/local/easy-bag-store-1.x-SNAPSHOT
-          state=link
-
-  - name: Put command on the PATH
-    file: path=/usr/local/bin/easy-bag-store
-          src=/usr/local/easy-bag-store/bin/easy-bag-store
-          state=link
-
-  - name: Configure the application
-    template: src=../assembly/dist/cfg/application.properties dest=/usr/local/easy-bag-store/cfg/
-
-  - name: Create a user for the bag-store
-    user: name=easy-bag-store
-
-  - name: Make vagrant member of easy-bag-store group
-    user: name=vagrant group=easy-bag-store
-
-  - name: Create bag-store base directory
-    file: path="{{ easy_bag_store_basedir }}"  state=directory owner=easy-bag-store group=easy-bag-store mode=0775
-
-  - name: Create a staging directory
-    file: path="{{ easy_bag_store_staging_basedir }}" state=directory owner=easy-bag-store group=easy-bag-store mode=0775
-
-  - name: Create a directory and log file with the proper permissions
-    file: path=/var/log/easy-bag-store/ state=directory owner=easy-bag-store group=easy-bag-store mode=04664
-
-  - name: Install service
-    copy: src=../assembly/dist/bin/easy-bag-store.service dest=/usr/lib/systemd/system
-
-  - name: Start and enable service
-    service: name=easy-bag-store state=started enabled=true
-
-  - name: Reload Apache HTTP server
-    service: name=httpd state=reloaded
+- hosts: bagstore
+  become: yes
+  roles:
+    - easy-bag-store-ansible
 
