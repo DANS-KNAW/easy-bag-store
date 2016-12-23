@@ -16,6 +16,8 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.io.InputStream
+import java.net.URI
+import java.nio.file.Paths
 import java.util.UUID
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
@@ -84,6 +86,7 @@ object BagStoreService extends App with DebugEnhancedLogging {
 }
 
 class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhancedLogging {
+  val externalBaseUri = new URI(properties.getString("daemon.external-base-uri"))
 
   get("/") {
     contentType = "text/plain"
@@ -116,7 +119,7 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhance
   put("/:uuid") {
     putBag(request.getInputStream, params("uuid"))
     match {
-      case Success(bagId) => Created()
+      case Success(bagId) => Created(headers = Map("Location" -> appendUriPathToExternalBaseUri(toUri(bagId)).toASCIIString))
       case Failure(e: IllegalArgumentException) if e.getMessage.contains("Invalid UUID string") => BadRequest("Invalid UUID")
       case Failure(e: NumberFormatException) => BadRequest("Invalid UUID")
       case Failure(e: BagIdAlreadyAssignedException) => BadRequest(e.getMessage)
@@ -124,6 +127,10 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhance
         logger.error("Unexpected type of failure", e)
         InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
     }
+  }
+
+  private def appendUriPathToExternalBaseUri(uri: URI): URI = {
+    new URI(externalBaseUri.getScheme, externalBaseUri.getAuthority, Paths.get(externalBaseUri.getPath, uri.getPath).toString, null, null)
   }
 
   private def putBag(is: InputStream, uuidStr: String): Try[BagId] = {

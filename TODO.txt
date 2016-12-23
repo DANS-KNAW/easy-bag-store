@@ -17,5 +17,3 @@
 - Test toevoegen voor beschrijving argument in README
 - Verify implementeren (eigen implementatie van virtually-valid check nodig?)
 - Erase implementeren (wat te doen met (indirecte) verwijzingen naar gewiste bestand?
-- Daemon-mode
-    - GET
