@@ -3,6 +3,6 @@
 BINPATH=`command readlink -f $0 2> /dev/null || command grealpath $0 2> /dev/null`
 APPHOME=`dirname \`dirname $BINPATH \``
 
-java -Dlogback.configurationFile=$APPHOME/cfg/logback.xml \
+java -Dlogback.configurationFile=$APPHOME/cfg/logback-service.xml \
      -Dapp.home=$APPHOME \
      -cp $APPHOME/bin/easy-bag-store.jar nl.knaw.dans.easy.bagstore.BagStoreService

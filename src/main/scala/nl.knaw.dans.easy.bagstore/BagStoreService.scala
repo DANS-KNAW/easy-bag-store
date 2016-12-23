@@ -15,6 +15,9 @@
  */
 package nl.knaw.dans.easy.bagstore
 
+import java.nio.file.{Files, Path, Paths}
+import java.util.UUID
+
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.eclipse.jetty.ajp.Ajp13SocketConnector
 import org.eclipse.jetty.server.Server
@@ -22,11 +25,16 @@ import org.eclipse.jetty.servlet.ServletContextHandler
 import org.joda.time.DateTime
 import org.scalatra._
 import org.scalatra.servlet.ScalatraListener
-
+import java.io.InputStream
 import scala.util.{Failure, Success, Try}
 
 class BagStoreService extends BagStoreApp with DebugEnhancedLogging {
   import logger._
+
+  info(s"base directory: $baseDir")
+  info(s"base URI: $baseUri")
+  info(s"file permissions for bag files: $bagPermissions")
+  info(s"file permissions for exported files: $outputBagPermissions")
 
   private val port = properties.getInt("daemon.http.port")
   val server = new Server(port)
@@ -44,10 +52,12 @@ class BagStoreService extends BagStoreApp with DebugEnhancedLogging {
   }
 
   def start(): Try[Unit] = Try {
+    info("Starting HTTP service ...")
     server.start()
   }
 
   def stop(): Try[Unit] = Try {
+    info("Stopping HTTP service ...")
     server.stop()
   }
 
@@ -56,15 +66,37 @@ class BagStoreService extends BagStoreApp with DebugEnhancedLogging {
   }
 }
 
-object BagStoreService extends App {
-  new BagStoreService().start()
-  println("Service started ...")
+object BagStoreService extends App with DebugEnhancedLogging {
+  import logger._
+  val service = new BagStoreService()
+  Runtime.getRuntime.addShutdownHook(new Thread("service-shutdown") {
+    override def run(): Unit = {
+      info("Stopping service ...")
+      service.stop()
+      info("Cleaning up ...")
+      service.destroy()
+      info("Service stopped.")
+    }
+  })
+  service.start()
+  info("Service started ...")
 }
 
+
+
 class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhancedLogging {
+  import logger._
 
   get("/") {
-    // Enumerate all bag-ids
+    contentType = "text/plain"
+    Try {
+      enumBags().iterator.toList.mkString("\n")
+    } match {
+      case Success(bagIds) => Ok(bagIds)
+      case Failure(e) =>
+        logger.error("Unexpected type of failure", e)
+        InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
+    }
   }
 
   get("/:uuid") {
@@ -84,10 +116,42 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhance
   // TODO: implement content-negatiation: text/plain for enumFiles, application/zip for zipped bag
 
   put("/:uuid") {
-    // Check MD-5
-    // Unzip/tar body (directly to staging area?)
-    // prune
-    // ADD(body, uuid)
+    putBag(request.getInputStream, params("uuid"))
+    match {
+      case Success(bagId) => Created()
+      case Failure(e) =>
+        logger.error("Unexpected type of failure", e)
+        InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
+    }
+//
+//
+//    Try {
+//      val uuidStr = params("uuid")
+//      UUID.fromString(formatUuidStrCanonically(uuidStr))
+//    }.flatMap {
+//      uuid =>
+//        stageBagZip(request.getInputStream)
+//          .flatMap {
+//            staged => add(staged, Some(uuid), skipStage = true)
+//          }
+//    } match {
+//      case Success(bagId) => Created()
+//      case Failure(e) =>
+//        logger.error("Unexpected type of failure", e)
+//        InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
+//    }
   }
 
+  private def putBag(is: InputStream, uuidStr: String): Try[BagId] = {
+    for {
+      uuid <- getUuidFromString(params("uuid"))
+      staged <- stageBagZip(request.getInputStream)
+      bagId <- add(staged, Some(uuid), skipStage = true)
+    } yield bagId
+  }
+
+  private def getUuidFromString(s: String): Try[UUID] = Try {
+    val uuidStr = params("uuid").filterNot(_ == '-')
+    UUID.fromString(formatUuidStrCanonically(uuidStr))
+  }
 }

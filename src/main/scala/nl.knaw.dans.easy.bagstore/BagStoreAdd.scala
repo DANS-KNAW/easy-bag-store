@@ -28,7 +28,7 @@ import scala.util.{Failure, Try}
 
 trait BagStoreAdd extends BagStoreContext {
 
-  def add(bagDir: Path, uuid: Option[UUID] = None): Try[BagId] = {
+  def add(bagDir: Path, uuid: Option[UUID] = None, skipStage: Boolean = false): Try[BagId] = {
     trace(bagDir)
     if (Files.isHidden(bagDir))
       Failure(CannotIngestHiddenBagDirectory(bagDir))
@@ -39,7 +39,7 @@ trait BagStoreAdd extends BagStoreContext {
         newUuid
       })
       for {
-        staged <- stageDirectory(bagDir)
+        staged <- if (skipStage) Try { bagDir } else stageBagDir(bagDir)
         valid <- isVirtuallyValid(staged)
         if valid
         container <- toContainer(bagId)

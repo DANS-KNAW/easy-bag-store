@@ -15,11 +15,13 @@
  */
 package nl.knaw.dans.easy.bagstore
 
+import java.io.InputStream
 import java.net.URI
 import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Path, Paths}
 import java.util.UUID
 
+import net.lingala.zip4j.core.ZipFile
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
@@ -213,13 +215,32 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
    * @param dir the directory to stage
    * @return the location of the staged directory
    */
-  protected def stageDirectory(dir: Path): Try[Path] = Try {
+  protected def stageBagDir(dir: Path): Try[Path] = Try {
     trace(dir)
     val staged = Files.createTempFile(stagingBaseDir, "staged-bag-", "")
     Files.deleteIfExists(staged)
     FileUtils.copyDirectory(dir.toFile, staged.toFile)
     debug(s"Staged directory $dir in $staged")
     staged
+  }
+
+  protected def stageBagZip(is: InputStream): Try[Path] = Try {
+    trace(is)
+    val extractDir = Files.createTempFile(stagingBaseDir, "staged-zip-", "")
+    Files.deleteIfExists(extractDir)
+    Files.createDirectory(extractDir)
+    val zip = extractDir.resolve("bag.zip")
+    FileUtils.copyInputStreamToFile(is, zip.toFile)
+    new ZipFile(zip.toFile).extractAll(extractDir.toAbsolutePath.toString)
+    Files.delete(zip)
+    extractDir
+  }.flatMap(findBagDir)
+
+  private def findBagDir(extractDir: Path): Try[Path] = Try {
+    val files = Files.list(extractDir).iterator().asScala.toList
+    if (files.size != 1) throw IncorrectNumberOfFilesInBagZipRootException(files.size)
+    else if(!Files.isDirectory(files.head)) throw BagBaseNotFoundException()
+    else files.head
   }
 
   protected def mapProjectedToRealLocation(bagDir: Path): Try[Seq[(Path, Path)]] = {
@@ -328,7 +349,7 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
       uuidPathComponentSizes, "UUID-part slashed incorrectly")
   }
 
-  private def formatUuidStrCanonically(s: String): String = {
+  protected def formatUuidStrCanonically(s: String): String = {
     List(s.slice(0, 8), s.slice(8, 12), s.slice(12, 16), s.slice(16, 20), s.slice(20, 32)).mkString("-")
   }
 

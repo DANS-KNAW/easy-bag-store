@@ -15,6 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstore
 
+import java.io.FileInputStream
 import java.net.URI
 import java.nio.file.{Path, Paths}
 import java.util.UUID
@@ -253,6 +254,38 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
     result shouldBe a[Success[_]]
     inside(result) {
       case Success(valid) => valid shouldBe true
+    }
+  }
+
+  "stageBagZip" should "unzip zipped file and return bag base directory" in {
+    val result = stageBagZip(new FileInputStream("src/test/resources/zips/one-basedir.zip"))
+    result shouldBe a[Success[_]]
+    inside(result) {
+      case Success(staged) => staged.getParent.getParent shouldBe stagingBaseDir
+    }
+  }
+
+  it should "result in a failure if there are two base directories in the zip file" in {
+    val result = stageBagZip(new FileInputStream("src/test/resources/zips/two-basedirs.zip"))
+    result shouldBe a[Failure[_]]
+    inside(result) {
+      case Failure(e) => e shouldBe a[IncorrectNumberOfFilesInBagZipRootException]
+    }
+  }
+
+  it should "result in a failure if there are no files in the zip file" in {
+    val result = stageBagZip(new FileInputStream("src/test/resources/zips/empty.zip"))
+    result shouldBe a[Failure[_]]
+
+    // The exception the Failure should actually by IncorrectNumberOfFilesInBagZipRootException, but lingala chokes
+    // on the empty zip, so we do not get to that point.
+  }
+
+  it should "result in a failure if there is no base directory in the zip file" in {
+    val result = stageBagZip(new FileInputStream("src/test/resources/zips/one-file.zip"))
+    result shouldBe a[Failure[_]]
+    inside(result) {
+      case Failure(e) => e shouldBe a[BagBaseNotFoundException]
     }
   }
 }

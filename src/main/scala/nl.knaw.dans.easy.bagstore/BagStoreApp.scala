@@ -21,6 +21,8 @@ import java.nio.file.{Path, Paths}
 
 import org.apache.commons.configuration.PropertiesConfiguration
 
+import scala.util.Try
+
 trait BagStoreApp extends BagStoreContext
   with BagStoreAdd
   with BagStoreEnum
@@ -35,5 +37,15 @@ trait BagStoreApp extends BagStoreContext
   implicit val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-component-sizes").map(_.toInt).toSeq
   implicit val bagPermissions: String = properties.getString("bag-store.bag-file-permissions")
   implicit val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
+
+
+  protected def validateSettings: Try[Unit] = {
+      // Check that baseDir exists and is writable
+      // Check taht baseUri is well-formed
+     //  Check that stagingBaseDir exists and is writable
+    // Check that uuidPathCompSize add up to 32
+    // Check that permissions are well-formed
+    ???
+  }
 }
 

@@ -22,9 +22,16 @@
     with_items:
       - java-1.8.0-openjdk
       - httpd
+      - libsemanage-python
 
   - name: Enable Apache HTTP Server
     service: name=httpd enabled=true
+
+  - name: Allow Apache HTTP Server to call back-end service
+    seboolean:
+      name: httpd_can_network_connect
+      state: yes
+      persistent: yes
 
   - name: Configure server name
     lineinfile: dest=/etc/httpd/conf/httpd.conf
@@ -39,3 +46,8 @@
   roles:
     - easy-bag-store-ansible
 
+- hosts: bagstore
+  become: yes
+  tasks:
+  - name: Reload Apache HTTP Server
+    service: name=httpd state=reloaded

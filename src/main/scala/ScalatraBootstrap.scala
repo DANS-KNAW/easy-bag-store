@@ -16,10 +16,12 @@
 import javax.servlet.ServletContext
 
 import nl.knaw.dans.easy.bagstore.BagStoreServlet
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatra.LifeCycle
 
-class ScalatraBootstrap extends LifeCycle {
+class ScalatraBootstrap extends LifeCycle with DebugEnhancedLogging {
   override def init(context: ServletContext) {
+    trace(context)
     context mount (new BagStoreServlet, "/")
   }
 }
