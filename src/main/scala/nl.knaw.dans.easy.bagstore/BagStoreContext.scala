@@ -27,7 +27,7 @@ import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
 
 import scala.collection.JavaConverters._
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 /**
  * Provides the bag-store context, which consists of:
@@ -359,8 +359,16 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
         /*
          * If the container exists, the Bag must exist. This function does not check for corruption of the BagStore.
          */
-        if(Files.exists(f) && Files.isDirectory(f)) Success(())
+        if(Files.exists(f) && Files.isDirectory(f)) ()
         else throw NoSuchBagException(bagId)
+    }
+  }
+
+  protected def checkBagDoesNotExist(bagId: BagId): Try[Unit] = {
+    toContainer(bagId).map {
+      f =>
+        if (Files.exists(f) && Files.isDirectory(f)) throw BagIdAlreadyAssignedException(bagId)
+        else ()
     }
   }
 

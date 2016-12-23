@@ -37,6 +37,6 @@ trait BagStoreEnum extends BagStoreContext {
     toLocation(bagId)
       .flatMap(path =>
         bagFacade.getPayloadFilePaths(path)
-          .map(ppaths => (Files.list(path).iterator().asScala.withFilter(Files.isRegularFile(_)).map(path.relativize(_)).toSet | ppaths).map(p => FileId(bagId, p)).toStream)).get
+          .map(ppaths => (Files.list(path).iterator().asScala.withFilter(Files.isRegularFile(_)).map(path.relativize).toSet | ppaths).map(p => FileId(bagId, p)).toStream)).get
   }
 }

@@ -17,7 +17,8 @@ package nl.knaw.dans.easy.bagstore
 
 import java.io.File
 import java.net.URI
-import java.nio.file.{Path, Paths}
+import java.nio.file.attribute.PosixFilePermissions
+import java.nio.file.{Files, Path, Paths}
 
 import org.apache.commons.configuration.PropertiesConfiguration
 
@@ -39,13 +40,12 @@ trait BagStoreApp extends BagStoreContext
   implicit val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
 
 
-  protected def validateSettings: Try[Unit] = {
-      // Check that baseDir exists and is writable
-      // Check taht baseUri is well-formed
-     //  Check that stagingBaseDir exists and is writable
-    // Check that uuidPathCompSize add up to 32
-    // Check that permissions are well-formed
-    ???
+  protected def validateSettings(): Unit =  {
+    assert(Files.isWritable(baseDir),  s"Non-existent or non-writable base-dir: $baseDir")
+    assert(Files.isWritable(stagingBaseDir), s"Non-existent or non-writable staging base-dir: $stagingBaseDir")
+    assert(uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${uuidPathComponentSizes.sum}")
+    assert(Try(PosixFilePermissions.fromString(bagPermissions)).isSuccess, s"Bag file permissions are invalid: '$bagPermissions'")
+    assert(Try(PosixFilePermissions.fromString(outputBagPermissions)).isSuccess, s"Bag export file permissions are invalid: '$outputBagPermissions'")
   }
 }
 

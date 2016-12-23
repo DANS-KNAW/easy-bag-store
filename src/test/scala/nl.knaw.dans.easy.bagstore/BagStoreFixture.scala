@@ -16,7 +16,7 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.net.URI
-import java.nio.file.{Path, Paths}
+import java.nio.file.Path
 
 /**
  * Common base class for tests that need to set up a test bag store. This class should only do the set-up that is

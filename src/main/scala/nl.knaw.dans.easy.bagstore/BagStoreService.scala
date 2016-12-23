@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.nio.file.{Files, Path, Paths}
+import java.io.InputStream
 import java.util.UUID
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
@@ -25,7 +25,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler
 import org.joda.time.DateTime
 import org.scalatra._
 import org.scalatra.servlet.ScalatraListener
-import java.io.InputStream
+
 import scala.util.{Failure, Success, Try}
 
 class BagStoreService extends BagStoreApp with DebugEnhancedLogging {
@@ -35,6 +35,7 @@ class BagStoreService extends BagStoreApp with DebugEnhancedLogging {
   info(s"base URI: $baseUri")
   info(s"file permissions for bag files: $bagPermissions")
   info(s"file permissions for exported files: $outputBagPermissions")
+  validateSettings()
 
   private val port = properties.getInt("daemon.http.port")
   val server = new Server(port)
@@ -82,10 +83,7 @@ object BagStoreService extends App with DebugEnhancedLogging {
   info("Service started ...")
 }
 
-
-
 class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhancedLogging {
-  import logger._
 
   get("/") {
     contentType = "text/plain"
@@ -119,32 +117,19 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhance
     putBag(request.getInputStream, params("uuid"))
     match {
       case Success(bagId) => Created()
+      case Failure(e: IllegalArgumentException) if e.getMessage.contains("Invalid UUID string") => BadRequest("Invalid UUID")
+      case Failure(e: NumberFormatException) => BadRequest("Invalid UUID")
+      case Failure(e: BagIdAlreadyAssignedException) => BadRequest(e.getMessage)
       case Failure(e) =>
         logger.error("Unexpected type of failure", e)
         InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
     }
-//
-//
-//    Try {
-//      val uuidStr = params("uuid")
-//      UUID.fromString(formatUuidStrCanonically(uuidStr))
-//    }.flatMap {
-//      uuid =>
-//        stageBagZip(request.getInputStream)
-//          .flatMap {
-//            staged => add(staged, Some(uuid), skipStage = true)
-//          }
-//    } match {
-//      case Success(bagId) => Created()
-//      case Failure(e) =>
-//        logger.error("Unexpected type of failure", e)
-//        InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
-//    }
   }
 
   private def putBag(is: InputStream, uuidStr: String): Try[BagId] = {
     for {
       uuid <- getUuidFromString(params("uuid"))
+      _ <- checkBagDoesNotExist(BagId(uuid))
       staged <- stageBagZip(request.getInputStream)
       bagId <- add(staged, Some(uuid), skipStage = true)
     } yield bagId

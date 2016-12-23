@@ -20,7 +20,6 @@ import java.nio.file.{Files, Path}
 import java.util.UUID
 
 import nl.knaw.dans.lib.error._
-import org.apache.commons.io.FileUtils
 
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
