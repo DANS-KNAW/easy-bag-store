@@ -20,8 +20,8 @@ rm -fr home/
 cp -r src/main/assembly/dist home
 cp src/test/resources/debug-config/* home/cfg/
 
-chmod -R 777 out/
 rm -fr out/
+chmod -R 777 out/
 mkdir -p out/bag-store
 
 echo "A fresh application home directory for debugging has been set up at home/"
