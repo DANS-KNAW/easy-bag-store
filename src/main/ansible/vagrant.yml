@@ -44,7 +44,7 @@
 - hosts: bagstore
   become: yes
   roles:
-    - easy-bag-store-ansible
+    - easy-bag-store-role
 
 - hosts: bagstore
   become: yes
