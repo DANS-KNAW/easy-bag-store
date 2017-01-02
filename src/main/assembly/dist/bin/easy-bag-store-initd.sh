@@ -13,7 +13,7 @@
 
 NAME="easy-bag-store"
 EXEC="/usr/bin/jsvc"
-APPHOME="/opt/easy-bag-store"
+APPHOME="/var/local/easy-bag-store"
 JAVA_HOME="/usr/lib/jvm/jre"
 CLASSPATH="$APPHOME/bin/$NAME.jar:`echo $APPHOME/lib/*.jar | sed 's/ /:/g'`"
 CLASS="nl.knaw.dans.easy.bagstore.ServiceStarter"
