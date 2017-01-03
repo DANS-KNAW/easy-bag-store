@@ -29,7 +29,7 @@ jsvc_exec()
     cd ${APPHOME}
     ${EXEC} -home ${JAVA_HOME} -cp ${CLASSPATH} -user ${USER} -outfile ${OUTFILE} -errfile ${ERRFILE} -pidfile ${PID} -wait ${WAIT_TIME} \
           -Dapp.home=${APPHOME} -Dconfig.file=${APPHOME}/cfg/application.conf \
-          -Dlogback.configurationFile=${APPHOME}/cfg/logback.xml $1 ${CLASS} ${ARGS}
+          -Dlogback.configurationFile=${APPHOME}/cfg/logback-service.xml $1 ${CLASS} ${ARGS}
 }
 
 start_jsvc_exec()
