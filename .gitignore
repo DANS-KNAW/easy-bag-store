@@ -15,7 +15,8 @@ buildNumber.properties
 .DS_Store
 apphome.sh
 home/
-out/
+data/
+data-*
 
 # Eclipse
 /.project

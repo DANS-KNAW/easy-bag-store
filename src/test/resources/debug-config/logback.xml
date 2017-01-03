@@ -2,7 +2,7 @@
 <configuration>
 	<appender name="FILE"
 		class="ch.qos.logback.core.FileAppender">
-		<file>out/easy-bag-store.log</file>
+		<file>data/easy-bag-store.log</file>
 		<encoder>
 			<pattern>[%thread] %-5level %logger{10} - %msg%n</pattern>
 		</encoder>

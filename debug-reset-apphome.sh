@@ -15,16 +15,18 @@
 # limitations under the License.
 #
 
+APPHOME=home
+TEMPDIR=data
 
-rm -fr home/
-cp -r src/main/assembly/dist home
-cp src/test/resources/debug-config/* home/cfg/
+rm -fr $APPHOME
+cp -r src/main/assembly/dist $APPHOME
+cp src/test/resources/debug-config/* $APPHOME/cfg/
 
-rm -fr out/
-chmod -R 777 out/
-mkdir -p out/bag-store
+mv $TEMPDIR $TEMPDIR-`date  +"%Y-%m-%d@%H:%M:%S"`
+mkdir -p $TEMPDIR/bag-store
+chmod -R 777 $TEMPDIR
 
-echo "A fresh application home directory for debugging has been set up at home/"
-echo "Output and logging will go to out/"
+echo "A fresh application home directory for debugging has been set up at $APPHOME"
+echo "Output and logging will go to $TEMPDIR"
 echo "Add the following VM options to your run configuration to use these directories during debugging:"
-echo "-Dapp.home=home/ -Dlogback.configurationFile=home/cfg/logback.xml"
+echo "-Dapp.home=$APPHOME -Dlogback.configurationFile=$APPHOME/cfg/logback.xml"
