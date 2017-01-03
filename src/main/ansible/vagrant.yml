@@ -41,10 +41,9 @@
   - name: Add configuration for site
     template: src=site-config.template dest=/etc/httpd/conf.d/bagstore.conf
 
-
   - name: Install roles
     become: no
-    local_action: command ansible-galaxy install -r requirements.yml --ignore-errors
+    local_action: command ansible-galaxy install -f -r requirements.yml --ignore-errors
 
 - hosts: bagstore
   become: yes
