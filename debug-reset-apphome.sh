@@ -22,7 +22,10 @@ rm -fr $APPHOME
 cp -r src/main/assembly/dist $APPHOME
 cp src/test/resources/debug-config/* $APPHOME/cfg/
 
-mv $TEMPDIR $TEMPDIR-`date  +"%Y-%m-%d@%H:%M:%S"`
+if [ -e $TEMPDIR ]; then
+    mv $TEMPDIR $TEMPDIR-`date  +"%Y-%m-%d@%H:%M:%S"`
+fi
+
 mkdir -p $TEMPDIR/bag-store
 chmod -R 777 $TEMPDIR
 
