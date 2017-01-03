@@ -10,12 +10,13 @@ SYNOPSIS
     easy-bag-store [--base-dir|-b <bag-dir>] \
                      | add <bag> <uuid>
                      | get <item-id>
-                     | enum [--hidden|--all] [<item-id>]
-                     | (un)delete <item-id>
+                     | enum [--hidden|--all] [<bag-id>]
+                     | (un)delete <bag-id>
+                     | verify [<bag-id>]
+                     
                      | prune <bag-dir> <ref-bag-id>...
                      | complete <bag-dir>
                      | validate <bag-dir>
-                     | verify [<bag-id>]
                      | erase {--authority-name|-n} <name> {--authority-password|-p} <password> \
                           {--tombstone-message|-m <message>} <file-id>
                           
