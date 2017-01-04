@@ -31,7 +31,7 @@ trait BagStoreApp extends BagStoreContextComponent
   with BagStoreGetComponent
   with BagStoreCompleteComponent
   with BagStoreDeleteComponent
-  with BagStorePrune
+  with BagStorePruneComponent
   with Bagit4FacadeComponent
   with BagStoreOutputContextComponent
   with DebugEnhancedLogging {
@@ -54,6 +54,7 @@ trait BagStoreApp extends BagStoreContextComponent
   val outputContext = new BagStoreOutputContext {
     val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
   }
+  val prune = new BagStorePrune {}
 
   protected def validateSettings(): Unit =  {
     assert(Files.isWritable(context.baseDir), s"Non-existent or non-writable base-dir: ${context.baseDir}")

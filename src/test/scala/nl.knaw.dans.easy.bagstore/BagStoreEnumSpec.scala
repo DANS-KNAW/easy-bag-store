@@ -21,7 +21,7 @@ import org.apache.commons.io.FileUtils
 
 import scala.util.Success
 
-class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnumComponent with BagStoreAddComponent with BagStorePrune with BagStoreDeleteComponent {
+class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnumComponent with BagStoreAddComponent with BagStorePruneComponent with BagStoreDeleteComponent {
   FileUtils.copyDirectory(Paths.get("src/test/resources/bags/basic-sequence-unpruned").toFile, testDir.toFile)
   private val TEST_BAG_A = testDir.resolve("a")
   private val TEST_BAG_B = testDir.resolve("b")
@@ -30,6 +30,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnumComponent with B
   override val add = new BagStoreAdd {}
   override val delete = new BagStoreDelete {}
   override val enum = new BagStoreEnum {}
+  override val prune = new BagStorePrune {}
 
   "enumBags" should "return all BagIds" in {
     val ais = add.add(TEST_BAG_A).get
@@ -125,9 +126,9 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnumComponent with B
 
   it should "return all FileIds in a virtually-valid Bag" in {
     val ais = add.add(TEST_BAG_A).get
-    prune(TEST_BAG_B, ais)
+    prune.prune(TEST_BAG_B, ais)
     val bis = add.add(TEST_BAG_B).get
-    prune(TEST_BAG_C, ais, bis)
+    prune.prune(TEST_BAG_C, ais, bis)
     val cis = add.add(TEST_BAG_C).get
 
     val files = enum.enumFiles(cis).map(_.toList)

@@ -79,7 +79,7 @@ object Command extends App with BagStoreApp {
       cmd.referenceBags.toOption
         .map(refBags => refBags.map(ItemId.fromString).map(_.flatMap(_.toBagId))
           .collectResults
-          .flatMap(refBagIds => prune(cmd.bagDir(), refBagIds: _*))
+          .flatMap(refBagIds => prune.prune(cmd.bagDir(), refBagIds: _*))
           .map(_ => "Done pruning"))
         .getOrElse(Success("No reference Bags specified: nothing to do"))
     case Some(cmd @ opts.complete) =>
