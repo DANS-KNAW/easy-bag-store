@@ -24,7 +24,8 @@ import scala.collection.JavaConverters._
 import scala.util.Try
 
 trait BagStoreGetComponent {
-  this: BagStoreContextComponent with BagStoreOutputContextComponent =>
+  this: BagStoreContextComponent
+    with BagStoreOutputContextComponent =>
 
   val get: BagStoreGet
 

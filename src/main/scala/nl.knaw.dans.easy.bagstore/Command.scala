@@ -32,11 +32,11 @@ object Command extends App with BagStoreApp {
   override protected def context0: BagStoreContext = {
     val oldContext = super.context0
     new BagStoreContext {
-      val baseDir: Path = opts.bagStoreBaseDir().toAbsolutePath
-      val baseUri: URI = oldContext.baseUri
-      val stagingBaseDir: Path = oldContext.stagingBaseDir
-      val uuidPathComponentSizes: Seq[Int] = oldContext.uuidPathComponentSizes
-      val bagPermissions: String = oldContext.bagPermissions
+      override val baseDir: Path = opts.bagStoreBaseDir().toAbsolutePath
+      override val baseUri: URI = oldContext.baseUri
+      override val stagingBaseDir: Path = oldContext.stagingBaseDir
+      override val uuidPathComponentSizes: Seq[Int] = oldContext.uuidPathComponentSizes
+      override val bagPermissions: String = oldContext.bagPermissions
     }
   }
   override lazy val context = context0

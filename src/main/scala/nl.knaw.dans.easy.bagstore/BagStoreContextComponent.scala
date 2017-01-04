@@ -31,7 +31,8 @@ import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 trait BagStoreContextComponent {
-  this: BagFacadeComponent with DebugEnhancedLogging =>
+  this: BagFacadeComponent
+    with DebugEnhancedLogging =>
 
   protected def context0: BagStoreContext
   lazy val context: BagStoreContext = context0

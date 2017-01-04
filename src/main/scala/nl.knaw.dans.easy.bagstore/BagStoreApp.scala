@@ -38,23 +38,23 @@ trait BagStoreApp extends BagStoreContextComponent
 
   val properties = new PropertiesConfiguration(new File(new File(System.getProperty("app.home")), "cfg/application.properties"))
 
-  val bagFacade = new Bagit4Facade()
-  val add = new BagStoreAdd {}
-  val complete = new BagStoreComplete {}
-  protected def context0 = new BagStoreContext {
-    val baseDir: Path = Paths.get(properties.getString("bag-store.base-dir")).toAbsolutePath
-    val baseUri = new URI(properties.getString("bag-store.base-uri"))
-    val stagingBaseDir: Path = Paths.get(properties.getString("staging.base-dir"))
-    val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-component-sizes").map(_.toInt).toSeq
-    val bagPermissions: String = properties.getString("bag-store.bag-file-permissions")
+  override val bagFacade = new Bagit4Facade()
+  override val add = new BagStoreAdd {}
+  override val complete = new BagStoreComplete {}
+  override protected def context0 = new BagStoreContext {
+    override val baseDir: Path = Paths.get(properties.getString("bag-store.base-dir")).toAbsolutePath
+    override val baseUri = new URI(properties.getString("bag-store.base-uri"))
+    override val stagingBaseDir: Path = Paths.get(properties.getString("staging.base-dir"))
+    override val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-component-sizes").map(_.toInt).toSeq
+    override val bagPermissions: String = properties.getString("bag-store.bag-file-permissions")
   }
-  val delete = new BagStoreDelete {}
-  val enum = new BagStoreEnum {}
-  val get = new BagStoreGet {}
-  val outputContext = new BagStoreOutputContext {
-    val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
+  override val delete = new BagStoreDelete {}
+  override val enum = new BagStoreEnum {}
+  override val get = new BagStoreGet {}
+  override val outputContext = new BagStoreOutputContext {
+    override val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
   }
-  val prune = new BagStorePrune {}
+  override val prune = new BagStorePrune {}
 
   protected def validateSettings(): Unit =  {
     assert(Files.isWritable(context.baseDir), s"Non-existent or non-writable base-dir: ${context.baseDir}")

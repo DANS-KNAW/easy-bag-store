@@ -21,7 +21,8 @@ import scala.collection.JavaConverters._
 import scala.util.Try
 
 trait BagStoreEnumComponent {
-  this: BagFacadeComponent with BagStoreContextComponent =>
+  this: BagFacadeComponent
+    with BagStoreContextComponent =>
 
   val enum: BagStoreEnum
 
