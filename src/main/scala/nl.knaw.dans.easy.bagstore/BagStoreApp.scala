@@ -30,7 +30,7 @@ trait BagStoreApp extends BagStoreContextComponent
   with BagStoreEnum
   with BagStoreGet
   with BagStoreCompleteComponent
-  with BagStoreDelete
+  with BagStoreDeleteComponent
   with BagStorePrune
   with Bagit4FacadeComponent
   with BagStoreOutputContext
@@ -49,6 +49,7 @@ trait BagStoreApp extends BagStoreContextComponent
     val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-component-sizes").map(_.toInt).toSeq
     val bagPermissions: String = properties.getString("bag-store.bag-file-permissions")
   }
+  val delete = new BagStoreDelete {}
 
   protected def validateSettings(): Unit =  {
     assert(Files.isWritable(context.baseDir), s"Non-existent or non-writable base-dir: ${context.baseDir}")

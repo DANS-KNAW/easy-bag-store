@@ -67,13 +67,13 @@ object Command extends App with BagStoreApp {
       for {
         itemId <- ItemId.fromString(cmd.bagId())
         bagId <- itemId.toBagId
-        _ <- delete(bagId)
+        _ <- delete.delete(bagId)
       } yield s"Marked ${cmd.bagId()} as deleted"
     case Some(cmd @ opts.undelete) =>
       for {
         itemId <- ItemId.fromString(cmd.bagId())
         bagId <- itemId.toBagId
-        _ <- undelete(bagId)
+        _ <- delete.undelete(bagId)
       } yield s"Removed deleted mark from ${cmd.bagId()}"
     case Some(cmd @ opts.prune) =>
       cmd.referenceBags.toOption

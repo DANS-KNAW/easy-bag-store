@@ -21,13 +21,14 @@ import org.apache.commons.io.FileUtils
 
 import scala.util.Success
 
-class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAddComponent with BagStorePrune with BagStoreDelete {
+class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAddComponent with BagStorePrune with BagStoreDeleteComponent {
   FileUtils.copyDirectory(Paths.get("src/test/resources/bags/basic-sequence-unpruned").toFile, testDir.toFile)
   private val TEST_BAG_A = testDir.resolve("a")
   private val TEST_BAG_B = testDir.resolve("b")
   private val TEST_BAG_C = testDir.resolve("c")
 
   override val add = new BagStoreAdd {}
+  override val delete = new BagStoreDelete {}
 
   "enumBags" should "return all BagIds" in {
     val ais = add.add(TEST_BAG_A).get
@@ -55,7 +56,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val ais = add.add(TEST_BAG_A).get
     val bis = add.add(TEST_BAG_B).get
     val cis = add.add(TEST_BAG_C).get
-    delete(bis)
+    delete.delete(bis)
 
     val bags = enumBags().map(_.toList)
     bags shouldBe a [Success[_]]
@@ -70,7 +71,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val ais = add.add(TEST_BAG_A).get
     val bis = add.add(TEST_BAG_B).get
     val cis = add.add(TEST_BAG_C).get
-    delete(bis)
+    delete.delete(bis)
 
     val bags = enumBags(includeHidden = true).map(_.toList)
     bags shouldBe a [Success[_]]
@@ -85,7 +86,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     add.add(TEST_BAG_A).get
     val bis = add.add(TEST_BAG_B).get
     add.add(TEST_BAG_C).get
-    delete(bis)
+    delete.delete(bis)
 
     val bags = enumBags(includeVisible = false, includeHidden = true).map(_.toList)
     bags shouldBe a [Success[_]]
@@ -100,7 +101,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     add.add(TEST_BAG_A).get
     val bis = add.add(TEST_BAG_B).get
     add.add(TEST_BAG_C).get
-    delete(bis)
+    delete.delete(bis)
 
     val bags = enumBags(includeVisible = false).map(_.toList)
     bags shouldBe a [Success[_]]
