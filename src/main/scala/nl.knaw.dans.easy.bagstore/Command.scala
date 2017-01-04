@@ -15,6 +15,8 @@
  */
 package nl.knaw.dans.easy.bagstore
 
+import java.net.URI
+import java.nio.file.{Path, Paths}
 import java.util.UUID
 
 import nl.knaw.dans.lib.error.TraversableTryExtensions
@@ -26,12 +28,22 @@ object Command extends App with BagStoreApp {
 
   val opts = CommandLineOptions(args, properties)
   opts.verify()
-  override val baseDir = opts.bagStoreBaseDir().toAbsolutePath
+
+  override val context = {
+    val oldContext = super.context
+    new BagStoreContext {
+      val baseDir: Path = opts.bagStoreBaseDir().toAbsolutePath
+      val baseUri: URI = oldContext.baseUri
+      val stagingBaseDir: Path = oldContext.stagingBaseDir
+      val uuidPathComponentSizes: Seq[Int] = oldContext.uuidPathComponentSizes
+      val bagPermissions: String = oldContext.bagPermissions
+    }
+  }
 
   val result: Try[String] = opts.subcommand match {
     case Some(cmd @ opts.add) =>
       val bagUuid = cmd.uuid.toOption.map(UUID.fromString)
-      add(cmd.bag(), bagUuid).map(bagId => s"Added Bag with bag-id: $bagId")
+      add.add(cmd.bag(), bagUuid).map(bagId => s"Added Bag with bag-id: $bagId")
     case Some(cmd @ opts.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
@@ -70,10 +82,10 @@ object Command extends App with BagStoreApp {
           .map(_ => "Done pruning"))
         .getOrElse(Success("No reference Bags specified: nothing to do"))
     case Some(cmd @ opts.complete) =>
-      complete(cmd.bagDir())
+      complete.complete(cmd.bagDir())
         .map(_ => s"Done completing ${cmd.bagDir()}")
     case Some(cmd @ opts.validate) =>
-      isVirtuallyValid(cmd.bagDir())
+      context.isVirtuallyValid(cmd.bagDir())
         .map(valid => s"Done validating. Result: virtually-valid = $valid")
     case _ => throw new IllegalArgumentException(s"Unknown command: ${opts.subcommand}")
       Try { "Unknown command" }

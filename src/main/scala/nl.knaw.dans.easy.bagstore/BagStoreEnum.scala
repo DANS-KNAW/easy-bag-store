@@ -20,22 +20,22 @@ import java.nio.file.Files
 import scala.collection.JavaConverters._
 import scala.util.Try
 
-trait BagStoreEnum { this: BagFacadeComponent with BagStoreContext =>
+trait BagStoreEnum { this: BagFacadeComponent with BagStoreContextComponent =>
 
   def enumBags(includeVisible: Boolean = true, includeHidden: Boolean = false): Try[Stream[BagId]] = Try {
-    Files.walk(baseDir, uuidPathComponentSizes.size).iterator().asScala.toStream
-      .map(baseDir.relativize)
-      .withFilter(_.getNameCount == uuidPathComponentSizes.size)
-      .map(p => fromLocation(baseDir.resolve(p)).flatMap(_.toBagId).get) // TODO: is there a better way to fail fast ?
+    Files.walk(context.baseDir, context.uuidPathComponentSizes.size).iterator().asScala.toStream
+      .map(context.baseDir.relativize)
+      .withFilter(_.getNameCount == context.uuidPathComponentSizes.size)
+      .map(p => context.fromLocation(context.baseDir.resolve(p)).flatMap(_.toBagId).get) // TODO: is there a better way to fail fast ?
       .filter(bagId => {
-        val hiddenBag = isHidden(bagId).get
+        val hiddenBag = context.isHidden(bagId).get
         hiddenBag && includeHidden || !hiddenBag && includeVisible
       })
   }
 
   def enumFiles(bagId: BagId): Try[Stream[FileId]] = {
     for {
-      path <- toLocation(bagId)
+      path <- context.toLocation(bagId)
       ppaths <- bagFacade.getPayloadFilePaths(path)
     } yield Files.list(path).iterator().asScala
       .withFilter(Files.isRegularFile(_))

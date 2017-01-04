@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagstore
 
 import scala.util.Try
 
-trait BagStoreVerify { this: BagStoreContext =>
+trait BagStoreVerify { this: BagStoreContextComponent =>
   type Message = String
 
   def verify(bagId: Option[BagId] = None): Try[Message] = {

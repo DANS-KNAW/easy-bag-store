@@ -33,17 +33,17 @@ import scala.util.Try
 class BagStoreService extends BagStoreApp { this: DebugEnhancedLogging =>
   import logger._
 
-  info(s"base directory: $baseDir")
-  info(s"base URI: $baseUri")
-  info(s"file permissions for bag files: $bagPermissions")
+  info(s"base directory: ${context.baseDir}")
+  info(s"base URI: ${context.baseUri}")
+  info(s"file permissions for bag files: ${context.bagPermissions}")
   info(s"file permissions for exported files: $outputBagPermissions")
   validateSettings()
 
   private val port = properties.getInt("daemon.http.port")
   val server = new Server(port)
-  val context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS)
-  context.addEventListener(new ScalatraListener())
-  server.setHandler(context)
+  val servletContext = new ServletContextHandler(ServletContextHandler.NO_SESSIONS)
+  servletContext.addEventListener(new ScalatraListener())
+  server.setHandler(servletContext)
   info(s"HTTP port is $port")
 
   if (properties.containsKey("daemon.ajp.port")) {
@@ -116,7 +116,7 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhance
 
   put("/:uuid") {
     putBag(request.getInputStream, params("uuid"))
-      .map(bagId => Created(headers = Map("Location" -> appendUriPathToExternalBaseUri(toUri(bagId)).toASCIIString)))
+      .map(bagId => Created(headers = Map("Location" -> appendUriPathToExternalBaseUri(context.toUri(bagId)).toASCIIString)))
       .onError {
         case e: IllegalArgumentException if e.getMessage.contains("Invalid UUID string") => BadRequest("Invalid UUID")
         case _: NumberFormatException => BadRequest("Invalid UUID")
@@ -134,14 +134,14 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhance
   private def putBag(is: InputStream, uuidStr: String): Try[BagId] = {
     for {
       uuid <- getUuidFromString(params("uuid"))
-      _ <- checkBagDoesNotExist(BagId(uuid))
-      staged <- stageBagZip(request.getInputStream)
-      bagId <- add(staged, Some(uuid), skipStage = true)
+      _ <- context.checkBagDoesNotExist(BagId(uuid))
+      staged <- context.stageBagZip(request.getInputStream)
+      bagId <- add.add(staged, Some(uuid), skipStage = true)
     } yield bagId
   }
 
   private def getUuidFromString(s: String): Try[UUID] = Try {
     val uuidStr = params("uuid").filterNot(_ == '-')
-    UUID.fromString(formatUuidStrCanonically(uuidStr))
+    UUID.fromString(context.formatUuidStrCanonically(uuidStr))
   }
 }

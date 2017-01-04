@@ -25,11 +25,11 @@ import org.apache.commons.configuration.PropertiesConfiguration
 
 import scala.util.Try
 
-trait BagStoreApp extends BagStoreContext
-  with BagStoreAdd
+trait BagStoreApp extends BagStoreContextComponent
+  with BagStoreAddComponent
   with BagStoreEnum
   with BagStoreGet
-  with BagStoreComplete
+  with BagStoreCompleteComponent
   with BagStoreDelete
   with BagStorePrune
   with Bagit4FacadeComponent
@@ -37,19 +37,24 @@ trait BagStoreApp extends BagStoreContext
   with DebugEnhancedLogging {
 
   val properties = new PropertiesConfiguration(new File(new File(System.getProperty("app.home")), "cfg/application.properties"))
-  val baseDir: Path = Paths.get(properties.getString("bag-store.base-dir")).toAbsolutePath
-  val baseUri = new URI(properties.getString("bag-store.base-uri"))
-  val stagingBaseDir: Path = Paths.get(properties.getString("staging.base-dir"))
-  val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-component-sizes").map(_.toInt).toSeq
-  val bagPermissions: String = properties.getString("bag-store.bag-file-permissions")
   val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
+
   val bagFacade = new Bagit4Facade()
+  val add = new BagStoreAdd {}
+  val complete = new BagStoreComplete {}
+  val context = new BagStoreContext {
+    val baseDir: Path = Paths.get(properties.getString("bag-store.base-dir")).toAbsolutePath
+    val baseUri = new URI(properties.getString("bag-store.base-uri"))
+    val stagingBaseDir: Path = Paths.get(properties.getString("staging.base-dir"))
+    val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-component-sizes").map(_.toInt).toSeq
+    val bagPermissions: String = properties.getString("bag-store.bag-file-permissions")
+  }
 
   protected def validateSettings(): Unit =  {
-    assert(Files.isWritable(baseDir), s"Non-existent or non-writable base-dir: $baseDir")
-    assert(Files.isWritable(stagingBaseDir), s"Non-existent or non-writable staging base-dir: $stagingBaseDir")
-    assert(uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${uuidPathComponentSizes.sum}")
-    assert(Try(PosixFilePermissions.fromString(bagPermissions)).isSuccess, s"Bag file permissions are invalid: '$bagPermissions'")
+    assert(Files.isWritable(context.baseDir), s"Non-existent or non-writable base-dir: ${context.baseDir}")
+    assert(Files.isWritable(context.stagingBaseDir), s"Non-existent or non-writable staging base-dir: ${context.stagingBaseDir}")
+    assert(context.uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${context.uuidPathComponentSizes.sum}")
+    assert(Try(PosixFilePermissions.fromString(context.bagPermissions)).isSuccess, s"Bag file permissions are invalid: '${context.bagPermissions}'")
     assert(Try(PosixFilePermissions.fromString(outputBagPermissions)).isSuccess, s"Bag export file permissions are invalid: '$outputBagPermissions'")
   }
 }

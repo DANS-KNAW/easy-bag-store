@@ -24,18 +24,20 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
  * Common base class for tests that need to set up a test bag store. This class should only do the set-up that is
  * common to all these tests, nothing more!
  */
-trait BagStoreFixture extends TestSupportFixture with BagStoreContext with Bagit4FacadeComponent with DebugEnhancedLogging {
-  val baseDir: Path = testDir.resolve("bag-store")
-  val baseUri: URI = new URI("http://example-archive.org")
-  val stagingBaseDir: Path = testDir
-  val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
-  val bagFacade = new Bagit4Facade()
+trait BagStoreFixture extends TestSupportFixture with BagStoreContextComponent with Bagit4FacadeComponent with DebugEnhancedLogging {
+  override val context = new BagStoreContext {
+    override val baseDir: Path = testDir.resolve("bag-store")
+    override val baseUri: URI = new URI("http://example-archive.org")
+    override val stagingBaseDir: Path = testDir
+    override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
+    /*
+     * In a production environment you will set bag file permissions also to read-only for the owner.
+     * However, for testing this is not handy, as it would require sudo to do a simple mvn clean install.
+     */
+    val bagPermissions: String = "rwxr-xr-x"
+  }
+  override val bagFacade = new Bagit4Facade()
 
-  /*
-   * In a production environment you will set bag file permissions also to read-only for the owner.
-   * However, for testing this is not handy, as it would require sudo to do a simple mvn clean install.
-   */
-  val bagPermissions: String = "rwxr-xr-x"
-  baseDir.toFile.mkdirs()
+  context.baseDir.toFile.mkdirs()
 }
 

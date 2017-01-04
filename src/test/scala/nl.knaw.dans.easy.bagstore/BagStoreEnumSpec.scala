@@ -21,16 +21,18 @@ import org.apache.commons.io.FileUtils
 
 import scala.util.Success
 
-class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAdd with BagStorePrune with BagStoreDelete {
+class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAddComponent with BagStorePrune with BagStoreDelete {
   FileUtils.copyDirectory(Paths.get("src/test/resources/bags/basic-sequence-unpruned").toFile, testDir.toFile)
   private val TEST_BAG_A = testDir.resolve("a")
   private val TEST_BAG_B = testDir.resolve("b")
   private val TEST_BAG_C = testDir.resolve("c")
 
+  override val add = new BagStoreAdd {}
+
   "enumBags" should "return all BagIds" in {
-    val ais = add(TEST_BAG_A).get
-    val bis = add(TEST_BAG_B).get
-    val cis = add(TEST_BAG_C).get
+    val ais = add.add(TEST_BAG_A).get
+    val bis = add.add(TEST_BAG_B).get
+    val cis = add.add(TEST_BAG_C).get
 
     val bags = enumBags().map(_.toList)
     bags shouldBe a [Success[_]]
@@ -50,9 +52,9 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   }
 
   it should "skip hidden Bags by default" in {
-    val ais = add(TEST_BAG_A).get
-    val bis = add(TEST_BAG_B).get
-    val cis = add(TEST_BAG_C).get
+    val ais = add.add(TEST_BAG_A).get
+    val bis = add.add(TEST_BAG_B).get
+    val cis = add.add(TEST_BAG_C).get
     delete(bis)
 
     val bags = enumBags().map(_.toList)
@@ -65,9 +67,9 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   }
 
   it should "include hidden Bags if requested" in {
-    val ais = add(TEST_BAG_A).get
-    val bis = add(TEST_BAG_B).get
-    val cis = add(TEST_BAG_C).get
+    val ais = add.add(TEST_BAG_A).get
+    val bis = add.add(TEST_BAG_B).get
+    val cis = add.add(TEST_BAG_C).get
     delete(bis)
 
     val bags = enumBags(includeHidden = true).map(_.toList)
@@ -80,9 +82,9 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   }
 
   it should "skip visible Bags if requested" in {
-    add(TEST_BAG_A).get
-    val bis = add(TEST_BAG_B).get
-    add(TEST_BAG_C).get
+    add.add(TEST_BAG_A).get
+    val bis = add.add(TEST_BAG_B).get
+    add.add(TEST_BAG_C).get
     delete(bis)
 
     val bags = enumBags(includeVisible = false, includeHidden = true).map(_.toList)
@@ -95,9 +97,9 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   }
 
   it should "skip all Bags if requested" in {
-    add(TEST_BAG_A).get
-    val bis = add(TEST_BAG_B).get
-    add(TEST_BAG_C).get
+    add.add(TEST_BAG_A).get
+    val bis = add.add(TEST_BAG_B).get
+    add.add(TEST_BAG_C).get
     delete(bis)
 
     val bags = enumBags(includeVisible = false).map(_.toList)
@@ -108,7 +110,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   }
 
   "enumFiles" should "return all FileIds in a valid Bag" in {
-    val ais = add(TEST_BAG_A).get
+    val ais = add.add(TEST_BAG_A).get
 
     val files = enumFiles(ais).map(_.toList)
     files shouldBe a [Success[_]]
@@ -120,11 +122,11 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   }
 
   it should "return all FileIds in a virtually-valid Bag" in {
-    val ais = add(TEST_BAG_A).get
+    val ais = add.add(TEST_BAG_A).get
     prune(TEST_BAG_B, ais)
-    val bis = add(TEST_BAG_B).get
+    val bis = add.add(TEST_BAG_B).get
     prune(TEST_BAG_C, ais, bis)
-    val cis = add(TEST_BAG_C).get
+    val cis = add.add(TEST_BAG_C).get
 
     val files = enumFiles(cis).map(_.toList)
     files shouldBe a [Success[_]]

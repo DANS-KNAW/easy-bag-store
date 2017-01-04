@@ -25,7 +25,7 @@ import org.apache.commons.io.FileUtils
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
-trait BagStorePrune { this: BagFacadeComponent with BagStoreContext with DebugEnhancedLogging =>
+trait BagStorePrune { this: BagFacadeComponent with BagStoreContextComponent with DebugEnhancedLogging =>
 
   /**
    * Takes a virtually-valid Bag and a list of bag-ids of reference Bags. The Bag is searched for files that are already in one
@@ -43,7 +43,7 @@ trait BagStorePrune { this: BagFacadeComponent with BagStoreContext with DebugEn
   private def replaceRedundantFilesWithFetchReferences(bagDir: Path, refBags: List[BagId]): Try[Unit] = {
     trace(bagDir, refBags)
     val result = for {
-      refBagLocations <- refBags.map(toLocation).collectResults
+      refBagLocations <- refBags.map(context.toLocation).collectResults
       algorithm <- getWeakestCommonSupportedAlgorithm(bagDir :: refBagLocations)
       _ <- if (algorithm.isDefined) Success(()) else Failure(new IllegalStateException("Bag and reference Bags have no common payload manifest algorithm"))
       checksumToUri <- getChecksumToUriMap(refBags, algorithm.get)
@@ -55,7 +55,7 @@ trait BagStorePrune { this: BagFacadeComponent with BagStoreContext with DebugEn
       fetchList <- Try(fileCoolUriMap.foldLeft(mutable.ListBuffer.empty[FetchItem]) {
         case (acc, (path, uri)) =>
           val fileInNewBag = bagDir.resolve(path)
-          fromUri(uri).flatMap(toLocation) match {
+          context.fromUri(uri).flatMap(context.toLocation) match {
             case Success(file) if FileUtils.contentEquals(fileInNewBag.toFile, file.toFile) =>
               Files.delete(fileInNewBag)
               acc += FetchItem(uri, Files.size(file), path)
@@ -76,10 +76,12 @@ trait BagStorePrune { this: BagFacadeComponent with BagStoreContext with DebugEn
   private def getChecksumToUriMap(refBag: BagId, algorithm: Algorithm): Try[Map[String, URI]] = {
     trace(refBag, algorithm)
     for {
-      refBagDir <- toLocation(refBag)
+      refBagDir <- context.toLocation(refBag)
       manifest <- bagFacade.getPayloadManifest(refBagDir, algorithm)
       map <- manifest.map { case (pathInBag, checksum) =>
-        toRealLocation(FileId(refBag, pathInBag)).flatMap(fromLocation).map(checksum -> toUri(_))
+        context.toRealLocation(FileId(refBag, pathInBag))
+          .flatMap(context.fromLocation)
+          .map(checksum -> context.toUri(_))
       }.filter(_.isSuccess).collectResults.map(_.toMap)
     } yield map
   }

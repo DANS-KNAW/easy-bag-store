@@ -25,7 +25,9 @@ import org.apache.commons.io.FileUtils
 
 import scala.util.{Failure, Success}
 
-class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
+class BagStoreContextSpec extends BagStoreFixture { self =>
+  import context._
+
   FileUtils.copyDirectory(Paths.get("src/test/resources/bag-store").toFile, baseDir.toFile)
 
   "fromLocation" should "return a Failure for an empty path" in {
@@ -51,12 +53,14 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
   }
 
   it should "return a bag-id even if there are many slashes" in {
-    object OtherContext extends BagStoreContext with Bagit4FacadeComponent with DebugEnhancedLogging {
-      override val baseDir: Path = BagStoreContextSpec.this.baseDir
-      override val baseUri: URI = BagStoreContextSpec.this.baseUri
-      override val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir
-      override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
-      override val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
+    object OtherContext extends BagStoreContextComponent with Bagit4FacadeComponent with DebugEnhancedLogging {
+      val context = new BagStoreContext {
+        override val baseDir: Path = self.context.baseDir
+        override val baseUri: URI = self.context.baseUri
+        override val stagingBaseDir: Path = self.context.stagingBaseDir
+        override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
+        override val bagPermissions: String = self.context.bagPermissions
+      }
       val bagFacade = new Bagit4Facade()
 
       def test(): Unit = {
@@ -168,12 +172,14 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
   }
 
   it should "return a bag-id for valid UUID-path after the base-uri even if base-uri contains part of path" in {
-    object OtherContext extends BagStoreContext with Bagit4FacadeComponent with DebugEnhancedLogging {
-      override val baseDir: Path = BagStoreContextSpec.this.baseDir
-      override val baseUri: URI = new URI("http://example-archive.org/base-path/")
-      override val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir
-      override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
-      override val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
+    object OtherContext extends BagStoreContextComponent with Bagit4FacadeComponent with DebugEnhancedLogging {
+      override val context = new BagStoreContext {
+        override val baseDir: Path = self.context.baseDir
+        override val baseUri: URI = new URI("http://example-archive.org/base-path/")
+        override val stagingBaseDir: Path = self.context.stagingBaseDir
+        override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
+        override val bagPermissions: String = self.context.bagPermissions
+      }
       val bagFacade: BagFacade = new Bagit4Facade()
 
       def test(): Unit = {
