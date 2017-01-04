@@ -16,7 +16,7 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.net.URI
-import java.nio.file.{Path, Paths}
+import java.nio.file.Path
 import java.util.UUID
 
 import nl.knaw.dans.lib.error.TraversableTryExtensions
@@ -48,7 +48,7 @@ object Command extends App with BagStoreApp {
     case Some(cmd @ opts.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
-        _ <- Try { get(itemId, cmd.outputDir()) }
+        _ <- Try { get.get(itemId, cmd.outputDir()) }
       } yield s"Retrieved item with item-id: $itemId to ${cmd.outputDir()}"
     case Some(cmd @ opts.enum) =>
       cmd.bagId.toOption

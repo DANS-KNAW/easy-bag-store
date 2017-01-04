@@ -28,7 +28,7 @@ import scala.util.Try
 trait BagStoreApp extends BagStoreContextComponent
   with BagStoreAddComponent
   with BagStoreEnumComponent
-  with BagStoreGet
+  with BagStoreGetComponent
   with BagStoreCompleteComponent
   with BagStoreDeleteComponent
   with BagStorePrune
@@ -51,6 +51,7 @@ trait BagStoreApp extends BagStoreContextComponent
   }
   val delete = new BagStoreDelete {}
   val enum = new BagStoreEnum {}
+  val get = new BagStoreGet {}
 
   protected def validateSettings(): Unit =  {
     assert(Files.isWritable(context.baseDir), s"Non-existent or non-writable base-dir: ${context.baseDir}")
