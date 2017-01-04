@@ -30,7 +30,7 @@ import org.scalatra.servlet.ScalatraListener
 
 import scala.util.Try
 
-class BagStoreService extends BagStoreApp { this: DebugEnhancedLogging =>
+class BagStoreService extends BagStoreApp {
   import logger._
 
   info(s"base directory: $baseDir")
@@ -85,7 +85,7 @@ object BagStoreService extends App with DebugEnhancedLogging {
   info("Service started ...")
 }
 
-class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhancedLogging {
+class BagStoreServlet extends ScalatraServlet with BagStoreApp {
   val externalBaseUri = new URI(properties.getString("daemon.external-base-uri"))
 
   get("/") {
