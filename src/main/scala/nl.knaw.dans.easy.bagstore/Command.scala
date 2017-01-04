@@ -24,7 +24,7 @@ object Command extends App with BagStoreApp {
 
   val opts = CommandLineOptions(args, properties)
   opts.verify()
-  override implicit val baseDir = opts.bagStoreBaseDir().toAbsolutePath
+  override val baseDir = opts.bagStoreBaseDir().toAbsolutePath
 
   val result: Try[String] = opts.subcommand match {
     case Some(cmd@opts.add) =>

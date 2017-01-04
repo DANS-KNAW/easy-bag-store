@@ -16,6 +16,5 @@
 package nl.knaw.dans.easy.bagstore
 
 trait BagStoreOutputContext {
-  implicit val outputBagPermissions: String
-
+  val outputBagPermissions: String
 }

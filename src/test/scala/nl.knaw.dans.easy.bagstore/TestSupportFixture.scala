@@ -24,7 +24,4 @@ trait TestSupportFixture extends FlatSpec with Matchers with OneInstancePerTest 
   val testDir = Paths.get(s"target/test/${getClass.getSimpleName}").toAbsolutePath
   FileUtils.deleteQuietly(testDir.toFile)
   Files.createDirectories(testDir)
-
 }
-
-

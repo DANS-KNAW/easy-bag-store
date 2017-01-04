@@ -52,11 +52,11 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
 
   it should "return a bag-id even if there are many slashes" in {
     object OtherContext extends BagStoreContext with Bagit4FacadeComponent with DebugEnhancedLogging {
-      override implicit val baseDir: Path = BagStoreContextSpec.this.baseDir
-      override implicit val baseUri: URI = BagStoreContextSpec.this.baseUri
-      override implicit val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir
-      override implicit val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
-      override implicit val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
+      override val baseDir: Path = BagStoreContextSpec.this.baseDir
+      override val baseUri: URI = BagStoreContextSpec.this.baseUri
+      override val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir
+      override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
+      override val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
       val bagFacade = new Bagit4Facade()
 
       def test(): Unit = {
@@ -169,11 +169,11 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
 
   it should "return a bag-id for valid UUID-path after the base-uri even if base-uri contains part of path" in {
     object OtherContext extends BagStoreContext with Bagit4FacadeComponent with DebugEnhancedLogging {
-      override implicit val baseDir: Path = BagStoreContextSpec.this.baseDir
-      override implicit val baseUri: URI = new URI("http://example-archive.org/base-path/")
-      override implicit val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir
-      override implicit val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
-      override implicit val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
+      override val baseDir: Path = BagStoreContextSpec.this.baseDir
+      override val baseUri: URI = new URI("http://example-archive.org/base-path/")
+      override val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir
+      override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
+      override val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
       val bagFacade: BagFacade = new Bagit4Facade()
 
       def test(): Unit = {

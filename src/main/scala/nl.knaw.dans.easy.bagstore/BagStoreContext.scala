@@ -39,12 +39,12 @@ import scala.util.{Failure, Try}
  * See project's README for details.
  */
 trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
-  implicit val baseDir: Path
+  val baseDir: Path
   // Must be absolute.
-  implicit val baseUri: URI
-  implicit val stagingBaseDir: Path
-  implicit val uuidPathComponentSizes: Seq[Int]
-  implicit val bagPermissions: String
+  val baseUri: URI
+  val stagingBaseDir: Path
+  val uuidPathComponentSizes: Seq[Int]
+  val bagPermissions: String
 
   /**
    * Creates an item-id from a location inside the bag-store. Returns a `Failure` if the path does not point
@@ -381,5 +381,4 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
       f => Files.setPosixFilePermissions(f, PosixFilePermissions.fromString(permissions))
     }
   }
-
 }
