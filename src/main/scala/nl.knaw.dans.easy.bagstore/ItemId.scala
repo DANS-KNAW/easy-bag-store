@@ -47,9 +47,9 @@ case class BagId(uuid: UUID) extends ItemId {
 
   override def getUuid = uuid
 
-  def toBagId: Try[BagId] = Success(this)
+  override def toBagId: Try[BagId] = Success(this)
 
-  def toFileId: Try[FileId] = Failure(NoFileIdException(this))
+  override def toFileId: Try[FileId] = Failure(NoFileIdException(this))
 }
 
 case class FileId(bagId: BagId, path: Path) extends ItemId {
@@ -61,9 +61,9 @@ case class FileId(bagId: BagId, path: Path) extends ItemId {
 
   override def getUuid = bagId.uuid
 
-  def toBagId: Try[BagId] = Failure(NoBagIdException(this))
+  override def toBagId: Try[BagId] = Failure(NoBagIdException(this))
 
-  def toFileId: Try[FileId] = Success(this)
+  override def toFileId: Try[FileId] = Success(this)
 }
 
 object FileId {
