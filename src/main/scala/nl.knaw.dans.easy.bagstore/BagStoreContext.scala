@@ -248,14 +248,14 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
 
     for {
       items <- bagFacade.getFetchItems(bagDir)
-      xx <- items.map(item => {
+      mapping <- items.map(item => {
         for {
           id <- fromUri(item.uri)
           fileId <- ItemId.toFileId(id)
           location <- toRealLocation(fileId)
         } yield (bagDir.toAbsolutePath.resolve(item.path), location)
       }).collectResults
-    } yield xx
+    } yield mapping
   }
 
   protected def isVirtuallyValid(bagDir: Path): Try[Boolean] =  {
