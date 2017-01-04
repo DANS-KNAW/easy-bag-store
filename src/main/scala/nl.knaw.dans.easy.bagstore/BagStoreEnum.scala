@@ -37,9 +37,7 @@ trait BagStoreEnum { this: BagFacadeComponent with BagStoreContext =>
     for {
       path <- toLocation(bagId)
       ppaths <- bagFacade.getPayloadFilePaths(path)
-    } yield Files.list(path)
-      .iterator()
-      .asScala
+    } yield Files.list(path).iterator().asScala
       .withFilter(Files.isRegularFile(_))
       .map(path.relativize)
       .toSet

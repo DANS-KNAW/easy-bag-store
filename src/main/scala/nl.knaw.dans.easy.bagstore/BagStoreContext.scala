@@ -251,7 +251,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     def getExtraDirectories(links: Seq[Path]): Try[Seq[Path]] = Try {
       val dirs = for {
         link <- links
-        comps = link.iterator().asScala.toList
+        comps = link.asScala.toList
         path <- (bagDir.getNameCount until comps.size)
           .map(comps.take)
           .map(comps => Paths.get("/" + comps.mkString("/")))
@@ -326,10 +326,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
   }
 
   private def assertUuidPartitionedCorrectly(uuidPath: Path) = {
-    assert(uuidPath.iterator().asScala
-      .toList
-      .map(_.toString.length) ==
-      uuidPathComponentSizes, "UUID-part slashed incorrectly")
+    assert(uuidPath.asScala.map(_.toString.length) == uuidPathComponentSizes, "UUID-part slashed incorrectly")
   }
 
   protected def formatUuidStrCanonically(s: String): String = {

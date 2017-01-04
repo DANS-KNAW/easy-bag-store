@@ -41,11 +41,11 @@ object Command extends App with BagStoreApp {
             itemId <- ItemId.fromString(s)
             bagId <- ItemId.toBagId(itemId)
             files <- enumFiles(bagId)
-          } yield files.iterator.foreach(println(_)))
+          } yield files.foreach(println(_)))
         .getOrElse {
           val includeVisible = cmd.all() || !cmd.hidden()
           val includeHidden = cmd.all() || cmd.hidden()
-          enumBags(includeVisible, includeHidden).map(_.iterator.foreach(println(_)))
+          enumBags(includeVisible, includeHidden).map(_.foreach(println(_)))
         }
         .map(_ => "Done enumerating")
     case Some(cmd @ opts.delete) =>

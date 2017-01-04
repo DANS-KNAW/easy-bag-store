@@ -89,7 +89,7 @@ trait BagStoreAdd { this: BagStoreContext with DebugEnhancedLogging =>
   }
 
   private def getPathsInBagStore(path: Path): Try[Seq[Path]] = Try {
-    val pathComponents = baseDir.relativize(path).iterator().asScala.toList
+    val pathComponents = baseDir.relativize(path).asScala.toSeq
     pathComponents.indices.map(i => baseDir.resolve(pathComponents.slice(0, i + 1).mkString("/")))
   }
 }

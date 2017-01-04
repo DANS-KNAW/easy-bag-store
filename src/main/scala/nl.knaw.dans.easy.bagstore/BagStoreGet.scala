@@ -31,7 +31,7 @@ trait BagStoreGet { this: BagStoreContext with BagStoreOutputContext =>
           val target = if (Files.isDirectory(output)) output.resolve(path.getFileName) else output
           Files.createDirectory(target)
           FileUtils.copyDirectory(path.toFile, target.toFile)
-          Files.walk(output).iterator().asScala.toList.foreach(setPermissions(outputBagPermissions))
+          Files.walk(output).iterator().asScala.foreach(setPermissions(outputBagPermissions))
       }
       case fileId: FileId => toRealLocation(fileId) map {
         path =>
