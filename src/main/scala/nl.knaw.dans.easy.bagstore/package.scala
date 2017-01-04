@@ -35,6 +35,8 @@ package object bagstore {
   case class CannotIngestHiddenBagDirectory(bagDir: Path) extends Exception(s"Cannot ingest hidden directory $bagDir")
   case class IncorrectNumberOfFilesInBagZipRootException(n: Int) extends Exception(s"There must be exactly one file in the root directory of the zipped bag, found $n")
   case class BagBaseNotFoundException() extends Exception(s"The zipped bag contains no bag base directory")
+  case class NoBagIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a bag-id")
+  case class NoFileIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a file-id")
 
   object Version {
     def apply(): String = {

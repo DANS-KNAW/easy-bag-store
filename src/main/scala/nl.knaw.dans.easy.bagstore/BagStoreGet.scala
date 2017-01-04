@@ -23,7 +23,7 @@ import org.apache.commons.io.FileUtils
 import scala.collection.JavaConverters._
 import scala.util.Try
 
-trait BagStoreGet extends BagStoreContext with BagStoreOutputContext {
+trait BagStoreGet { this: BagStoreContext with BagStoreOutputContext =>
   def get(itemId: ItemId, output: Path): Try[Unit] = {
     itemId match {
       case bagId: BagId => toLocation(bagId) map {

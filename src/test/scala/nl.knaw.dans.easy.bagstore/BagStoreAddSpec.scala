@@ -19,7 +19,6 @@ import java.nio.file.Paths
 import java.util.UUID
 
 import org.apache.commons.io.FileUtils
-import org.scalatest.Inside._
 
 import scala.util._
 

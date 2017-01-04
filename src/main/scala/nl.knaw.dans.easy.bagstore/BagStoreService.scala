@@ -30,7 +30,7 @@ import org.scalatra.servlet.ScalatraListener
 
 import scala.util.{Failure, Success, Try}
 
-class BagStoreService extends BagStoreApp with DebugEnhancedLogging {
+class BagStoreService extends BagStoreApp { this: DebugEnhancedLogging =>
   import logger._
 
   info(s"base directory: $baseDir")
@@ -90,9 +90,7 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhance
 
   get("/") {
     contentType = "text/plain"
-    Try {
-      enumBags().iterator.toList.mkString("\n")
-    } match {
+    enumBags().map(_.mkString("\n")) match {
       case Success(bagIds) => Ok(bagIds)
       case Failure(e) =>
         logger.error("Unexpected type of failure", e)
@@ -104,7 +102,7 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhance
     contentType = "text/plain"
     ItemId.fromString(params("uuid"))
       .flatMap(ItemId.toBagId)
-      .map(enumFiles)
+      .flatMap(enumFiles)
       .map(_.mkString("\n")) match {
       case Success(fileIds) => Ok(fileIds)
       case Failure(e: NoSuchBagException) => NotFound()

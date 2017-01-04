@@ -20,6 +20,7 @@ import java.net.URI
 import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Path, Paths}
 
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.configuration.PropertiesConfiguration
 
 import scala.util.Try
@@ -30,7 +31,11 @@ trait BagStoreApp extends BagStoreContext
   with BagStoreGet
   with BagStoreComplete
   with BagStoreDelete
-  with BagStorePrune {
+  with BagStorePrune
+  with Bagit4FacadeComponent
+  with BagStoreOutputContext
+  with DebugEnhancedLogging {
+
   val properties = new PropertiesConfiguration(new File(new File(System.getProperty("app.home")), "cfg/application.properties"))
   implicit val baseDir: Path = Paths.get(properties.getString("bag-store.base-dir")).toAbsolutePath
   implicit val baseUri = new URI(properties.getString("bag-store.base-uri"))
@@ -38,7 +43,7 @@ trait BagStoreApp extends BagStoreContext
   implicit val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-component-sizes").map(_.toInt).toSeq
   implicit val bagPermissions: String = properties.getString("bag-store.bag-file-permissions")
   implicit val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
-
+  val bagFacade = new Bagit4Facade()
 
   protected def validateSettings(): Unit =  {
     assert(Files.isWritable(baseDir),  s"Non-existent or non-writable base-dir: $baseDir")

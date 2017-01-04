@@ -19,12 +19,13 @@ import java.net.URI
 import java.nio.file.{Files, Path}
 
 import nl.knaw.dans.lib.error._
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
 
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
-trait BagStorePrune extends BagStoreContext {
+trait BagStorePrune { this: BagFacadeComponent with BagStoreContext with DebugEnhancedLogging =>
 
   /**
    * Takes a virtually-valid Bag and a list of bag-ids of reference Bags. The Bag is searched for files that are already in one
@@ -77,7 +78,6 @@ trait BagStorePrune extends BagStoreContext {
     for {
       refBagDir <- toLocation(refBag)
       manifest <- bagFacade.getPayloadManifest(refBagDir, algorithm)
-      fetchTxt <- bagFacade.getFetchItems(refBagDir).map(_.map(item => item.path -> item).toMap)
       map <- manifest.map { case (pathInBag, checksum) =>
             toRealLocation(FileId(refBag, pathInBag)).flatMap(fromLocation).map(checksum -> toUri(_))
         }.filter(_.isSuccess).collectResults.map(_.toMap)

@@ -17,9 +17,11 @@ package nl.knaw.dans.easy.bagstore
 
 import java.nio.file.{Files, Path}
 
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+
 import scala.util.Try
 
-trait BagStoreComplete extends BagStoreContext with BagStoreOutputContext {
+trait BagStoreComplete { this: BagFacadeComponent with BagStoreOutputContext with BagStoreContext with DebugEnhancedLogging =>
 
   // TODO: This function looks a lot like BagStoreContext.isVirtuallyValid.createLinks, refactor?
   def complete(bagDir: Path): Try[Unit] = {

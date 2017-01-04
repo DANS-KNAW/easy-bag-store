@@ -24,10 +24,6 @@ import com.google.common.net.UrlEscapers
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
-case class NoBagIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a bag-id")
-
-case class NoFileIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a file-id")
-
 abstract class ItemId() {
   def getUuid: UUID
 }

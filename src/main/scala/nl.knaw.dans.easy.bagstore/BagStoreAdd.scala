@@ -20,12 +20,13 @@ import java.nio.file.{Files, Path}
 import java.util.UUID
 
 import nl.knaw.dans.lib.error._
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 import scala.util.{Failure, Try}
 
-trait BagStoreAdd extends BagStoreContext {
+trait BagStoreAdd { this: BagStoreContext with DebugEnhancedLogging =>
 
   def add(bagDir: Path, uuid: Option[UUID] = None, skipStage: Boolean = false): Try[BagId] = {
     trace(bagDir)

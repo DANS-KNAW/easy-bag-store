@@ -39,22 +39,21 @@ object Command extends App with BagStoreApp {
           get(itemId, cmd.outputDir())
         }
       } yield s"Retrieved item with item-id: $itemId to ${cmd.outputDir()}"
-    case Some(cmd@opts.enum) => Try {
+    case Some(cmd@opts.enum) =>
       cmd.bagId.toOption
         .map {
           s =>
             for {
               itemId <- ItemId.fromString(s)
               bagId <- ItemId.toBagId(itemId)
-            } yield enumFiles(bagId)
+              files <- enumFiles(bagId)
+            } yield files
               .iterator.foreach(println(_))
         } getOrElse {
           val includeVisible = cmd.all() || !cmd.hidden()
           val includeHidden = cmd.all() || cmd.hidden()
-          enumBags(includeVisible, includeHidden).iterator.foreach(println(_))
-      }
-      "Done enumerating"
-    }
+          enumBags(includeVisible, includeHidden).map(_.iterator.foreach(println(_)))
+      } map (_ => "Done enumerating")
     case Some(cmd@opts.delete) =>
       for {
         itemId <- ItemId.fromString(cmd.bagId())

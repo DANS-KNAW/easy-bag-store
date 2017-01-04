@@ -38,7 +38,7 @@ import scala.util.{Failure, Try}
  *
  * See project's README for details.
  */
-trait BagStoreContext extends DebugEnhancedLogging with BagIt {
+trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
   implicit val baseDir: Path
   // Must be absolute.
   implicit val baseUri: URI
@@ -245,31 +245,31 @@ trait BagStoreContext extends DebugEnhancedLogging with BagIt {
 
   protected def mapProjectedToRealLocation(bagDir: Path): Try[Seq[(Path, Path)]] = {
     import nl.knaw.dans.lib.error._
-    bagFacade.getFetchItems(bagDir) flatMap {
-      items =>
-        items.map(
-          item =>
-            for {
-              id <- fromUri(item.uri)
-              fileId <- ItemId.toFileId(id)
-              location <- toRealLocation(fileId)
-            } yield (bagDir.toAbsolutePath.resolve(item.path), location)).collectResults
-    }
+
+    for {
+      items <- bagFacade.getFetchItems(bagDir)
+      xx <- items.map(item => {
+        for {
+          id <- fromUri(item.uri)
+          fileId <- ItemId.toFileId(id)
+          location <- toRealLocation(fileId)
+        } yield (bagDir.toAbsolutePath.resolve(item.path), location)
+      }).collectResults
+    } yield xx
   }
 
   protected def isVirtuallyValid(bagDir: Path): Try[Boolean] =  {
 
 
     def getExtraDirectories(links: Seq[Path]): Try[Seq[Path]] = Try {
-      val dirs =
-      links.flatMap {
-        link =>
-          val comps = link.iterator().asScala.toList
-          bagDir.getNameCount until comps.size map comps.take map (comps =>
-            Paths.get("/" + comps.mkString("/"))) filterNot {
-            Files.exists(_)
-          }
-      }
+      val dirs = for {
+        link <- links
+        comps = link.iterator().asScala.toList
+        path <- (bagDir.getNameCount until comps.size)
+          .map(comps.take)
+          .map(comps => Paths.get("/" + comps.mkString("/")))
+          .filterNot(Files.exists(_))
+      } yield path
       debug(s"extra directories to create: $dirs")
       dirs
     }
