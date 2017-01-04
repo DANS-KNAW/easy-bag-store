@@ -240,7 +240,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
       mapping <- items.map(item => {
         for {
           id <- fromUri(item.uri)
-          fileId <- ItemId.toFileId(id)
+          fileId <- id.toFileId
           location <- toRealLocation(fileId)
         } yield (bagDir.toAbsolutePath.resolve(item.path), location)
       }).collectResults

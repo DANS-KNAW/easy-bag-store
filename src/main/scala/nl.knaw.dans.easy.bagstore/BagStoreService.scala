@@ -101,7 +101,7 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhance
   get("/:uuid") {
     contentType = "text/plain"
     ItemId.fromString(params("uuid"))
-      .flatMap(ItemId.toBagId)
+      .flatMap(_.toBagId)
       .flatMap(enumFiles)
       .map(bagIds => Ok(bagIds.mkString("\n")))
       .onError {

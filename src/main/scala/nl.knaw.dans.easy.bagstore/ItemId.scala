@@ -26,6 +26,10 @@ import scala.util.{Failure, Success, Try}
 
 abstract class ItemId() {
   def getUuid: UUID
+
+  def toBagId: Try[BagId]
+
+  def toFileId: Try[FileId]
 }
 
 object ItemId {
@@ -36,22 +40,16 @@ object ItemId {
         FileId(BagId(UUID.fromString(uuidStr)), Paths.get(URLDecoder.decode(path, "UTF-8")))
     }
   }
-
-  def toBagId(itemId: ItemId): Try[BagId] = itemId match {
-    case id: BagId => Success(id)
-    case id => Failure(NoBagIdException(id))
-  }
-
-  def toFileId(itemId: ItemId): Try[FileId] = itemId match {
-    case id: FileId => Success(id)
-    case id => Failure(NoFileIdException(id))
-  }
 }
 
 case class BagId(uuid: UUID) extends ItemId {
   override def toString: String = uuid.toString
 
   override def getUuid = uuid
+
+  def toBagId: Try[BagId] = Success(this)
+
+  def toFileId: Try[FileId] = Failure(NoFileIdException(this))
 }
 
 case class FileId(bagId: BagId, path: Path) extends ItemId {
@@ -62,6 +60,10 @@ case class FileId(bagId: BagId, path: Path) extends ItemId {
   }
 
   override def getUuid = bagId.uuid
+
+  def toBagId: Try[BagId] = Failure(NoBagIdException(this))
+
+  def toFileId: Try[FileId] = Success(this)
 }
 
 object FileId {

@@ -39,7 +39,7 @@ object Command extends App with BagStoreApp {
       cmd.bagId.toOption
         .map(s => for {
             itemId <- ItemId.fromString(s)
-            bagId <- ItemId.toBagId(itemId)
+            bagId <- itemId.toBagId
             files <- enumFiles(bagId)
           } yield files.foreach(println(_)))
         .getOrElse {
@@ -51,19 +51,19 @@ object Command extends App with BagStoreApp {
     case Some(cmd @ opts.delete) =>
       for {
         itemId <- ItemId.fromString(cmd.bagId())
-        bagId <- ItemId.toBagId(itemId)
+        bagId <- itemId.toBagId
         _ <- delete(bagId)
       } yield s"Marked ${cmd.bagId()} as deleted"
     case Some(cmd @ opts.undelete) =>
       for {
         itemId <- ItemId.fromString(cmd.bagId())
-        bagId <- ItemId.toBagId(itemId)
+        bagId <- itemId.toBagId
         _ <- undelete(bagId)
       } yield s"Removed deleted mark from ${cmd.bagId()}"
     case Some(cmd @ opts.prune) =>
       import nl.knaw.dans.lib.error._
       cmd.referenceBags.toOption
-        .map(refBags => refBags.map(ItemId.fromString).map(_.flatMap(ItemId.toBagId))
+        .map(refBags => refBags.map(ItemId.fromString).map(_.flatMap(_.toBagId))
           .collectResults
           .flatMap(refBagIds => prune(cmd.bagDir(), refBagIds: _*))
           .map(_ => "Done pruning"))

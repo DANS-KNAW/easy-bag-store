@@ -91,12 +91,12 @@ class ItemIdSpec extends FlatSpec with Matchers with OneInstancePerTest with Ins
   }
 
   "ItemId.toFileId" should "fail when passed a BagId" in {
-    ItemId.toFileId(BagId(uuid)) shouldBe a[Failure[_]]
+    BagId(uuid).toFileId shouldBe a[Failure[_]]
   }
 
   it should "succeed when passed a FileId" in {
     val fileId = FileId(uuid, Paths.get("some/path"))
-    val result = ItemId.toFileId(fileId)
+    val result = fileId.toFileId
     result shouldBe a[Success[_]]
     inside(result) {
       case Success(f) => f shouldBe fileId
@@ -104,12 +104,12 @@ class ItemIdSpec extends FlatSpec with Matchers with OneInstancePerTest with Ins
   }
 
   "ItemId.toBagId" should "fail when passed a FileId" in {
-    ItemId.toBagId(FileId(uuid, Paths.get("some/path"))) shouldBe a[Failure[_]]
+    FileId(uuid, Paths.get("some/path")).toBagId shouldBe a[Failure[_]]
   }
 
   it should "succeed when passed a BagId" in {
     val bagId = BagId(uuid)
-    val result = ItemId.toBagId(bagId)
+    val result = bagId.toBagId
     result shouldBe a[Success[_]]
     inside(result) {
       case Success(b) => b shouldBe bagId

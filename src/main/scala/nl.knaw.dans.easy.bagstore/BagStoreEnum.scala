@@ -26,7 +26,7 @@ trait BagStoreEnum { this: BagFacadeComponent with BagStoreContext =>
     Files.walk(baseDir, uuidPathComponentSizes.size).iterator().asScala.toStream
       .map(baseDir.relativize)
       .withFilter(_.getNameCount == uuidPathComponentSizes.size)
-      .map(p => fromLocation(baseDir.resolve(p)).flatMap(ItemId.toBagId).get) // TODO: is there a better way to fail fast ?
+      .map(p => fromLocation(baseDir.resolve(p)).flatMap(_.toBagId).get) // TODO: is there a better way to fail fast ?
       .filter(bagId => {
         val hiddenBag = isHidden(bagId).get
         hiddenBag && includeHidden || !hiddenBag && includeVisible
