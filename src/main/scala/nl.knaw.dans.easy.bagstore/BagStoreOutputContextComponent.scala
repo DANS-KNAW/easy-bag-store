@@ -15,6 +15,11 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-trait BagStoreOutputContext {
-  val outputBagPermissions: String
+trait BagStoreOutputContextComponent {
+
+  val outputContext: BagStoreOutputContext
+
+  trait BagStoreOutputContext {
+    val outputBagPermissions: String
+  }
 }

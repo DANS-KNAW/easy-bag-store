@@ -23,7 +23,7 @@ import scala.util.Try
 
 trait BagStoreCompleteComponent {
   this: BagFacadeComponent
-    with BagStoreOutputContext
+    with BagStoreOutputContextComponent
     with BagStoreContextComponent
     with DebugEnhancedLogging =>
 
@@ -43,7 +43,7 @@ trait BagStoreCompleteComponent {
           }
           debug(s"copy $from -> $to")
           Files.copy(from, to)
-          context.setPermissions(outputBagPermissions)(to).get
+          context.setPermissions(outputContext.outputBagPermissions)(to).get
         }
       }
 

@@ -21,14 +21,16 @@ import org.apache.commons.io.FileUtils
 
 import scala.util.Success
 
-class BagStoreGetSpec extends BagStoreFixture with BagStoreGetComponent with BagStoreAddComponent with BagStoreOutputContext {
-  val outputBagPermissions: String = "rwxrwxrwx"
+class BagStoreGetSpec extends BagStoreFixture with BagStoreGetComponent with BagStoreAddComponent with BagStoreOutputContextComponent {
   private val TEST_BAGS_DIR = Paths.get("src/test/resources/bags")
   private val TEST_BAGS_PRUNED = TEST_BAGS_DIR.resolve("basic-sequence-pruned")
   private val TEST_BAG_PRUNED_A = TEST_BAGS_PRUNED.resolve("a")
 
   override val add = new BagStoreAdd {}
   override val get = new BagStoreGet {}
+  override val outputContext = new BagStoreOutputContext {
+    override val outputBagPermissions: String = "rwxrwxrwx"
+  }
 
   "get" should "return exactly the same Bag as was added" in {
     val result = get.get(add.add(TEST_BAG_PRUNED_A).get, testDir)

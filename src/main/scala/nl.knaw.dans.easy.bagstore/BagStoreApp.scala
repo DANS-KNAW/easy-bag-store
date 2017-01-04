@@ -33,11 +33,10 @@ trait BagStoreApp extends BagStoreContextComponent
   with BagStoreDeleteComponent
   with BagStorePrune
   with Bagit4FacadeComponent
-  with BagStoreOutputContext
+  with BagStoreOutputContextComponent
   with DebugEnhancedLogging {
 
   val properties = new PropertiesConfiguration(new File(new File(System.getProperty("app.home")), "cfg/application.properties"))
-  val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
 
   val bagFacade = new Bagit4Facade()
   val add = new BagStoreAdd {}
@@ -52,13 +51,16 @@ trait BagStoreApp extends BagStoreContextComponent
   val delete = new BagStoreDelete {}
   val enum = new BagStoreEnum {}
   val get = new BagStoreGet {}
+  val outputContext = new BagStoreOutputContext {
+    val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
+  }
 
   protected def validateSettings(): Unit =  {
     assert(Files.isWritable(context.baseDir), s"Non-existent or non-writable base-dir: ${context.baseDir}")
     assert(Files.isWritable(context.stagingBaseDir), s"Non-existent or non-writable staging base-dir: ${context.stagingBaseDir}")
     assert(context.uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${context.uuidPathComponentSizes.sum}")
     assert(Try(PosixFilePermissions.fromString(context.bagPermissions)).isSuccess, s"Bag file permissions are invalid: '${context.bagPermissions}'")
-    assert(Try(PosixFilePermissions.fromString(outputBagPermissions)).isSuccess, s"Bag export file permissions are invalid: '$outputBagPermissions'")
+    assert(Try(PosixFilePermissions.fromString(outputContext.outputBagPermissions)).isSuccess, s"Bag export file permissions are invalid: '${outputContext.outputBagPermissions}'")
   }
 }
 

@@ -24,7 +24,7 @@ import scala.collection.JavaConverters._
 import scala.util.Try
 
 trait BagStoreGetComponent {
-  this: BagStoreContextComponent with BagStoreOutputContext =>
+  this: BagStoreContextComponent with BagStoreOutputContextComponent =>
 
   val get: BagStoreGet
 
@@ -35,12 +35,16 @@ trait BagStoreGetComponent {
           val target = if (Files.isDirectory(output)) output.resolve(path.getFileName) else output
           Files.createDirectory(target)
           FileUtils.copyDirectory(path.toFile, target.toFile)
-          Files.walk(output).iterator().asScala.foreach(context.setPermissions(outputBagPermissions))
+          Files.walk(output)
+            .iterator().asScala
+            .foreach(context.setPermissions(outputContext.outputBagPermissions))
         })
         case fileId: FileId => context.toRealLocation(fileId).map(path => {
           val target = if (Files.isDirectory(output)) output.resolve(path.getFileName) else output
           Files.copy(path, target)
-          Files.setPosixFilePermissions(target, PosixFilePermissions.fromString(outputBagPermissions))
+          Files.setPosixFilePermissions(
+            target,
+            PosixFilePermissions.fromString(outputContext.outputBagPermissions))
         })
       }
     }

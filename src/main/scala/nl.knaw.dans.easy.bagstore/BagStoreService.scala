@@ -36,7 +36,7 @@ class BagStoreService extends BagStoreApp { this: DebugEnhancedLogging =>
   info(s"base directory: ${context.baseDir}")
   info(s"base URI: ${context.baseUri}")
   info(s"file permissions for bag files: ${context.bagPermissions}")
-  info(s"file permissions for exported files: $outputBagPermissions")
+  info(s"file permissions for exported files: ${outputContext.outputBagPermissions}")
   validateSettings()
 
   private val port = properties.getInt("daemon.http.port")
