@@ -35,7 +35,6 @@ trait BagStoreContextComponent {
 
   val context: BagStoreContext
 
-
   /**
    * Provides the bag-store context, which consists of:
    *
