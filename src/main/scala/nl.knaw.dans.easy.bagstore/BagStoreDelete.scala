@@ -19,7 +19,7 @@ import java.nio.file.Files
 
 import scala.util.{Failure, Success, Try}
 
-trait BagStoreDelete { context: BagStoreContext =>
+trait BagStoreDelete { this: BagStoreContext =>
   def delete(bagId: BagId): Try[Unit] = {
     for {
       _ <- checkBagExists(bagId)
