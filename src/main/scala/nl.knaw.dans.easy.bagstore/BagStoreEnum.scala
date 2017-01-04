@@ -26,12 +26,11 @@ trait BagStoreEnum { this: BagFacadeComponent with BagStoreContext =>
     Files.walk(baseDir, uuidPathComponentSizes.size).iterator().asScala.toStream
       .map(baseDir.relativize)
       .withFilter(_.getNameCount == uuidPathComponentSizes.size)
-      .map(p => fromLocation(baseDir.resolve(p)).flatMap(ItemId.toBagId))
-      .map(_.get) // TODO: is there a better way to fail fast ?
-      .filter { b =>
-        val hiddenBag = isHidden(b).get
+      .map(p => fromLocation(baseDir.resolve(p)).flatMap(ItemId.toBagId).get) // TODO: is there a better way to fail fast ?
+      .filter(bagId => {
+        val hiddenBag = isHidden(bagId).get
         hiddenBag && includeHidden || !hiddenBag && includeVisible
-      }
+      })
   }
 
   def enumFiles(bagId: BagId): Try[Stream[FileId]] = {

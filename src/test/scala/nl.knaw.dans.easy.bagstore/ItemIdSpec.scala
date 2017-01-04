@@ -115,5 +115,4 @@ class ItemIdSpec extends FlatSpec with Matchers with OneInstancePerTest with Ins
       case Success(b) => b shouldBe bagId
     }
   }
-
 }

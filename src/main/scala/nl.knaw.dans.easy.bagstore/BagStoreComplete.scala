@@ -28,15 +28,14 @@ trait BagStoreComplete { this: BagFacadeComponent with BagStoreOutputContext wit
     trace(bagDir)
     def copyFiles(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
       debug(s"copying ${mappings.size} files to projected locations")
-      mappings.foreach {
-        case (to, from) =>
-          if (!Files.exists(to.getParent)) {
-            debug(s"creating missing parent directory: ${to.getParent}")
-            Files.createDirectories(to.getParent)
-          }
-          debug(s"copy $from -> $to")
-          Files.copy(from, to)
-          setPermissions(outputBagPermissions)(to)
+      mappings.foreach { case (to, from) =>
+        if (!Files.exists(to.getParent)) {
+          debug(s"creating missing parent directory: ${to.getParent}")
+          Files.createDirectories(to.getParent)
+        }
+        debug(s"copy $from -> $to")
+        Files.copy(from, to)
+        setPermissions(outputBagPermissions)(to).get
       }
     }
 

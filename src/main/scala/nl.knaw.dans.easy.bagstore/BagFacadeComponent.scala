@@ -131,23 +131,18 @@ trait Bagit4FacadeComponent extends BagFacadeComponent {
     }.recoverWith { case cause => Failure(BagNotFoundException(dir, cause)) }
 
     override def removeFetchTxtFromTagManifests(bagDir: Path): Try[Unit] = {
-      getBag(bagDir).map {
-        bag =>
-          bag.getTagManifests.asScala.foreach {
-            m =>
-              m.remove(FETCH_TXT_FILENAME)
-              FileSystemHelper.write(m, bagDir.resolve(m.getFilepath).toFile)
-          }
-      }
+      getBag(bagDir)
+        .map(_.getTagManifests.asScala.foreach(manifest => {
+          manifest.remove(FETCH_TXT_FILENAME)
+          FileSystemHelper.write(manifest, bagDir.resolve(manifest.getFilepath).toFile)
+        }))
     }
 
     override def getPayloadFilePaths(bagDir: Path): Try[Set[Path]] =  {
-      getBag(bagDir).map {
-        bag =>
-          bag.getPayloadManifests.get(0).asScala.map {
-            case (path, _) => Paths.get(path)
-          }.toSet
-      }
+      getBag(bagDir)
+        .map(_.getPayloadManifests.asScala.headOption.map(_.asScala.map {
+          case (path, _) => Paths.get(path)
+        }.toSet).getOrElse(Set.empty))
     }
   }
 }

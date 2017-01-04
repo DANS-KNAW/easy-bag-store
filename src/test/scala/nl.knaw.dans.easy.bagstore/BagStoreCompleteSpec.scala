@@ -32,7 +32,6 @@ class BagStoreCompleteSpec extends BagStoreFixture with BagStoreComplete with Ba
   private val TEST_BAG_PRUNED_C = TEST_BAGS_PRUNED.resolve("c")
   private val TEST_BAG_UNPRUNED_C = TEST_BAGS_UNPRUNED.resolve("c")
 
-
   "complete" should "make pruned Bag whole again" in {
     add(TEST_BAG_PRUNED_A, Some(UUID.fromString("00000000-0000-0000-0000-000000000001")))
     add(TEST_BAG_PRUNED_B, Some(UUID.fromString("00000000-0000-0000-0000-000000000002")))
@@ -42,5 +41,4 @@ class BagStoreCompleteSpec extends BagStoreFixture with BagStoreComplete with Ba
     result shouldBe a[Success[_]]
     pathsEqual(TEST_BAG_UNPRUNED_C, testDirBagC) shouldBe true
   }
-
 }

@@ -130,5 +130,4 @@ class BagStorePruneSpec extends BagStoreFixture with BagStorePrune with BagStore
     cFetchTxt should include regex s"""\n?$baseUri/$uuidForA/data/z\\s+\\d+\\s+data/z\n"""
     TEST_BAG_C.resolve("data/z").toFile shouldNot exist
   }
-
 }

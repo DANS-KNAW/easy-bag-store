@@ -43,9 +43,7 @@ trait BagStoreAdd { this: BagStoreContext with DebugEnhancedLogging =>
         valid <- isVirtuallyValid(staged)
         if valid
         container <- toContainer(bagId)
-        _ <- Try {
-          Files.createDirectories(container)
-        }
+        _ <- Try { Files.createDirectories(container) }
         _ <- makePathAndParentsInBagStoreGroupWritable(container)
         _ = debug(s"created container for Bag: $container")
         _ <- ingest(bagDir.getFileName, staged, container)
@@ -56,9 +54,8 @@ trait BagStoreAdd { this: BagStoreContext with DebugEnhancedLogging =>
   private def ingest(bagName: Path, staged: Path, container: Path): Try[Unit] = {
     trace(bagName, staged, container)
     val moved = container.resolve(bagName)
-    Try {
-      Files.move(staged, moved)
-    }.flatMap(setPermissions(bagPermissions))
+    Try { Files.move(staged, moved) }
+      .flatMap(setPermissions(bagPermissions))
       .recoverWith {
         case NonFatal(e) =>
           logger.error(s"Failed to move staged directory into container: $staged -> $moved", e)
@@ -68,12 +65,15 @@ trait BagStoreAdd { this: BagStoreContext with DebugEnhancedLogging =>
   }
 
   private def makePathAndParentsInBagStoreGroupWritable(path: Path): Try[Unit] = {
-    getPathsInBagStore(path).map(_.map(makeGroupWritable))
+    for {
+      seq <- getPathsInBagStore(path)
+      _ <- seq.map(makeGroupWritable).collectResults
+    } yield ()
   }
 
   private def makeGroupWritable(path: Path): Try[Unit] = Try {
     val permissions = Files.getPosixFilePermissions(path).asScala
-    Files.setPosixFilePermissions(path, (permissions | Set(PosixFilePermission.GROUP_WRITE)).asJava)
+    Files.setPosixFilePermissions(path, permissions.union(Set(PosixFilePermission.GROUP_WRITE)).asJava)
   }
 
   private def removeEmptyParentDirectoriesInBagStore(container: Path): Try[Unit] = {

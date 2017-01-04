@@ -31,7 +31,6 @@ class BagStoreAddSpec extends BagStoreFixture with BagStoreAdd {
   private val TEST_BAG_PRUNED_B = TEST_BAGS_PRUNED.resolve("b")
   private val TEST_BAG_PRUNED_C = TEST_BAGS_PRUNED.resolve("c")
 
-
   "add" should "result in exact copy (except for bag-info.txt) of bag in archive when bag is valid" in {
     val tryBagId = add(TEST_BAG_MINIMAL)
     tryBagId shouldBe a[Success[_]]

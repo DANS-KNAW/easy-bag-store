@@ -27,7 +27,6 @@ class BagStoreGetSpec extends BagStoreFixture with BagStoreGet with BagStoreAdd 
   private val TEST_BAGS_PRUNED = TEST_BAGS_DIR.resolve("basic-sequence-pruned")
   private val TEST_BAG_PRUNED_A = TEST_BAGS_PRUNED.resolve("a")
 
-
   "get" should "return exactly the same Bag as was added" in {
     val result = get(add(TEST_BAG_PRUNED_A).get, testDir)
     result shouldBe a[Success[_]]
@@ -39,7 +38,6 @@ class BagStoreGetSpec extends BagStoreFixture with BagStoreGet with BagStoreAdd 
     val result = get(add(TEST_BAG_PRUNED_A).get, output)
     result shouldBe a[Success[_]]
     pathsEqual(TEST_BAG_PRUNED_A, output) shouldBe true
-
   }
 
   it should "return a File in the Bag that was added" in {

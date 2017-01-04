@@ -22,12 +22,13 @@ import java.nio.file.{Files, Path, Paths}
 import java.util.UUID
 
 import net.lingala.zip4j.core.ZipFile
+import nl.knaw.dans.lib.error.TraversableTryExtensions
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
 
 import scala.collection.JavaConverters._
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 /**
  * Provides the bag-store context, which consists of:
@@ -99,7 +100,6 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
         uri.getFragment))
     }
 
-
     val UriComponents(scheme, _, host, port, path, _, _) = uri
     val UriComponents(baseUriScheme, _, baseUriHost, baseUriPort, baseUriPath, _, _) = baseUri
 
@@ -119,7 +119,8 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
         else
           Try(bagId)
       }
-    } else Failure(NoItemUriException(uri, baseUri))
+    }
+    else Failure(NoItemUriException(uri, baseUri))
   }
 
   /**
@@ -153,8 +154,9 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
    * @return the item-location
    */
   protected def toLocation(id: ItemId): Try[Path] = {
-    toContainer(id).flatMap {
-      container => Try {
+    for {
+      container <- toContainer(id)
+      path <- Try {
         val containedFiles = Files.list(container).iterator().asScala.toList
         assert(containedFiles.size == 1, s"Corrupt BagStore, container with less or more than one file: $container")
         val bagDir = container.resolve(containedFiles.head)
@@ -164,7 +166,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
           case f: FileId => bagDir.resolve(f.path)
         }
       }
-    }
+    } yield path
   }
 
   /**
@@ -173,31 +175,20 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
    * @param fileId
    */
   protected def toRealLocation(fileId: FileId): Try[Path] = {
-    toLocation(fileId)
-        .flatMap {
-          path =>
-            if (Files.exists(path))
-              Try(path)
-            else
-              getFetchUri(fileId).flatMap(fromUri).flatMap {
-                case fileId: FileId => toRealLocation(fileId)
-              }
-        }
+    for {
+      path <- toLocation(fileId)
+      realPath <- if (Files.exists(path)) Try(path)
+                  else getFetchUri(fileId)
+                          .flatMap(fromUri)
+                          .flatMap { case fileId: FileId => toRealLocation(fileId)}
+    } yield realPath
   }
 
   private def getFetchUri(fileId: FileId): Try[URI] = {
-    toLocation(fileId.bagId)
-      .flatMap {
-        bagDir =>
-          bagFacade.getFetchItems(bagDir)
-            .flatMap {
-              items =>
-                Try {
-                  items.find(_.path == fileId.path)
-                    .map(item => item.uri).get
-                }
-            }
-      }
+    for {
+      bagDir <- toLocation(fileId.bagId)
+      items <- bagFacade.getFetchItems(bagDir)
+    } yield items.find(_.path == fileId.path).map(_.uri).get
   }
 
   /**
@@ -244,8 +235,6 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
   }
 
   protected def mapProjectedToRealLocation(bagDir: Path): Try[Seq[(Path, Path)]] = {
-    import nl.knaw.dans.lib.error._
-
     for {
       items <- bagFacade.getFetchItems(bagDir)
       mapping <- items.map(item => {
@@ -259,8 +248,6 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
   }
 
   protected def isVirtuallyValid(bagDir: Path): Try[Boolean] =  {
-
-
     def getExtraDirectories(links: Seq[Path]): Try[Seq[Path]] = Try {
       val dirs = for {
         link <- links
@@ -273,7 +260,6 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
       debug(s"extra directories to create: $dirs")
       dirs
     }
-
 
     def moveFetchTxtAndTagmanifestsToTempdir(): Try[Path] = Try {
       val tempDir = Files.createTempDirectory("fetch-temp-")
@@ -296,20 +282,18 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     }
 
     def createLinks(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
-      mappings.foreach {
-        case (link, to) =>
-          if (!Files.exists(link.getParent))
-            Files.createDirectories(link.getParent)
-          Files.createLink(link, to)
+      mappings.foreach { case (link, to) =>
+        if (!Files.exists(link.getParent))
+          Files.createDirectories(link.getParent)
+        Files.createLink(link, to)
       }
     }
 
     def removeLinks(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
       debug(s"mappings (link -> real location): $mappings")
-      mappings.foreach {
-        case (link, _) =>
-          debug(s"Deleting: $link")
-          Files.deleteIfExists(link)
+      mappings.foreach { case (link, _) =>
+        debug(s"Deleting: $link")
+        Files.deleteIfExists(link)
       }
     }
 
@@ -319,21 +303,20 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     }
 
     val fetchTxt = bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)
-    if (Files.exists(fetchTxt)) {
-        for {
-          mappings <- mapProjectedToRealLocation(bagDir)
-          extraDirs <- getExtraDirectories(mappings.map { case (link, to) => link })
-          validTagManifests <- bagFacade.hasValidTagManifests(bagDir)
-          _ = debug(s"valid tagmanifests: $validTagManifests")
-          tempLocFetch <- moveFetchTxtAndTagmanifestsToTempdir()
-          _ <- createLinks(mappings)
-          valid <- bagFacade.isValid(bagDir)
-          _ = debug(s"valid bag: $valid")
-          _ <- removeLinks(mappings)
-          _ <- removeDirectories(extraDirs)
-          _ <- moveFetchTxtAndTagmanifestsBack(tempLocFetch)
-        } yield validTagManifests && valid
-    }
+    if (Files.exists(fetchTxt))
+      for {
+        mappings <- mapProjectedToRealLocation(bagDir)
+        extraDirs <- getExtraDirectories(mappings.map { case (link, to) => link })
+        validTagManifests <- bagFacade.hasValidTagManifests(bagDir)
+        _ = debug(s"valid tagmanifests: $validTagManifests")
+        tempLocFetch <- moveFetchTxtAndTagmanifestsToTempdir()
+        _ <- createLinks(mappings)
+        valid <- bagFacade.isValid(bagDir)
+        _ = debug(s"valid bag: $valid")
+        _ <- removeLinks(mappings)
+        _ <- removeDirectories(extraDirs)
+        _ <- moveFetchTxtAndTagmanifestsBack(tempLocFetch)
+      } yield validTagManifests && valid
     else
       bagFacade.isValid(bagDir)
   }
@@ -354,21 +337,19 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
   }
 
   protected def checkBagExists(bagId: BagId): Try[Unit] = {
-    toContainer(bagId).map {
-      f =>
-        /*
-         * If the container exists, the Bag must exist. This function does not check for corruption of the BagStore.
-         */
-        if(Files.exists(f) && Files.isDirectory(f)) ()
-        else throw NoSuchBagException(bagId)
+    toContainer(bagId).flatMap {
+      /*
+       * If the container exists, the Bag must exist. This function does not check for corruption of the BagStore.
+       */
+      case f if Files.exists(f) && Files.isDirectory(f) => Success(())
+      case _ => Failure(NoSuchBagException(bagId))
     }
   }
 
   protected def checkBagDoesNotExist(bagId: BagId): Try[Unit] = {
-    toContainer(bagId).map {
-      f =>
-        if (Files.exists(f) && Files.isDirectory(f)) throw BagIdAlreadyAssignedException(bagId)
-        else ()
+    toContainer(bagId).flatMap {
+      case f if Files.exists(f) && Files.isDirectory(f) => Failure(BagIdAlreadyAssignedException(bagId))
+      case _ => Success(())
     }
   }
 
@@ -377,7 +358,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
   }
 
   protected def setPermissions(permissions: String)(bagDir: Path): Try[Unit] = Try {
-    Files.walk(bagDir).iterator().asScala.toList.foreach {
+    Files.walk(bagDir).iterator().asScala.foreach {
       f => Files.setPosixFilePermissions(f, PosixFilePermissions.fromString(permissions))
     }
   }

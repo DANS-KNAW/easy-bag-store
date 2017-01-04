@@ -23,6 +23,7 @@ import org.apache.commons.io.FileUtils
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
 
 package object bagstore {
   case class NoItemUriException(uri: URI, baseUri: URI) extends Exception(s"Base of URI $uri is not an item-uri: does not match base-uri; base-uri is $baseUri")
@@ -72,5 +73,15 @@ package object bagstore {
         false
     }
     rec(List((f1, f2)))
+  }
+
+  implicit class TryExtensions[T](val t: Try[T]) extends AnyVal {
+    // TODO candidate for dans-scala-lib, see also implementation/documentation in easy-split-multi-deposit
+    def onError[S >: T](handle: Throwable => S): S = {
+      t match {
+        case Success(value) => value
+        case Failure(throwable) => handle(throwable)
+      }
+    }
   }
 }

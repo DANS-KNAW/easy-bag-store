@@ -79,9 +79,8 @@ trait BagStorePrune { this: BagFacadeComponent with BagStoreContext with DebugEn
       refBagDir <- toLocation(refBag)
       manifest <- bagFacade.getPayloadManifest(refBagDir, algorithm)
       map <- manifest.map { case (pathInBag, checksum) =>
-            toRealLocation(FileId(refBag, pathInBag)).flatMap(fromLocation).map(checksum -> toUri(_))
-        }.filter(_.isSuccess).collectResults.map(_.toMap)
-
+        toRealLocation(FileId(refBag, pathInBag)).flatMap(fromLocation).map(checksum -> toUri(_))
+      }.filter(_.isSuccess).collectResults.map(_.toMap)
     } yield map
   }
 
