@@ -162,8 +162,8 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
         val bagDir = container.resolve(containedFiles.head)
 
         id match {
-          case b: BagId => bagDir
-          case f: FileId => bagDir.resolve(f.path)
+          case _: BagId => bagDir
+          case FileId(_, path) => bagDir.resolve(path)
         }
       }
     } yield path
@@ -306,7 +306,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     if (Files.exists(fetchTxt))
       for {
         mappings <- mapProjectedToRealLocation(bagDir)
-        extraDirs <- getExtraDirectories(mappings.map { case (link, to) => link })
+        extraDirs <- getExtraDirectories(mappings.map { case (link, _) => link })
         validTagManifests <- bagFacade.hasValidTagManifests(bagDir)
         _ = debug(s"valid tagmanifests: $validTagManifests")
         tempLocFetch <- moveFetchTxtAndTagmanifestsToTempdir()

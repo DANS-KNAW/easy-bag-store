@@ -59,7 +59,7 @@ trait BagStorePrune { this: BagFacadeComponent with BagStoreContext with DebugEn
             case Success(file) if FileUtils.contentEquals(fileInNewBag.toFile, file.toFile) =>
               Files.delete(fileInNewBag)
               acc += FetchItem(uri, Files.size(file), path)
-            case Success(file) => acc // do nothing
+            case Success(_) => acc // do nothing
             case Failure(e) => throw e
           }
       }.toList)

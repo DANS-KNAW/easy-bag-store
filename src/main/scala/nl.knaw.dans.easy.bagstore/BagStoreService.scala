@@ -28,7 +28,7 @@ import org.joda.time.DateTime
 import org.scalatra._
 import org.scalatra.servlet.ScalatraListener
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 class BagStoreService extends BagStoreApp { this: DebugEnhancedLogging =>
   import logger._
@@ -105,7 +105,7 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhance
       .flatMap(enumFiles)
       .map(bagIds => Ok(bagIds.mkString("\n")))
       .onError {
-        case e: NoSuchBagException => NotFound()
+        case _: NoSuchBagException => NotFound()
         case e =>
           logger.error("Unexpected type of failure", e)
           InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
@@ -119,7 +119,7 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhance
       .map(bagId => Created(headers = Map("Location" -> appendUriPathToExternalBaseUri(toUri(bagId)).toASCIIString)))
       .onError {
         case e: IllegalArgumentException if e.getMessage.contains("Invalid UUID string") => BadRequest("Invalid UUID")
-        case e: NumberFormatException => BadRequest("Invalid UUID")
+        case _: NumberFormatException => BadRequest("Invalid UUID")
         case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage)
         case e =>
           logger.error("Unexpected type of failure", e)

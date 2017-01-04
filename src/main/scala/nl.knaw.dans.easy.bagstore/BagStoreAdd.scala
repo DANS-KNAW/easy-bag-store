@@ -19,7 +19,7 @@ import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.{Files, Path}
 import java.util.UUID
 
-import nl.knaw.dans.lib.error._
+import nl.knaw.dans.lib.error.TraversableTryExtensions
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 import scala.collection.JavaConverters._

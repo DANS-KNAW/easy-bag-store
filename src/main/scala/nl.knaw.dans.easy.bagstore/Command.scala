@@ -17,7 +17,9 @@ package nl.knaw.dans.easy.bagstore
 
 import java.util.UUID
 
-import scala.util.{Failure, Success, Try}
+import nl.knaw.dans.lib.error.TraversableTryExtensions
+
+import scala.util.{Success, Try}
 
 object Command extends App with BagStoreApp {
   import scala.language.reflectiveCalls
@@ -61,7 +63,6 @@ object Command extends App with BagStoreApp {
         _ <- undelete(bagId)
       } yield s"Removed deleted mark from ${cmd.bagId()}"
     case Some(cmd @ opts.prune) =>
-      import nl.knaw.dans.lib.error._
       cmd.referenceBags.toOption
         .map(refBags => refBags.map(ItemId.fromString).map(_.flatMap(_.toBagId))
           .collectResults
