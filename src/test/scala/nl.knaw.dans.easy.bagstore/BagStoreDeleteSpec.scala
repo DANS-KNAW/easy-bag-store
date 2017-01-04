@@ -17,8 +17,6 @@ package nl.knaw.dans.easy.bagstore
 
 import java.nio.file.{Files, Paths}
 
-import org.scalatest.Inside.inside
-
 import scala.util.{Failure, Success}
 
 class BagStoreDeleteSpec extends BagStoreFixture with BagStoreDelete with BagStoreAdd {

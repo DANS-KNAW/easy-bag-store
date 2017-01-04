@@ -22,7 +22,6 @@ import java.util.UUID
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
-import org.scalatest.Inside.inside
 
 import scala.util.{Failure, Success}
 

@@ -18,12 +18,11 @@ package nl.knaw.dans.easy.bagstore
 import java.nio.file.Paths
 import java.util.UUID
 
-import org.scalatest.Inside.inside
-import org.scalatest.{FlatSpec, Matchers, OneInstancePerTest}
+import org.scalatest.{FlatSpec, Inside, Matchers, OneInstancePerTest}
 
 import scala.util.{Failure, Success}
 
-class ItemIdSpec  extends FlatSpec with Matchers with OneInstancePerTest {
+class ItemIdSpec extends FlatSpec with Matchers with OneInstancePerTest with Inside {
   val uuid = UUID.randomUUID()
   import ItemId._
 
@@ -76,17 +75,14 @@ class ItemIdSpec  extends FlatSpec with Matchers with OneInstancePerTest {
   }
 
   "FileId.toString" should "print bag-id/filename" in {
-    val revision = 42
     FileId(uuid, Paths.get("filename")).toString shouldBe s"${uuid.toString}/filename"
   }
 
   it should "percent-encode spaces in the filepath" in {
-    val revision = 42
     FileId(uuid, Paths.get("path with/some spaces")).toString shouldBe s"${uuid.toString}/path%20with/some%20spaces"
   }
 
   it should "percent-encode funny characters in the filepath" in {
-    val revision = 42
     /*
      * Here, we calculate how the given code point be percent-encoded. This is just a sanity check. We should actually rely on the Guave library to get this right.
      */
