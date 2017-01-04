@@ -17,16 +17,22 @@ package nl.knaw.dans.easy.bagstore
 
 import scala.util.Try
 
-trait BagStoreVerify { this: BagStoreContextComponent =>
-  type Message = String
+trait BagStoreVerifyComponent {
+  this: BagStoreContextComponent =>
 
-  def verify(bagId: Option[BagId] = None): Try[Message] = {
-    // Verify UUID-path components
-    // - Directory name lengths correct at each level
-    // - No stray files
+  val verify: BagStoreVerify
 
-    // Check every bag is virtually-valid
+  trait BagStoreVerify {
+    type Message = String
 
-    ???
+    def verify(bagId: Option[BagId] = None): Try[Message] = {
+      // Verify UUID-path components
+      // - Directory name lengths correct at each level
+      // - No stray files
+
+      // Check every bag is virtually-valid
+
+      ???
+    }
   }
 }
