@@ -26,19 +26,17 @@ import scala.util.Try
 trait BagStoreGet { this: BagStoreContextComponent with BagStoreOutputContext =>
   def get(itemId: ItemId, output: Path): Try[Unit] = {
     itemId match {
-      case bagId: BagId => context.toLocation(bagId) map {
-        path =>
-          val target = if (Files.isDirectory(output)) output.resolve(path.getFileName) else output
-          Files.createDirectory(target)
-          FileUtils.copyDirectory(path.toFile, target.toFile)
-          Files.walk(output).iterator().asScala.foreach(context.setPermissions(outputBagPermissions))
-      }
-      case fileId: FileId => context.toRealLocation(fileId) map {
-        path =>
-          val target = if (Files.isDirectory(output)) output.resolve(path.getFileName) else output
-          Files.copy(path, target)
-          Files.setPosixFilePermissions(target, PosixFilePermissions.fromString(outputBagPermissions))
-      }
+      case bagId: BagId => context.toLocation(bagId).map(path => {
+        val target = if (Files.isDirectory(output)) output.resolve(path.getFileName) else output
+        Files.createDirectory(target)
+        FileUtils.copyDirectory(path.toFile, target.toFile)
+        Files.walk(output).iterator().asScala.foreach(context.setPermissions(outputBagPermissions))
+      })
+      case fileId: FileId => context.toRealLocation(fileId).map(path => {
+        val target = if (Files.isDirectory(output)) output.resolve(path.getFileName) else output
+        Files.copy(path, target)
+        Files.setPosixFilePermissions(target, PosixFilePermissions.fromString(outputBagPermissions))
+      })
     }
   }
 }
