@@ -21,7 +21,7 @@ import org.apache.commons.io.FileUtils
 
 import scala.util.Success
 
-class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAddComponent with BagStorePrune with BagStoreDeleteComponent {
+class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnumComponent with BagStoreAddComponent with BagStorePrune with BagStoreDeleteComponent {
   FileUtils.copyDirectory(Paths.get("src/test/resources/bags/basic-sequence-unpruned").toFile, testDir.toFile)
   private val TEST_BAG_A = testDir.resolve("a")
   private val TEST_BAG_B = testDir.resolve("b")
@@ -29,13 +29,14 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
 
   override val add = new BagStoreAdd {}
   override val delete = new BagStoreDelete {}
+  override val enum = new BagStoreEnum {}
 
   "enumBags" should "return all BagIds" in {
     val ais = add.add(TEST_BAG_A).get
     val bis = add.add(TEST_BAG_B).get
     val cis = add.add(TEST_BAG_C).get
 
-    val bags = enumBags().map(_.toList)
+    val bags = enum.enumBags().map(_.toList)
     bags shouldBe a [Success[_]]
     inside(bags) {
       case Success(bagIds) =>
@@ -45,7 +46,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   }
 
   it should "return empty stream if BagStore is empty" in {
-    val bags = enumBags().map(_.toList)
+    val bags = enum.enumBags().map(_.toList)
     bags shouldBe a [Success[_]]
     inside(bags) {
       case Success(bagIds) => bagIds shouldBe empty
@@ -58,7 +59,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val cis = add.add(TEST_BAG_C).get
     delete.delete(bis)
 
-    val bags = enumBags().map(_.toList)
+    val bags = enum.enumBags().map(_.toList)
     bags shouldBe a [Success[_]]
     inside(bags) {
       case Success(bagIds) =>
@@ -73,7 +74,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val cis = add.add(TEST_BAG_C).get
     delete.delete(bis)
 
-    val bags = enumBags(includeHidden = true).map(_.toList)
+    val bags = enum.enumBags(includeHidden = true).map(_.toList)
     bags shouldBe a [Success[_]]
     inside(bags) {
       case Success(bagIds) =>
@@ -88,7 +89,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     add.add(TEST_BAG_C).get
     delete.delete(bis)
 
-    val bags = enumBags(includeVisible = false, includeHidden = true).map(_.toList)
+    val bags = enum.enumBags(includeVisible = false, includeHidden = true).map(_.toList)
     bags shouldBe a [Success[_]]
     inside(bags) {
       case Success(bagIds) =>
@@ -103,7 +104,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     add.add(TEST_BAG_C).get
     delete.delete(bis)
 
-    val bags = enumBags(includeVisible = false).map(_.toList)
+    val bags = enum.enumBags(includeVisible = false).map(_.toList)
     bags shouldBe a [Success[_]]
     inside(bags) {
       case Success(bagIds) => bagIds shouldBe empty
@@ -113,7 +114,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   "enumFiles" should "return all FileIds in a valid Bag" in {
     val ais = add.add(TEST_BAG_A).get
 
-    val files = enumFiles(ais).map(_.toList)
+    val files = enum.enumFiles(ais).map(_.toList)
     files shouldBe a [Success[_]]
     inside(files) {
       case Success(fileIds) =>
@@ -129,7 +130,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     prune(TEST_BAG_C, ais, bis)
     val cis = add.add(TEST_BAG_C).get
 
-    val files = enumFiles(cis).map(_.toList)
+    val files = enum.enumFiles(cis).map(_.toList)
     files shouldBe a [Success[_]]
     inside(files) {
       case Success(fileIds) =>

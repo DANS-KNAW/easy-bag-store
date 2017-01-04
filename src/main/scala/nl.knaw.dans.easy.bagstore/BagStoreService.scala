@@ -90,7 +90,7 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhance
 
   get("/") {
     contentType = "text/plain"
-    enumBags()
+    enum.enumBags()
       .map(bagIds => Ok(bagIds.mkString("\n")))
       .onError(e => {
         logger.error("Unexpected type of failure", e)
@@ -102,7 +102,7 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhance
     contentType = "text/plain"
     ItemId.fromString(params("uuid"))
       .flatMap(_.toBagId)
-      .flatMap(enumFiles)
+      .flatMap(enum.enumFiles)
       .map(bagIds => Ok(bagIds.mkString("\n")))
       .onError {
         case _: NoSuchBagException => NotFound()
