@@ -54,7 +54,7 @@ class BagStoreContextSpec extends BagStoreFixture { self =>
 
   it should "return a bag-id even if there are many slashes" in {
     object OtherContext extends BagStoreContextComponent with Bagit4FacadeComponent with DebugEnhancedLogging {
-      val context = new BagStoreContext {
+      override protected def context0 = new BagStoreContext {
         override val baseDir: Path = self.context.baseDir
         override val baseUri: URI = self.context.baseUri
         override val stagingBaseDir: Path = self.context.stagingBaseDir
@@ -62,6 +62,7 @@ class BagStoreContextSpec extends BagStoreFixture { self =>
         override val bagPermissions: String = self.context.bagPermissions
       }
       val bagFacade = new Bagit4Facade()
+      import context._
 
       def test(): Unit = {
         val uuid = UUID.randomUUID()
@@ -173,7 +174,7 @@ class BagStoreContextSpec extends BagStoreFixture { self =>
 
   it should "return a bag-id for valid UUID-path after the base-uri even if base-uri contains part of path" in {
     object OtherContext extends BagStoreContextComponent with Bagit4FacadeComponent with DebugEnhancedLogging {
-      override val context = new BagStoreContext {
+      override protected def context0 = new BagStoreContext {
         override val baseDir: Path = self.context.baseDir
         override val baseUri: URI = new URI("http://example-archive.org/base-path/")
         override val stagingBaseDir: Path = self.context.stagingBaseDir
@@ -181,6 +182,7 @@ class BagStoreContextSpec extends BagStoreFixture { self =>
         override val bagPermissions: String = self.context.bagPermissions
       }
       val bagFacade: BagFacade = new Bagit4Facade()
+      import context._
 
       def test(): Unit = {
         val uuid = UUID.randomUUID()

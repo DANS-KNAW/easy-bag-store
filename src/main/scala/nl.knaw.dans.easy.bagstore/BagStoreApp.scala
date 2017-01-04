@@ -42,7 +42,7 @@ trait BagStoreApp extends BagStoreContextComponent
   val bagFacade = new Bagit4Facade()
   val add = new BagStoreAdd {}
   val complete = new BagStoreComplete {}
-  val context = new BagStoreContext {
+  protected def context0 = new BagStoreContext {
     val baseDir: Path = Paths.get(properties.getString("bag-store.base-dir")).toAbsolutePath
     val baseUri = new URI(properties.getString("bag-store.base-uri"))
     val stagingBaseDir: Path = Paths.get(properties.getString("staging.base-dir"))

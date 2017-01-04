@@ -29,8 +29,8 @@ object Command extends App with BagStoreApp {
   val opts = CommandLineOptions(args, properties)
   opts.verify()
 
-  override val context = {
-    val oldContext = super.context
+  override protected def context0: BagStoreContext = {
+    val oldContext = super.context0
     new BagStoreContext {
       val baseDir: Path = opts.bagStoreBaseDir().toAbsolutePath
       val baseUri: URI = oldContext.baseUri
@@ -39,6 +39,7 @@ object Command extends App with BagStoreApp {
       val bagPermissions: String = oldContext.bagPermissions
     }
   }
+  override lazy val context = context0
 
   val result: Try[String] = opts.subcommand match {
     case Some(cmd @ opts.add) =>

@@ -33,7 +33,8 @@ import scala.util.{Failure, Success, Try}
 trait BagStoreContextComponent {
   this: BagFacadeComponent with DebugEnhancedLogging =>
 
-  val context: BagStoreContext
+  protected def context0: BagStoreContext
+  lazy val context: BagStoreContext = context0
 
   /**
    * Provides the bag-store context, which consists of:
@@ -62,7 +63,7 @@ trait BagStoreContextComponent {
      * @param path the path for which to construct an item-id
      * @return the item-id
      */
-    protected def fromLocation(path: Path): Try[ItemId] = {
+    def fromLocation(path: Path): Try[ItemId] = {
       Try {
         val p = baseDir.relativize(path.toAbsolutePath)
         val nameCount = p.getNameCount
@@ -93,7 +94,7 @@ trait BagStoreContextComponent {
      * @param uri the item-uri
      * @return the item-id
      */
-    protected def fromUri(uri: URI): Try[ItemId] = {
+    def fromUri(uri: URI): Try[ItemId] = {
       object UriComponents {
         def unapply(uri: URI): Option[(String, String, String, Int, Path, String, String)] = Some((
           uri.getScheme,
@@ -158,7 +159,7 @@ trait BagStoreContextComponent {
      * @param id the item-id
      * @return the item-location
      */
-    protected def toLocation(id: ItemId): Try[Path] = {
+    def toLocation(id: ItemId): Try[Path] = {
       for {
         container <- toContainer(id)
         path <- Try {
@@ -179,7 +180,7 @@ trait BagStoreContextComponent {
      *
      * @param fileId
      */
-    protected def toRealLocation(fileId: FileId): Try[Path] = {
+    def toRealLocation(fileId: FileId): Try[Path] = {
       for {
         path <- toLocation(fileId)
         realPath <- if (Files.exists(path)) Try(path)
@@ -202,7 +203,7 @@ trait BagStoreContextComponent {
      * @param id the item-id
      * @return the item-uri
      */
-    protected def toUri(id: ItemId): URI = baseUri.resolve("/" + id.toString)
+    def toUri(id: ItemId): URI = baseUri.resolve("/" + id.toString)
 
     /**
      * Utility function that copies a directory to a staging area. This is used to stage bag directories for
@@ -211,7 +212,7 @@ trait BagStoreContextComponent {
      * @param dir the directory to stage
      * @return the location of the staged directory
      */
-    protected def stageBagDir(dir: Path): Try[Path] = Try {
+    def stageBagDir(dir: Path): Try[Path] = Try {
       trace(dir)
       val staged = Files.createTempFile(stagingBaseDir, "staged-bag-", "")
       Files.deleteIfExists(staged)
@@ -220,7 +221,7 @@ trait BagStoreContextComponent {
       staged
     }
 
-    protected def stageBagZip(is: InputStream): Try[Path] = Try {
+    def stageBagZip(is: InputStream): Try[Path] = Try {
       trace(is)
       val extractDir = Files.createTempFile(stagingBaseDir, "staged-zip-", "")
       Files.deleteIfExists(extractDir)
@@ -239,7 +240,7 @@ trait BagStoreContextComponent {
       else files.head
     }
 
-    protected def mapProjectedToRealLocation(bagDir: Path): Try[Seq[(Path, Path)]] = {
+    def mapProjectedToRealLocation(bagDir: Path): Try[Seq[(Path, Path)]] = {
       for {
         items <- bagFacade.getFetchItems(bagDir)
         mapping <- items.map(item => {
@@ -252,7 +253,7 @@ trait BagStoreContextComponent {
       } yield mapping
     }
 
-    protected def isVirtuallyValid(bagDir: Path): Try[Boolean] = {
+    def isVirtuallyValid(bagDir: Path): Try[Boolean] = {
       def getExtraDirectories(links: Seq[Path]): Try[Seq[Path]] = Try {
         val dirs = for {
           link <- links
@@ -334,11 +335,11 @@ trait BagStoreContextComponent {
       assert(uuidPath.asScala.map(_.toString.length) == uuidPathComponentSizes, "UUID-part slashed incorrectly")
     }
 
-    protected def formatUuidStrCanonically(s: String): String = {
+    def formatUuidStrCanonically(s: String): String = {
       List(s.slice(0, 8), s.slice(8, 12), s.slice(12, 16), s.slice(16, 20), s.slice(20, 32)).mkString("-")
     }
 
-    protected def checkBagExists(bagId: BagId): Try[Unit] = {
+    def checkBagExists(bagId: BagId): Try[Unit] = {
       toContainer(bagId).flatMap {
         /*
        * If the container exists, the Bag must exist. This function does not check for corruption of the BagStore.
@@ -348,18 +349,18 @@ trait BagStoreContextComponent {
       }
     }
 
-    protected def checkBagDoesNotExist(bagId: BagId): Try[Unit] = {
+    def checkBagDoesNotExist(bagId: BagId): Try[Unit] = {
       toContainer(bagId).flatMap {
         case f if Files.exists(f) && Files.isDirectory(f) => Failure(BagIdAlreadyAssignedException(bagId))
         case _ => Success(())
       }
     }
 
-    protected def isHidden(bagId: BagId): Try[Boolean] = {
+    def isHidden(bagId: BagId): Try[Boolean] = {
       toLocation(bagId).map(Files.isHidden)
     }
 
-    protected def setPermissions(permissions: String)(bagDir: Path): Try[Unit] = Try {
+    def setPermissions(permissions: String)(bagDir: Path): Try[Unit] = Try {
       Files.walk(bagDir).iterator().asScala.foreach {
         f => Files.setPosixFilePermissions(f, PosixFilePermissions.fromString(permissions))
       }
