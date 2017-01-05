@@ -17,24 +17,25 @@ package nl.knaw.dans.easy.bagstore
 
 import java.nio.file.{Files, Path}
 
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+
 import scala.util.Try
 
-trait BagStoreComplete extends BagStoreContext with BagStoreOutputContext {
+trait BagStoreComplete { this: BagFacadeComponent with BagStoreOutputContext with BagStoreContext with DebugEnhancedLogging =>
 
   // TODO: This function looks a lot like BagStoreContext.isVirtuallyValid.createLinks, refactor?
   def complete(bagDir: Path): Try[Unit] = {
     trace(bagDir)
     def copyFiles(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
       debug(s"copying ${mappings.size} files to projected locations")
-      mappings.foreach {
-        case (to, from) =>
-          if (!Files.exists(to.getParent)) {
-            debug(s"creating missing parent directory: ${to.getParent}")
-            Files.createDirectories(to.getParent)
-          }
-          debug(s"copy $from -> $to")
-          Files.copy(from, to)
-          setPermissions(outputBagPermissions)(to)
+      mappings.foreach { case (to, from) =>
+        if (!Files.exists(to.getParent)) {
+          debug(s"creating missing parent directory: ${to.getParent}")
+          Files.createDirectories(to.getParent)
+        }
+        debug(s"copy $from -> $to")
+        Files.copy(from, to)
+        setPermissions(outputBagPermissions)(to).get
       }
     }
 

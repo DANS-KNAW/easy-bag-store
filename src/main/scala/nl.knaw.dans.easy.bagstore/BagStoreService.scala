@@ -28,9 +28,9 @@ import org.joda.time.DateTime
 import org.scalatra._
 import org.scalatra.servlet.ScalatraListener
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
-class BagStoreService extends BagStoreApp with DebugEnhancedLogging {
+class BagStoreService extends BagStoreApp {
   import logger._
 
   info(s"base directory: $baseDir")
@@ -85,47 +85,45 @@ object BagStoreService extends App with DebugEnhancedLogging {
   info("Service started ...")
 }
 
-class BagStoreServlet extends ScalatraServlet with BagStoreApp with DebugEnhancedLogging {
+class BagStoreServlet extends ScalatraServlet with BagStoreApp {
   val externalBaseUri = new URI(properties.getString("daemon.external-base-uri"))
 
   get("/") {
     contentType = "text/plain"
-    Try {
-      enumBags().iterator.toList.mkString("\n")
-    } match {
-      case Success(bagIds) => Ok(bagIds)
-      case Failure(e) =>
+    enumBags()
+      .map(bagIds => Ok(bagIds.mkString("\n")))
+      .onError(e => {
         logger.error("Unexpected type of failure", e)
         InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
-    }
+      })
   }
 
   get("/:uuid") {
     contentType = "text/plain"
     ItemId.fromString(params("uuid"))
-      .flatMap(ItemId.toBagId)
-      .map(enumFiles)
-      .map(_.mkString("\n")) match {
-      case Success(fileIds) => Ok(fileIds)
-      case Failure(e: NoSuchBagException) => NotFound()
-      case Failure(e) =>
-        logger.error("Unexpected type of failure", e)
-        InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
-    }
+      .flatMap(_.toBagId)
+      .flatMap(enumFiles)
+      .map(bagIds => Ok(bagIds.mkString("\n")))
+      .onError {
+        case _: NoSuchBagException => NotFound()
+        case e =>
+          logger.error("Unexpected type of failure", e)
+          InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
+      }
   }
 
   // TODO: implement content-negatiation: text/plain for enumFiles, application/zip for zipped bag
 
   put("/:uuid") {
     putBag(request.getInputStream, params("uuid"))
-    match {
-      case Success(bagId) => Created(headers = Map("Location" -> appendUriPathToExternalBaseUri(toUri(bagId)).toASCIIString))
-      case Failure(e: IllegalArgumentException) if e.getMessage.contains("Invalid UUID string") => BadRequest("Invalid UUID")
-      case Failure(e: NumberFormatException) => BadRequest("Invalid UUID")
-      case Failure(e: BagIdAlreadyAssignedException) => BadRequest(e.getMessage)
-      case Failure(e) =>
-        logger.error("Unexpected type of failure", e)
-        InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
+      .map(bagId => Created(headers = Map("Location" -> appendUriPathToExternalBaseUri(toUri(bagId)).toASCIIString)))
+      .onError {
+        case e: IllegalArgumentException if e.getMessage.contains("Invalid UUID string") => BadRequest("Invalid UUID")
+        case _: NumberFormatException => BadRequest("Invalid UUID")
+        case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage)
+        case e =>
+          logger.error("Unexpected type of failure", e)
+          InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
     }
   }
 

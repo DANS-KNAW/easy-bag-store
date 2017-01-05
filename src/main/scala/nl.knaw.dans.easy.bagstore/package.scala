@@ -23,6 +23,7 @@ import org.apache.commons.io.FileUtils
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
 
 package object bagstore {
   case class NoItemUriException(uri: URI, baseUri: URI) extends Exception(s"Base of URI $uri is not an item-uri: does not match base-uri; base-uri is $baseUri")
@@ -35,6 +36,8 @@ package object bagstore {
   case class CannotIngestHiddenBagDirectory(bagDir: Path) extends Exception(s"Cannot ingest hidden directory $bagDir")
   case class IncorrectNumberOfFilesInBagZipRootException(n: Int) extends Exception(s"There must be exactly one file in the root directory of the zipped bag, found $n")
   case class BagBaseNotFoundException() extends Exception(s"The zipped bag contains no bag base directory")
+  case class NoBagIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a bag-id")
+  case class NoFileIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a file-id")
 
   object Version {
     def apply(): String = {
@@ -70,5 +73,15 @@ package object bagstore {
         false
     }
     rec(List((f1, f2)))
+  }
+
+  implicit class TryExtensions[T](val t: Try[T]) extends AnyVal {
+    // TODO candidate for dans-scala-lib, see also implementation/documentation in easy-split-multi-deposit
+    def onError[S >: T](handle: Throwable => S): S = {
+      t match {
+        case Success(value) => value
+        case Failure(throwable) => handle(throwable)
+      }
+    }
   }
 }

@@ -18,13 +18,10 @@ package nl.knaw.dans.easy.bagstore
 import java.nio.file.{Files, Paths}
 
 import org.apache.commons.io.FileUtils
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers, OneInstancePerTest}
+import org.scalatest._
 
-trait TestSupportFixture extends FlatSpec with Matchers with OneInstancePerTest with BeforeAndAfter {
+trait TestSupportFixture extends FlatSpec with Matchers with OneInstancePerTest with BeforeAndAfter with Inside {
   val testDir = Paths.get(s"target/test/${getClass.getSimpleName}").toAbsolutePath
   FileUtils.deleteQuietly(testDir.toFile)
   Files.createDirectories(testDir)
-
 }
-
-

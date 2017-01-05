@@ -17,14 +17,11 @@ package nl.knaw.dans.easy.bagstore
 
 import java.nio.file.{Files, Paths}
 
-import org.scalatest.Inside.inside
-
 import scala.util.{Failure, Success}
 
 class BagStoreDeleteSpec extends BagStoreFixture with BagStoreDelete with BagStoreAdd {
   private val TEST_BAGS_DIR = Paths.get("src/test/resources/bags")
   private val TEST_BAG_MINIMAL = TEST_BAGS_DIR.resolve("minimal-bag")
-
 
   "delete" should "be able to delete a Bag that is not yet deleted" in {
     val tryBagId = add(TEST_BAG_MINIMAL)
@@ -62,6 +59,4 @@ class BagStoreDeleteSpec extends BagStoreFixture with BagStoreDelete with BagSto
       case Failure(e) => e shouldBe a[NotDeletedException]
     }
   }
-
-
 }

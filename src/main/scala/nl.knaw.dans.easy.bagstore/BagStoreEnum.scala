@@ -18,25 +18,31 @@ package nl.knaw.dans.easy.bagstore
 import java.nio.file.Files
 
 import scala.collection.JavaConverters._
+import scala.util.Try
 
-trait BagStoreEnum extends BagStoreContext {
+trait BagStoreEnum { this: BagFacadeComponent with BagStoreContext =>
 
-  def enumBags(includeVisible: Boolean = true, includeHidden: Boolean = false): Stream[BagId] = {
-    Files.walk(baseDir, uuidPathComponentSizes.size).iterator().asScala
+  def enumBags(includeVisible: Boolean = true, includeHidden: Boolean = false): Try[Stream[BagId]] = Try {
+    Files.walk(baseDir, uuidPathComponentSizes.size).iterator().asScala.toStream
       .map(baseDir.relativize)
       .withFilter(_.getNameCount == uuidPathComponentSizes.size)
-      .map(p => fromLocation(baseDir.resolve(p)).flatMap(ItemId.toBagId))
-      .map(_.get) // TODO: is there a better way to fail fast ?
-      .withFilter { b =>
-      val hiddenBag = isHidden(b).get
-      hiddenBag && includeHidden || !hiddenBag && includeVisible
-    }.toStream
+      .map(p => fromLocation(baseDir.resolve(p)).flatMap(_.toBagId).get) // TODO: is there a better way to fail fast ?
+      .filter(bagId => {
+        val hiddenBag = isHidden(bagId).get
+        hiddenBag && includeHidden || !hiddenBag && includeVisible
+      })
   }
 
-  def enumFiles(bagId: BagId): Stream[FileId] = {
-    toLocation(bagId)
-      .flatMap(path =>
-        bagFacade.getPayloadFilePaths(path)
-          .map(ppaths => (Files.list(path).iterator().asScala.withFilter(Files.isRegularFile(_)).map(path.relativize).toSet | ppaths).map(p => FileId(bagId, p)).toStream)).get
+  def enumFiles(bagId: BagId): Try[Stream[FileId]] = {
+    for {
+      path <- toLocation(bagId)
+      ppaths <- bagFacade.getPayloadFilePaths(path)
+    } yield Files.list(path).iterator().asScala
+      .withFilter(Files.isRegularFile(_))
+      .map(path.relativize)
+      .toSet
+      .union(ppaths)
+      .map(FileId(bagId, _))
+      .toStream
   }
 }

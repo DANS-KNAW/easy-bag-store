@@ -20,8 +20,8 @@ import java.net.URI
 import java.nio.file.{Path, Paths}
 import java.util.UUID
 
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
-import org.scalatest.Inside.inside
 
 import scala.util.{Failure, Success}
 
@@ -51,22 +51,27 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
   }
 
   it should "return a bag-id even if there are many slashes" in {
-    new BagStoreContext {
-      override implicit val baseDir: Path = BagStoreContextSpec.this.baseDir
-      override implicit val baseUri: URI = BagStoreContextSpec.this.baseUri
-      override implicit val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir
-      override implicit val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
-      override implicit val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
+    object OtherContext extends BagStoreContext with Bagit4FacadeComponent with DebugEnhancedLogging {
+      override val baseDir: Path = BagStoreContextSpec.this.baseDir
+      override val baseUri: URI = BagStoreContextSpec.this.baseUri
+      override val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir
+      override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
+      override val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
+      val bagFacade = new Bagit4Facade()
 
-      val uuid = UUID.randomUUID()
-      val dirs = uuid.toString.filterNot(_ == '-').grouped(1).toList
-      val uuidPath = Paths.get(dirs.head, dirs.tail: _*)
-      val id = fromLocation(baseDir.toAbsolutePath.resolve(uuidPath))
-      id shouldBe a[Success[_]]
-      inside(id) {
-        case Success(BagId(foundUuid)) => foundUuid shouldBe uuid
+      def test(): Unit = {
+        val uuid = UUID.randomUUID()
+        val dirs = uuid.toString.filterNot(_ == '-').grouped(1).toList
+        val uuidPath = Paths.get(dirs.head, dirs.tail: _*)
+        val id = fromLocation(baseDir.toAbsolutePath.resolve(uuidPath))
+        id shouldBe a[Success[_]]
+        inside(id) {
+          case Success(BagId(foundUuid)) => foundUuid shouldBe uuid
+        }
       }
     }
+
+    OtherContext.test()
   }
 
   it should "return a bag-id for uuid-path/bag-name even if bag-name does not exists" in {
@@ -163,20 +168,25 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
   }
 
   it should "return a bag-id for valid UUID-path after the base-uri even if base-uri contains part of path" in {
-    new BagStoreContext {
-      override implicit val baseDir: Path = BagStoreContextSpec.this.baseDir
-      override implicit val baseUri: URI = new URI("http://example-archive.org/base-path/")
-      override implicit val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir
-      override implicit val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
-      override implicit val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
+    object OtherContext extends BagStoreContext with Bagit4FacadeComponent with DebugEnhancedLogging {
+      override val baseDir: Path = BagStoreContextSpec.this.baseDir
+      override val baseUri: URI = new URI("http://example-archive.org/base-path/")
+      override val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir
+      override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
+      override val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
+      val bagFacade: BagFacade = new Bagit4Facade()
 
-      val uuid = UUID.randomUUID()
-      val id = fromUri(new URI(s"$baseUri/$uuid"))
-      id shouldBe a[Success[_]]
-      inside(id) {
-        case Success(BagId(foundUuid)) => foundUuid shouldBe uuid
+      def test(): Unit = {
+        val uuid = UUID.randomUUID()
+        val id = fromUri(new URI(s"$baseUri/$uuid"))
+        id shouldBe a[Success[_]]
+        inside(id) {
+          case Success(BagId(foundUuid)) => foundUuid shouldBe uuid
+        }
       }
     }
+
+    OtherContext.test()
   }
 
   it should "return a file-id for base-uri/uuid/ even though it can never resolve to a file" in {

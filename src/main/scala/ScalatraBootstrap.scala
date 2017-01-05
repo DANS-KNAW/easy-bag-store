@@ -21,6 +21,6 @@ import org.scalatra.LifeCycle
 
 class ScalatraBootstrap extends LifeCycle with DebugEnhancedLogging {
   override def init(context: ServletContext) {
-    context mount (new BagStoreServlet, "/")
+    context.mount(new BagStoreServlet, "/")
   }
 }

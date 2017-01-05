@@ -19,7 +19,6 @@ import java.nio.file.Paths
 import java.util.UUID
 
 import org.apache.commons.io.FileUtils
-import org.scalatest.Inside._
 
 import scala.util._
 
@@ -31,7 +30,6 @@ class BagStoreAddSpec extends BagStoreFixture with BagStoreAdd {
   private val TEST_BAG_PRUNED_A = TEST_BAGS_PRUNED.resolve("a")
   private val TEST_BAG_PRUNED_B = TEST_BAGS_PRUNED.resolve("b")
   private val TEST_BAG_PRUNED_C = TEST_BAGS_PRUNED.resolve("c")
-
 
   "add" should "result in exact copy (except for bag-info.txt) of bag in archive when bag is valid" in {
     val tryBagId = add(TEST_BAG_MINIMAL)

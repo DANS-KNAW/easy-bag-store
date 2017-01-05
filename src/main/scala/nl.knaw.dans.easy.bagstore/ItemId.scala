@@ -24,54 +24,48 @@ import com.google.common.net.UrlEscapers
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
-case class NoBagIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a bag-id")
-
-case class NoFileIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a file-id")
-
 abstract class ItemId() {
   def getUuid: UUID
+
+  def toBagId: Try[BagId]
+
+  def toFileId: Try[FileId]
 }
 
 object ItemId {
-  def fromString(s: String): Try[ItemId] = {
-    Try {
-      s.split("/", 2) match {
-        case Array(uuidStr) => BagId(UUID.fromString(uuidStr))
-        case Array(uuidStr, path) =>
-          FileId(BagId(UUID.fromString(uuidStr)), Paths.get(URLDecoder.decode(path, "UTF-8")))
-      }
+  def fromString(s: String): Try[ItemId] = Try {
+    s.split("/", 2) match {
+      case Array(uuidStr) => BagId(UUID.fromString(uuidStr))
+      case Array(uuidStr, path) =>
+        FileId(BagId(UUID.fromString(uuidStr)), Paths.get(URLDecoder.decode(path, "UTF-8")))
     }
   }
-
-
-  def toBagId(itemId: ItemId): Try[BagId] = itemId match {
-    case id: BagId => Success(id)
-    case id => Failure(NoBagIdException(id))
-  }
-
-  def toFileId(itemId: ItemId): Try[FileId] = itemId match {
-    case id: FileId => Success(id)
-    case id => Failure(NoFileIdException(id))
-  }
-
-
 }
 
 case class BagId(uuid: UUID) extends ItemId {
   override def toString: String = uuid.toString
 
   override def getUuid = uuid
+
+  override def toBagId: Try[BagId] = Success(this)
+
+  override def toFileId: Try[FileId] = Failure(NoFileIdException(this))
 }
 
 case class FileId(bagId: BagId, path: Path) extends ItemId {
   private val pathEscaper = UrlEscapers.urlPathSegmentEscaper()
 
-  override def toString: String = s"$bagId/${path.iterator().asScala.map(_.toString).map(pathEscaper.escape).mkString("/")}"
+  override def toString: String = {
+    s"$bagId/${path.asScala.map(_.toString).map(pathEscaper.escape).mkString("/")}"
+  }
 
   override def getUuid = bagId.uuid
+
+  override def toBagId: Try[BagId] = Failure(NoBagIdException(this))
+
+  override def toFileId: Try[FileId] = Success(this)
 }
 
 object FileId {
   def apply(uuid: UUID, path: Path): FileId = FileId(BagId(uuid), path)
 }
-
