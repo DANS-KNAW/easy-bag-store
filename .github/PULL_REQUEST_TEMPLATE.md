@@ -1,6 +1,6 @@
-fixes EASY-
+Fixes EASY-XXXX
 
-#### When applied it will
+#### When applied it will...
 * 
 * 
 * 
@@ -9,7 +9,8 @@ fixes EASY-
 
 #### How should this be manually tested?
 
-#### related pull requests on github
+#### Related pull requests on github
+
 repo                       | PR
 -------------------------- | -----------------
 easy-                      | [PR#](PRlink) 
