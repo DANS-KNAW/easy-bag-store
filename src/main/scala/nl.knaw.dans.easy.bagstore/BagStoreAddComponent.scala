@@ -43,15 +43,11 @@ trait BagStoreAddComponent {
           newUuid
         })
         for {
-          staged <- if (skipStage) Try {
-            bagDir
-          } else context.stageBagDir(bagDir)
+          staged <- if (skipStage) Try { bagDir } else context.stageBagDir(bagDir)
           valid <- context.isVirtuallyValid(staged)
           if valid
           container <- context.toContainer(bagId)
-          _ <- Try {
-            Files.createDirectories(container)
-          }
+          _ <- Try { Files.createDirectories(container) }
           _ <- makePathAndParentsInBagStoreGroupWritable(container)
           _ = debug(s"created container for Bag: $container")
           _ <- ingest(bagDir.getFileName, staged, container)
@@ -62,9 +58,7 @@ trait BagStoreAddComponent {
     private def ingest(bagName: Path, staged: Path, container: Path): Try[Unit] = {
       trace(bagName, staged, container)
       val moved = container.resolve(bagName)
-      Try {
-        Files.move(staged, moved)
-      }
+      Try { Files.move(staged, moved) }
         .flatMap(context.setPermissions(context.bagPermissions))
         .recoverWith {
           case NonFatal(e) =>

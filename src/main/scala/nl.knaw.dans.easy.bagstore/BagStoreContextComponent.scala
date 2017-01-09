@@ -185,9 +185,9 @@ trait BagStoreContextComponent {
       for {
         path <- toLocation(fileId)
         realPath <- if (Files.exists(path)) Try(path)
-        else getFetchUri(fileId)
-          .flatMap(fromUri)
-          .flatMap { case fileId: FileId => toRealLocation(fileId) }
+                    else getFetchUri(fileId)
+                           .flatMap(fromUri)
+                           .flatMap { case fileId: FileId => toRealLocation(fileId) }
       } yield realPath
     }
 
@@ -343,8 +343,8 @@ trait BagStoreContextComponent {
     def checkBagExists(bagId: BagId): Try[Unit] = {
       toContainer(bagId).flatMap {
         /*
-       * If the container exists, the Bag must exist. This function does not check for corruption of the BagStore.
-       */
+         * If the container exists, the Bag must exist. This function does not check for corruption of the BagStore.
+         */
         case f if Files.exists(f) && Files.isDirectory(f) => Success(())
         case _ => Failure(NoSuchBagException(bagId))
       }

@@ -54,9 +54,7 @@ trait BagStoreCompleteComponent {
         mappings <- context.mapProjectedToRealLocation(bagDir)
         _ <- copyFiles(mappings)
         _ <- bagFacade.removeFetchTxtFromTagManifests(bagDir)
-        _ <- Try {
-          Files.deleteIfExists(bagDir.resolve(bagFacade.FETCH_TXT_FILENAME))
-        }
+        _ <- Try { Files.deleteIfExists(bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)) }
         valid <- bagFacade.isValid(bagDir)
         _ = debug(s"result valid?: $valid")
         if valid
