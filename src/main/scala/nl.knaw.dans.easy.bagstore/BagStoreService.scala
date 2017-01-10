@@ -113,7 +113,7 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp {
   }
 
   get("/:uuid/*") {
-    ItemId.fromString(s"${params("uuid")}/${multiParams("splat").head}")
+    ItemId.fromString(s"""${params("uuid")}/${multiParams("splat").head}""")
       .flatMap(_.toFileId)
       .flatMap(toRealLocation)
       .map(path => {
@@ -122,7 +122,7 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp {
         val name = path.getFileName.toString
         Ok(bytes, Map(
           "Content-Type" -> fileType,
-          "Content-Disposition" -> ("attachment; filename=\"" + name + "\"")
+          "Content-Disposition" -> s"""attachment; filename="$name""""
         ))
       })
       .onError(e => {
