@@ -37,7 +37,7 @@ object ItemId {
     s.split("/", 2) match {
       case Array(uuidStr) => BagId(UUID.fromString(uuidStr))
       case Array(uuidStr, path) =>
-        FileId(BagId(UUID.fromString(uuidStr)), Paths.get(URLDecoder.decode(path, "UTF-8")))
+        FileId(UUID.fromString(uuidStr), Paths.get(URLDecoder.decode(path, "UTF-8")))
     }
   }
 }
