@@ -45,7 +45,9 @@ trait BagStoreApp extends BagStoreContext
   val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
   val bagFacade = new Bagit4Facade()
 
-  protected def validateSettings(): Unit =  {
+  logger.info("configurations read")
+
+  def validateSettings(): Unit =  {
     assert(Files.isWritable(baseDir), s"Non-existent or non-writable base-dir: $baseDir")
     assert(Files.isWritable(stagingBaseDir), s"Non-existent or non-writable staging base-dir: $stagingBaseDir")
     assert(uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${uuidPathComponentSizes.sum}")
@@ -54,3 +56,4 @@ trait BagStoreApp extends BagStoreContext
   }
 }
 
+object SingletonBagStoreApp extends BagStoreApp
