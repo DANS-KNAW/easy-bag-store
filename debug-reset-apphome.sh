@@ -26,7 +26,8 @@ if [ -e $TEMPDIR ]; then
     mv $TEMPDIR $TEMPDIR-`date  +"%Y-%m-%d@%H:%M:%S"`
 fi
 
-mkdir -p $TEMPDIR/bag-store
+mkdir -p $TEMPDIR
+cp -r src/test/resources/debug-resources/* $TEMPDIR
 chmod -R 777 $TEMPDIR
 
 echo "A fresh application home directory for debugging has been set up at $APPHOME"

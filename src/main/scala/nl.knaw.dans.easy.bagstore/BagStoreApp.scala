@@ -36,7 +36,7 @@ trait BagStoreApp extends BagStoreContext
   with BagStoreOutputContext
   with DebugEnhancedLogging {
 
-  val properties = new PropertiesConfiguration(new File(new File(System.getProperty("app.home")), "cfg/application.properties"))
+  val properties = new PropertiesConfiguration(new File(System.getProperty("app.home"), "cfg/application.properties"))
   val baseDir: Path = Paths.get(properties.getString("bag-store.base-dir")).toAbsolutePath
   val baseUri = new URI(properties.getString("bag-store.base-uri"))
   val stagingBaseDir: Path = Paths.get(properties.getString("staging.base-dir"))
