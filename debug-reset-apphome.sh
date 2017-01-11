@@ -27,6 +27,8 @@ if [ -e $TEMPDIR ]; then
 fi
 
 mkdir -p $TEMPDIR/bag-store
+cp -r src/test/resources/bag-store/00 $TEMPDIR/bag-store/00
+touch $TEMPDIR/easy-bag-store.log
 chmod -R 777 $TEMPDIR
 
 echo "A fresh application home directory for debugging has been set up at $APPHOME"
