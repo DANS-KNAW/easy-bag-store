@@ -126,7 +126,7 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp {
         ))
       })
       .onError(e => {
-        logger.error("error in file getter", e)
+        logger.error("could not retrieve the requested file.", e)
         BadRequest(e)
       })
   }
