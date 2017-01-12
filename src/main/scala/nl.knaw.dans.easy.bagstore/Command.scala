@@ -21,10 +21,10 @@ import java.util.UUID
 
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 
+import scala.language.reflectiveCalls
 import scala.util.{Success, Try}
 
-object Command extends App with BagStoreApp {
-  import scala.language.reflectiveCalls
+object Command extends App with IdleLifeCycle with BagStoreApp {
 
   val opts = CommandLineOptions(args, properties)
   opts.verify()

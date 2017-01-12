@@ -25,14 +25,14 @@ import org.apache.commons.configuration.PropertiesConfiguration
 
 import scala.util.Try
 
-trait BagStoreApp extends BagStoreContextComponent
-  with BagStoreAddComponent
+trait BagStoreApp extends BagStoreAddComponent
   with BagStoreEnumComponent
   with BagStoreGetComponent
   with BagStoreCompleteComponent
   with BagStoreDeleteComponent
   with BagStorePruneComponent
   with Bagit4FacadeComponent
+  with BagStoreContextComponent
   with BagStoreOutputContextComponent
   with DebugEnhancedLogging {
 
@@ -56,12 +56,11 @@ trait BagStoreApp extends BagStoreContextComponent
   }
   override val prune = new BagStorePrune {}
 
-  protected def validateSettings(): Unit =  {
-    assert(Files.isWritable(context.baseDir), s"Non-existent or non-writable base-dir: ${context.baseDir}")
-    assert(Files.isWritable(context.stagingBaseDir), s"Non-existent or non-writable staging base-dir: ${context.stagingBaseDir}")
-    assert(context.uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${context.uuidPathComponentSizes.sum}")
-    assert(Try(PosixFilePermissions.fromString(context.bagPermissions)).isSuccess, s"Bag file permissions are invalid: '${context.bagPermissions}'")
-    assert(Try(PosixFilePermissions.fromString(outputContext.outputBagPermissions)).isSuccess, s"Bag export file permissions are invalid: '${outputContext.outputBagPermissions}'")
+  def validateSettings(): Unit = {
+    assert(Files.isWritable(context.baseDir), s"Non-existent or non-writable base-dir: ${ context.baseDir }")
+    assert(Files.isWritable(context.stagingBaseDir), s"Non-existent or non-writable staging base-dir: ${ context.stagingBaseDir }")
+    assert(context.uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${ context.uuidPathComponentSizes.sum }")
+    assert(Try(PosixFilePermissions.fromString(context.bagPermissions)).isSuccess, s"Bag file permissions are invalid: '${ context.bagPermissions }'")
+    assert(Try(PosixFilePermissions.fromString(outputContext.outputBagPermissions)).isSuccess, s"Bag export file permissions are invalid: '${ outputContext.outputBagPermissions }'")
   }
 }
-

@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagstore
 import java.io.InputStream
 import java.net.URI
 import java.nio.file.attribute.PosixFilePermissions
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{ Files, Path, Paths }
 import java.util.UUID
 
 import net.lingala.zip4j.core.ZipFile
@@ -28,7 +28,7 @@ import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
 
 import scala.collection.JavaConverters._
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 trait BagStoreContextComponent {
   this: BagFacadeComponent

@@ -26,8 +26,25 @@ import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 import scala.util.{Failure, Try}
 
-trait BagStoreAddComponent {
-  this: BagStoreContextComponent with DebugEnhancedLogging =>
+trait BagStoreAddComponent extends BagStoreLifeCycle {
+  this: BagStoreContextComponent
+    with DebugEnhancedLogging =>
+
+  abstract override def startup(): Try[Unit] = {
+    for {
+      _ <- super.startup()
+      _ <- Try { logger.info("BagStoreAdd startup test") }
+    } yield ()
+    // maybe some calls to add.init() or something like that?
+  }
+
+  abstract override def shutdown(): Try[Unit] = {
+    for {
+      _ <- Try { logger.info("BagStoreAdd stopdown test") }
+      // maybe some calls to add.close() or something like that?
+      _ <- super.shutdown()
+    } yield ()
+  }
 
   val add: BagStoreAdd
 

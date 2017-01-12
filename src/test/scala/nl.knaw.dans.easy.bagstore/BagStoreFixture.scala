@@ -24,7 +24,11 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
  * Common base class for tests that need to set up a test bag store. This class should only do the set-up that is
  * common to all these tests, nothing more!
  */
-trait BagStoreFixture extends TestSupportFixture with BagStoreContextComponent with Bagit4FacadeComponent with DebugEnhancedLogging {
+trait BagStoreFixture extends TestSupportFixture
+  with IdleLifeCycle
+  with BagStoreContextComponent
+  with Bagit4FacadeComponent
+  with DebugEnhancedLogging {
   override protected def context0 = new BagStoreContext {
     override val baseDir: Path = testDir.resolve("bag-store")
     override val baseUri: URI = new URI("http://example-archive.org")

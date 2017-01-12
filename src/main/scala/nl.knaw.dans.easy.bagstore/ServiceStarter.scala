@@ -20,24 +20,24 @@ import org.slf4j.{Logger, LoggerFactory}
 
 class ServiceStarter extends Daemon {
   var log: Logger = _ // Not loading logger yet, to avoid possibility of errors before init is called
-  var bagStoreService: BagStoreService = _ // Idem
+  var bagStoreService: BagStoreServiceComponent = _ // Idem
 
   def init(ctx: DaemonContext) = {
     log = LoggerFactory.getLogger(getClass)
     log.info("Initializing service...")
-    bagStoreService = new BagStoreService
+    bagStoreService = BagStoreServiceComponent
     log.info("Service initialized.")
   }
 
   def start(): Unit = {
     log.info("Starting service...")
-    bagStoreService.start()
+    bagStoreService.startup()
     log.info("Service started.")
   }
 
   def stop(): Unit = {
     log.info("Stopping service...")
-    bagStoreService.stop()
+    bagStoreService.shutdown()
   }
 
   def destroy(): Unit = {
