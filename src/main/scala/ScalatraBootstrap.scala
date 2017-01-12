@@ -15,12 +15,15 @@
  */
 import javax.servlet.ServletContext
 
-import nl.knaw.dans.easy.bagstore.BagStoreServlet
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatra.LifeCycle
 
 class ScalatraBootstrap extends LifeCycle with DebugEnhancedLogging {
   override def init(context: ServletContext) {
-    context.mount(new BagStoreServlet, "/")
+    import nl.knaw.dans.easy.bagstore._
+    context.getAttribute(CONTEXT_ATTRIBUTE_KEY_BAGSTORE_APP) match {
+      case app: BagStoreApp => context.mount(BagStoreServlet(app), "/")
+      case _ => throw new IllegalStateException("Service not configured: no BagStore application found")
+    }
   }
 }
