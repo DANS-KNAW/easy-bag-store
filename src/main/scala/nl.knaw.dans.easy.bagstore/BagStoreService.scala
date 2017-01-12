@@ -42,6 +42,7 @@ class BagStoreService extends BagStoreApp {
   private val port = properties.getInt("daemon.http.port")
   val server = new Server(port)
   val context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS)
+  context.setAttribute(CONTEXT_ATTRIBUTE_KEY_BAGSTORE_APP, this)
   context.addEventListener(new ScalatraListener())
   server.setHandler(context)
   info(s"HTTP port is $port")
@@ -85,7 +86,8 @@ object BagStoreService extends App with DebugEnhancedLogging {
   info("Service started ...")
 }
 
-class BagStoreServlet extends ScalatraServlet with BagStoreApp {
+case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugEnhancedLogging {
+  import app._
   val externalBaseUri = new URI(properties.getString("daemon.external-base-uri"))
 
   get("/") {

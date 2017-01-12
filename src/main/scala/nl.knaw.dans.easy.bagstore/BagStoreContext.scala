@@ -174,7 +174,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
    *
    * @param fileId
    */
-  protected def toRealLocation(fileId: FileId): Try[Path] = {
+  def toRealLocation(fileId: FileId): Try[Path] = {
     for {
       path <- toLocation(fileId)
       realPath <- if (Files.exists(path)) Try(path)
@@ -197,7 +197,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
    * @param id the item-id
    * @return the item-uri
    */
-  protected def toUri(id: ItemId): URI = baseUri.resolve("/" + id.toString)
+  def toUri(id: ItemId): URI = baseUri.resolve("/" + id.toString)
 
   /**
    * Utility function that copies a directory to a staging area. This is used to stage bag directories for
@@ -215,7 +215,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     staged
   }
 
-  protected def stageBagZip(is: InputStream): Try[Path] = Try {
+  def stageBagZip(is: InputStream): Try[Path] = Try {
     trace(is)
     val extractDir = Files.createTempFile(stagingBaseDir, "staged-zip-", "")
     Files.deleteIfExists(extractDir)
@@ -329,7 +329,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     assert(uuidPath.asScala.map(_.toString.length) == uuidPathComponentSizes, "UUID-part slashed incorrectly")
   }
 
-  protected def formatUuidStrCanonically(s: String): String = {
+  def formatUuidStrCanonically(s: String): String = {
     List(s.slice(0, 8), s.slice(8, 12), s.slice(12, 16), s.slice(16, 20), s.slice(20, 32)).mkString("-")
   }
 
@@ -343,7 +343,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     }
   }
 
-  protected def checkBagDoesNotExist(bagId: BagId): Try[Unit] = {
+  def checkBagDoesNotExist(bagId: BagId): Try[Unit] = {
     toContainer(bagId).flatMap {
       case f if Files.exists(f) && Files.isDirectory(f) => Failure(BagIdAlreadyAssignedException(bagId))
       case _ => Success(())

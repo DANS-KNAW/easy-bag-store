@@ -39,6 +39,8 @@ package object bagstore {
   case class NoBagIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a bag-id")
   case class NoFileIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a file-id")
 
+  val CONTEXT_ATTRIBUTE_KEY_BAGSTORE_APP = "nl.knaw.dans.easy.bagstore.BagStoreApp"
+
   object Version {
     def apply(): String = {
       val props = new Properties()
