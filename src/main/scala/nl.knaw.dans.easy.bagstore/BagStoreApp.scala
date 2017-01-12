@@ -36,7 +36,7 @@ trait BagStoreApp extends BagStoreAddComponent
   with BagStoreOutputContextComponent
   with DebugEnhancedLogging {
 
-  val properties = new PropertiesConfiguration(new File(new File(System.getProperty("app.home")), "cfg/application.properties"))
+  val properties = new PropertiesConfiguration(new File(System.getProperty("app.home"), "cfg/application.properties"))
 
   override val bagFacade = new Bagit4Facade()
   override val add = new BagStoreAdd {}

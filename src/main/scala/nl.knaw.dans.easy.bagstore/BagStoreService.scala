@@ -16,8 +16,8 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.io.InputStream
-import java.net.URI
-import java.nio.file.Paths
+import java.net.{ URI, URLConnection }
+import java.nio.file.{ Files, Paths }
 import java.util.UUID
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
@@ -147,6 +147,25 @@ class BagStoreServlet extends ScalatraServlet with DebugEnhancedLogging {
       }
   }
 
+  get("/:uuid/*") {
+    ItemId.fromString(s"""${params("uuid")}/${multiParams("splat").head}""")
+      .flatMap(_.toFileId)
+      .flatMap(context.toRealLocation)
+      .map(path => {
+        val bytes = Files.readAllBytes(path)
+        val fileType = Option(URLConnection.getFileNameMap.getContentTypeFor(path.toString)).getOrElse("application/octet-stream")
+        val name = path.getFileName.toString
+        Ok(bytes, Map(
+          "Content-Type" -> fileType,
+          "Content-Disposition" -> s"""attachment; filename="$name""""
+        ))
+      })
+      .onError(e => {
+        logger.error("could not retrieve the requested file.", e)
+        BadRequest(e)
+      })
+  }
+
   // TODO: implement content-negatiation: text/plain for enumFiles, application/zip for zipped bag
 
   put("/:uuid") {
@@ -168,7 +187,7 @@ class BagStoreServlet extends ScalatraServlet with DebugEnhancedLogging {
 
   private def putBag(is: InputStream, uuidStr: String): Try[BagId] = {
     for {
-      uuid <- getUuidFromString(params("uuid"))
+      uuid <- getUuidFromString(uuidStr)
       _ <- context.checkBagDoesNotExist(BagId(uuid))
       staged <- context.stageBagZip(request.getInputStream)
       bagId <- add.add(staged, Some(uuid), skipStage = true)
