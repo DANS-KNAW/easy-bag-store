@@ -23,12 +23,13 @@ import scala.util.{Success, Try}
 
 object Command extends App with BagStoreApp {
   import scala.language.reflectiveCalls
+  type FeedBackMessage = String
 
   val opts = CommandLineOptions(args, properties)
   opts.verify()
   override val baseDir = opts.bagStoreBaseDir().toAbsolutePath
 
-  val result: Try[String] = opts.subcommand match {
+  val result: Try[FeedBackMessage] = opts.subcommand match {
     case Some(cmd @ opts.add) =>
       val bagUuid = cmd.uuid.toOption.map(UUID.fromString)
       add(cmd.bag(), bagUuid).map(bagId => s"Added Bag with bag-id: $bagId")
@@ -75,10 +76,30 @@ object Command extends App with BagStoreApp {
     case Some(cmd @ opts.validate) =>
       isVirtuallyValid(cmd.bagDir())
         .map(valid => s"Done validating. Result: virtually-valid = $valid")
+    case Some(cmd @ opts.runService) => runAsService()
     case _ => throw new IllegalArgumentException(s"Unknown command: ${opts.subcommand}")
       Try { "Unknown command" }
   }
 
   result.map(msg => println(s"OK: $msg"))
     .onError(e => println(s"FAILED: ${e.getMessage}"))
+
+
+  private def runAsService(): Try[FeedBackMessage] = Try {
+    import logger._
+    val service = new BagStoreService()
+    Runtime.getRuntime.addShutdownHook(new Thread("service-shutdown") {
+      override def run(): Unit = {
+        info("Stopping service ...")
+        service.stop()
+        info("Cleaning up ...")
+        service.destroy()
+        info("Service stopped.")
+      }
+    })
+    service.start()
+    info("Service started ...")
+    Thread.currentThread.join()
+    "Service terminated normally."
+  }
 }

@@ -16,8 +16,8 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.io.InputStream
-import java.net.{ URI, URLConnection }
-import java.nio.file.{ Files, Paths }
+import java.net.{URI, URLConnection}
+import java.nio.file.{Files, Paths}
 import java.util.UUID
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
@@ -68,22 +68,6 @@ class BagStoreService extends BagStoreApp {
   def destroy(): Try[Unit] = Try {
     server.destroy()
   }
-}
-
-object BagStoreService extends App with DebugEnhancedLogging {
-  import logger._
-  val service = new BagStoreService()
-  Runtime.getRuntime.addShutdownHook(new Thread("service-shutdown") {
-    override def run(): Unit = {
-      info("Stopping service ...")
-      service.stop()
-      info("Cleaning up ...")
-      service.destroy()
-      info("Service stopped.")
-    }
-  })
-  service.start()
-  info("Service started ...")
 }
 
 case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugEnhancedLogging {

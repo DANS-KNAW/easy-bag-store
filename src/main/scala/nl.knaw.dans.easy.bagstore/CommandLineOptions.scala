@@ -140,6 +140,13 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
   }
   addSubcommand(validate)
 
+  val runService = new Subcommand("run-service") {
+    descr(
+      "Starts the EASY Bag Store as a daemon that services HTTP requests")
+    footer(SUBCOMMAND_SEPARATOR)
+  }
+  addSubcommand(runService)
+
   footer("")
 }
 
