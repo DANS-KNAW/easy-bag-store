@@ -1,12 +1,6 @@
-<<<<<<< HEAD
 fixes EASY-
 
 #### When applied it will
-=======
-Fixes EASY-XXXX
-
-#### When applied it will...
->>>>>>> master
 * 
 * 
 * 
@@ -15,12 +9,7 @@ Fixes EASY-XXXX
 
 #### How should this be manually tested?
 
-<<<<<<< HEAD
-#### related pull requests on github
-=======
 #### Related pull requests on github
-
->>>>>>> master
 repo                       | PR
 -------------------------- | -----------------
 easy-                      | [PR#](PRlink) 
