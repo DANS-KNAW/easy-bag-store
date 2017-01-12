@@ -30,6 +30,8 @@ trait BagStoreAddComponent extends BagStoreLifeCycle {
   this: BagStoreContextComponent
     with DebugEnhancedLogging =>
 
+  // TODO remove these eventually. They are here just for demo purposes of how the LifeCycle
+  // integration would work.
   abstract override def startup(): Try[Unit] = {
     for {
       _ <- super.startup()

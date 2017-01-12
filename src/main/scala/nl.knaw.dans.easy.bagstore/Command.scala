@@ -41,6 +41,8 @@ object Command extends App with IdleLifeCycle with BagStoreApp {
   }
   override lazy val context = context0
 
+  startup() // lifecycle startup
+
   val result: Try[String] = opts.subcommand match {
     case Some(cmd @ opts.add) =>
       val bagUuid = cmd.uuid.toOption.map(UUID.fromString)
@@ -94,4 +96,8 @@ object Command extends App with IdleLifeCycle with BagStoreApp {
 
   result.map(msg => println(s"OK: $msg"))
     .onError(e => println(s"FAILED: ${e.getMessage}"))
+
+  // lifecycle termination
+  shutdown()
+  destroy()
 }
