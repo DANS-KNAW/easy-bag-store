@@ -24,7 +24,7 @@ import scala.util.{Failure, Success}
 
 class ItemIdSpec extends FlatSpec with Matchers with OneInstancePerTest with Inside {
   val uuid = UUID.randomUUID()
-  import ItemId._
+  import ItemId.fromString
 
   "fromString" should "return a Failure if string is empty" in {
     fromString("") shouldBe a[Failure[_]]

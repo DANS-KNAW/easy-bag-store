@@ -28,69 +28,104 @@ import org.joda.time.DateTime
 import org.scalatra._
 import org.scalatra.servlet.ScalatraListener
 
-import scala.util.Try
+import scala.util.{ Failure, Success, Try }
 
-class BagStoreService extends BagStoreApp {
-  import logger._
+trait BagStoreServiceComponent extends BagStoreLifeCycle with DebugEnhancedLogging {
+  this: BagStoreApp =>
 
-  info(s"base directory: $baseDir")
-  info(s"base URI: $baseUri")
-  info(s"file permissions for bag files: $bagPermissions")
-  info(s"file permissions for exported files: $outputBagPermissions")
-  validateSettings()
-
-  private val port = properties.getInt("daemon.http.port")
-  val server = new Server(port)
-  val context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS)
-  context.addEventListener(new ScalatraListener())
-  server.setHandler(context)
-  info(s"HTTP port is $port")
-
-  if (properties.containsKey("daemon.ajp.port")) {
-    val ajp = new Ajp13SocketConnector()
-    val ajpPort = properties.getInt("daemon.ajp.port")
-    ajp.setPort(ajpPort)
-    server.addConnector(ajp)
-    info(s"AJP port is $ajpPort")
+  def startup(): Try[Unit] = {
+    bagStoreServer.start()
   }
 
-  def start(): Try[Unit] = Try {
-    info("Starting HTTP service ...")
-    server.start()
+  def shutdown(): Try[Unit] = {
+    bagStoreServer.stop()
   }
 
-  def stop(): Try[Unit] = Try {
-    info("Stopping HTTP service ...")
-    server.stop()
+  def destroy(): Try[Unit] = {
+    bagStoreServer.destroy()
   }
 
-  def destroy(): Try[Unit] = Try {
-    server.destroy()
+  val bagStoreServer: BagStoreServer
+
+  class BagStoreServer() {
+    import logger._
+
+    info(s"base directory: ${context.baseDir}")
+    info(s"base URI: ${context.baseUri}")
+    info(s"file permissions for bag files: ${context.bagPermissions}")
+    info(s"file permissions for exported files: ${outputContext.outputBagPermissions}")
+    validateSettings()
+
+    private val port = properties.getInt("daemon.http.port")
+    val server = new Server(port)
+    val servletContext = new ServletContextHandler(ServletContextHandler.NO_SESSIONS)
+    servletContext.addEventListener(new ScalatraListener())
+    server.setHandler(servletContext)
+    info(s"HTTP port is $port")
+
+    if (properties.containsKey("daemon.ajp.port")) {
+      val ajp = new Ajp13SocketConnector()
+      val ajpPort = properties.getInt("daemon.ajp.port")
+      ajp.setPort(ajpPort)
+      server.addConnector(ajp)
+      info(s"AJP port is $ajpPort")
+    }
+
+    def start(): Try[Unit] = Try {
+      info("Starting HTTP service ...")
+      server.start()
+    }
+
+    def stop(): Try[Unit] = Try {
+      info("Stopping HTTP service ...")
+      server.stop()
+    }
+
+    def destroy(): Try[Unit] = Try {
+      server.destroy()
+    }
   }
+}
+
+// singleton for BagStoreServer and BagStoreServlet
+object BagStoreServiceComponent extends BagStoreServiceComponent with BagStoreApp {
+  val bagStoreServer: BagStoreServer = new BagStoreServer
 }
 
 object BagStoreService extends App with DebugEnhancedLogging {
   import logger._
-  val service = new BagStoreService()
+  val service = BagStoreServiceComponent
   Runtime.getRuntime.addShutdownHook(new Thread("service-shutdown") {
     override def run(): Unit = {
-      info("Stopping service ...")
-      service.stop()
-      info("Cleaning up ...")
-      service.destroy()
-      info("Service stopped.")
+      val shutdown = for {
+        _ <- Try { info("Stopping service ...") }
+        _ <- service.shutdown()
+        _ <- Try { info("Cleaning up ...") }
+        _ <- service.destroy()
+      } yield ()
+
+      shutdown match {
+        case Success(_) => info("Service stopped.")
+        case Failure(e) => error("Error while stopping the service", e)
+      }
     }
   })
-  service.start()
-  info("Service started ...")
+
+  service.startup() match {
+    case Success(_) => info("Service started ...")
+    case Failure(e) => error("Service did not start", e); System.exit(-1)
+  }
 }
 
-class BagStoreServlet extends ScalatraServlet with BagStoreApp {
+class BagStoreServlet extends ScalatraServlet with DebugEnhancedLogging {
+  val service = BagStoreServiceComponent
+  import service._
+
   val externalBaseUri = new URI(properties.getString("daemon.external-base-uri"))
 
   get("/") {
     contentType = "text/plain"
-    enumBags()
+    enum.enumBags()
       .map(bagIds => Ok(bagIds.mkString("\n")))
       .onError(e => {
         logger.error("Unexpected type of failure", e)
@@ -102,7 +137,7 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp {
     contentType = "text/plain"
     ItemId.fromString(params("uuid"))
       .flatMap(_.toBagId)
-      .flatMap(enumFiles)
+      .flatMap(enum.enumFiles)
       .map(bagIds => Ok(bagIds.mkString("\n")))
       .onError {
         case _: NoSuchBagException => NotFound()
@@ -115,7 +150,7 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp {
   get("/:uuid/*") {
     ItemId.fromString(s"""${params("uuid")}/${multiParams("splat").head}""")
       .flatMap(_.toFileId)
-      .flatMap(toRealLocation)
+      .flatMap(context.toRealLocation)
       .map(path => {
         val bytes = Files.readAllBytes(path)
         val fileType = Option(URLConnection.getFileNameMap.getContentTypeFor(path.toString)).getOrElse("application/octet-stream")
@@ -135,7 +170,7 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp {
 
   put("/:uuid") {
     putBag(request.getInputStream, params("uuid"))
-      .map(bagId => Created(headers = Map("Location" -> appendUriPathToExternalBaseUri(toUri(bagId)).toASCIIString)))
+      .map(bagId => Created(headers = Map("Location" -> appendUriPathToExternalBaseUri(context.toUri(bagId)).toASCIIString)))
       .onError {
         case e: IllegalArgumentException if e.getMessage.contains("Invalid UUID string") => BadRequest("Invalid UUID")
         case _: NumberFormatException => BadRequest("Invalid UUID")
@@ -153,14 +188,14 @@ class BagStoreServlet extends ScalatraServlet with BagStoreApp {
   private def putBag(is: InputStream, uuidStr: String): Try[BagId] = {
     for {
       uuid <- getUuidFromString(uuidStr)
-      _ <- checkBagDoesNotExist(BagId(uuid))
-      staged <- stageBagZip(request.getInputStream)
-      bagId <- add(staged, Some(uuid), skipStage = true)
+      _ <- context.checkBagDoesNotExist(BagId(uuid))
+      staged <- context.stageBagZip(request.getInputStream)
+      bagId <- add.add(staged, Some(uuid), skipStage = true)
     } yield bagId
   }
 
   private def getUuidFromString(s: String): Try[UUID] = Try {
     val uuidStr = params("uuid").filterNot(_ == '-')
-    UUID.fromString(formatUuidStrCanonically(uuidStr))
+    UUID.fromString(context.formatUuidStrCanonically(uuidStr))
   }
 }

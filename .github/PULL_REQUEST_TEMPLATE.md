@@ -1,6 +1,6 @@
-Fixes EASY-XXXX
+fixes EASY-
 
-#### When applied it will...
+#### When applied it will
 * 
 * 
 * 
@@ -10,7 +10,6 @@ Fixes EASY-XXXX
 #### How should this be manually tested?
 
 #### Related pull requests on github
-
 repo                       | PR
 -------------------------- | -----------------
 easy-                      | [PR#](PRlink) 

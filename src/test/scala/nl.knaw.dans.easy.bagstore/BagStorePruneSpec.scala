@@ -21,16 +21,21 @@ import org.apache.commons.io.FileUtils
 
 import scala.util.Success
 
-class BagStorePruneSpec extends BagStoreFixture with BagStorePrune with BagStoreAdd {
+class BagStorePruneSpec extends BagStoreFixture with BagStorePruneComponent with BagStoreAddComponent {
+  import context._
+
   FileUtils.copyDirectory(Paths.get("src/test/resources/bags/basic-sequence-unpruned").toFile, testDir.toFile)
   private val TEST_BAG_A = testDir.resolve("a")
   private val TEST_BAG_B = testDir.resolve("b")
   private val TEST_BAG_C = testDir.resolve("c")
 
+  override val add = new BagStoreAdd {}
+  override val prune = new BagStorePrune {}
+
   "prune" should "change files present in ref-bags to fetch.txt entries" in {
-    val tryA = add(TEST_BAG_A)
+    val tryA = add.add(TEST_BAG_A)
     tryA shouldBe a[Success[_]]
-    prune(TEST_BAG_B, tryA.get) shouldBe a[Success[_]]
+    prune.prune(TEST_BAG_B, tryA.get) shouldBe a[Success[_]]
 
     /*
      * Now follow checks on the content of of the ingested bags. Each file should be EITHER actually present in the
@@ -83,10 +88,10 @@ class BagStorePruneSpec extends BagStoreFixture with BagStorePrune with BagStore
     /*
      * Adding the now pruned Bag B so that C may reference it
      */
-    val tryB = add(TEST_BAG_B)
+    val tryB = add.add(TEST_BAG_B)
     tryB shouldBe a[Success[_]]
 
-    prune(TEST_BAG_C, tryA.get, tryB.get)
+    prune.prune(TEST_BAG_C, tryA.get, tryB.get)
 
     /*
      * Check bag C

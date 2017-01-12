@@ -19,23 +19,26 @@ import java.nio.file.{Files, Paths}
 
 import scala.util.{Failure, Success}
 
-class BagStoreDeleteSpec extends BagStoreFixture with BagStoreDelete with BagStoreAdd {
+class BagStoreDeleteSpec extends BagStoreFixture with BagStoreDeleteComponent with BagStoreAddComponent {
   private val TEST_BAGS_DIR = Paths.get("src/test/resources/bags")
   private val TEST_BAG_MINIMAL = TEST_BAGS_DIR.resolve("minimal-bag")
 
+  override val add = new BagStoreAdd {}
+  override val delete = new BagStoreDelete {}
+
   "delete" should "be able to delete a Bag that is not yet deleted" in {
-    val tryBagId = add(TEST_BAG_MINIMAL)
+    val tryBagId = add.add(TEST_BAG_MINIMAL)
     tryBagId shouldBe a[Success[_]]
 
-    val tryHiddenBagId = delete(tryBagId.get)
+    val tryHiddenBagId = delete.delete(tryBagId.get)
     tryHiddenBagId shouldBe a[Success[_]]
-    Files.isHidden(toLocation(tryBagId.get).get) shouldBe true
+    Files.isHidden(context.toLocation(tryBagId.get).get) shouldBe true
   }
 
   it should "result in a Failure if Bag is already deleted" in {
-    val tryBagId = add(TEST_BAG_MINIMAL)
-    delete(tryBagId.get)
-    val tryHiddenBagId = delete(tryBagId.get)
+    val tryBagId = add.add(TEST_BAG_MINIMAL)
+    delete.delete(tryBagId.get)
+    val tryHiddenBagId = delete.delete(tryBagId.get)
     tryHiddenBagId shouldBe a[Failure[_]]
     inside(tryHiddenBagId) {
       case Failure(e) => e shouldBe a[AlreadyDeletedException]
@@ -43,17 +46,17 @@ class BagStoreDeleteSpec extends BagStoreFixture with BagStoreDelete with BagSto
   }
 
   "undelete" should "be able to undelete a deleted Bag" in {
-    val tryBagId = add(TEST_BAG_MINIMAL)
-    delete(tryBagId.get)
-    isHidden(tryBagId.get).get shouldBe true
-    val result = undelete(tryBagId.get)
+    val tryBagId = add.add(TEST_BAG_MINIMAL)
+    delete.delete(tryBagId.get)
+    context.isHidden(tryBagId.get).get shouldBe true
+    val result = delete.undelete(tryBagId.get)
     result shouldBe a[Success[_]]
-    Files.isHidden(toLocation(tryBagId.get).get) shouldBe false
+    Files.isHidden(context.toLocation(tryBagId.get).get) shouldBe false
   }
 
   it should "result in a Failure if Bag is not marked as deleted" in {
-    val tryBagId = add(TEST_BAG_MINIMAL)
-    val result = undelete(tryBagId.get)
+    val tryBagId = add.add(TEST_BAG_MINIMAL)
+    val result = delete.undelete(tryBagId.get)
     result shouldBe a[Failure[_]]
     inside(result) {
       case Failure(e) => e shouldBe a[NotDeletedException]

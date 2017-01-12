@@ -15,6 +15,24 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-trait BagStoreOutputContext {
-  val outputBagPermissions: String
+import scala.util.Try
+
+trait BagStoreVerifyComponent {
+  this: BagStoreContextComponent =>
+
+  val verify: BagStoreVerify
+
+  trait BagStoreVerify {
+    type Message = String
+
+    def verify(bagId: Option[BagId] = None): Try[Message] = {
+      // Verify UUID-path components
+      // - Directory name lengths correct at each level
+      // - No stray files
+
+      // Check every bag is virtually-valid
+
+      ???
+    }
+  }
 }
