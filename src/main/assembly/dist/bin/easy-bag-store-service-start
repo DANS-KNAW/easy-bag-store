@@ -5,4 +5,4 @@ APPHOME=`dirname \`dirname $BINPATH \``
 
 java -Dlogback.configurationFile=$APPHOME/cfg/logback-service.xml \
      -Dapp.home=$APPHOME \
-     -cp $APPHOME/bin/easy-bag-store.jar nl.knaw.dans.easy.bagstore.BagStoreService
+     -jar $APPHOME/bin/easy-bag-store.jar run-service
