@@ -16,7 +16,7 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.{Files, Path}
+import java.nio.file.{ Files, Path }
 import java.util.UUID
 
 import nl.knaw.dans.lib.error.TraversableTryExtensions
@@ -24,9 +24,9 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
-import scala.util.{Failure, Try}
+import scala.util.{ Failure, Success, Try }
 
-trait BagStoreAdd { this: BagStoreContext with DebugEnhancedLogging =>
+trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeComponent with DebugEnhancedLogging =>
 
   def add(bagDir: Path, uuid: Option[UUID] = None, skipStage: Boolean = false): Try[BagId] = {
     trace(bagDir)
@@ -40,8 +40,12 @@ trait BagStoreAdd { this: BagStoreContext with DebugEnhancedLogging =>
       })
       for {
         staged <- if (skipStage) Try { bagDir } else stageBagDir(bagDir)
+        maybeRefbags <- getReferenceBags(staged)
+        _ = debug(s"refbags tempfile: $maybeRefbags")
         valid <- isVirtuallyValid(staged)
         if valid
+        _ <- maybeRefbags.map(pruneWithReferenceBags(staged)).getOrElse(Success(()))
+        _ = debug("bag succesfully pruned")
         container <- toContainer(bagId)
         _ <- Try { Files.createDirectories(container) }
         _ <- makePathAndParentsInBagStoreGroupWritable(container)
@@ -49,6 +53,33 @@ trait BagStoreAdd { this: BagStoreContext with DebugEnhancedLogging =>
         _ <- ingest(bagDir.getFileName, staged, container)
       } yield bagId
     }
+  }
+
+  private def getReferenceBags(bagDir: Path): Try[Option[Path]] = Try {
+    trace(bagDir)
+    val refbags = bagDir.resolve("refbags.txt")
+    if (Files.exists(refbags)) {
+      // copy to tempDir
+      val tempRefbags = Files.createTempFile(stagingBaseDir, "refbags-", "")
+      Files.deleteIfExists(tempRefbags)
+      Files.move(refbags, tempRefbags)
+      assert(!Files.exists(refbags), s"$refbags should have been moved to $tempRefbags, however, it appears to still be present here")
+
+      // remove refbags.txt from all tagmanifests (if it was present there)
+      bagFacade.removeFromTagManifests(bagDir, "refbags.txt")
+
+      Some(tempRefbags)
+    }
+    else None
+  }
+
+  private def pruneWithReferenceBags(bagDir: Path)(refbags: Path): Try[Unit] = {
+    trace(bagDir, refbags)
+    for {
+      refs <- Try { Files.readAllLines(refbags).asScala.map(UUID.fromString _ andThen BagId) }
+      _ <- prune(bagDir, refs:_*)
+      _ <- Try { Files.delete(refbags) }
+    } yield ()
   }
 
   private def ingest(bagName: Path, staged: Path, container: Path): Try[Unit] = {
