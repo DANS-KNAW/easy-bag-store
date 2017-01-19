@@ -22,7 +22,7 @@ import org.apache.commons.io.FileUtils
 
 import scala.util.Success
 
-class BagStoreCompleteSpec extends BagStoreFixture with BagStoreComplete with BagStoreAdd with BagStoreOutputContext {
+class BagStoreCompleteSpec extends BagStoreFixture with BagStoreComplete with BagStoreAdd with BagStorePrune with BagStoreOutputContext {
   val outputBagPermissions: String = "rwxr-xr-x"
   private val TEST_BAGS_DIR = Paths.get("src/test/resources/bags")
   private val TEST_BAGS_PRUNED = TEST_BAGS_DIR.resolve("basic-sequence-pruned")

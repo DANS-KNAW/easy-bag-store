@@ -19,7 +19,7 @@ import java.nio.file.{Files, Paths}
 
 import scala.util.{Failure, Success}
 
-class BagStoreDeleteSpec extends BagStoreFixture with BagStoreDelete with BagStoreAdd {
+class BagStoreDeleteSpec extends BagStoreFixture with BagStoreDelete with BagStoreAdd with BagStorePrune {
   private val TEST_BAGS_DIR = Paths.get("src/test/resources/bags")
   private val TEST_BAG_MINIMAL = TEST_BAGS_DIR.resolve("minimal-bag")
 
