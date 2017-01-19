@@ -140,7 +140,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
     for {
       uuid <- getUuidFromString(uuidStr)
       _ <- checkBagDoesNotExist(BagId(uuid))
-      staged <- stageBagZip(request.getInputStream)
+      staged <- stageBagZip(is)
       bagId <- add(staged, Some(uuid), skipStage = true)
     } yield bagId
   }
