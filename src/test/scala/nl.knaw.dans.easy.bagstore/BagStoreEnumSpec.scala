@@ -32,19 +32,13 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val bis = add(TEST_BAG_B).get
     val cis = add(TEST_BAG_C).get
 
-    val bags = enumBags().map(_.toList)
-    bags shouldBe a [Success[_]]
-    inside(bags) {
-      case Success(bagIds) =>
-        bagIds.size shouldBe 3
-        bagIds.toSet shouldBe Set(ais, bis, cis)
+    inside(enumBags().map(_.toList)) {
+      case Success(bagIds) => bagIds should (have size 3 and contain only (ais, bis, cis))
     }
   }
 
   it should "return empty stream if BagStore is empty" in {
-    val bags = enumBags().map(_.toList)
-    bags shouldBe a [Success[_]]
-    inside(bags) {
+    inside(enumBags().map(_.toList)) {
       case Success(bagIds) => bagIds shouldBe empty
     }
   }
@@ -53,14 +47,11 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val ais = add(TEST_BAG_A).get
     val bis = add(TEST_BAG_B).get
     val cis = add(TEST_BAG_C).get
-    delete(bis)
 
-    val bags = enumBags().map(_.toList)
-    bags shouldBe a [Success[_]]
-    inside(bags) {
-      case Success(bagIds) =>
-        bagIds.size shouldBe 2
-        bagIds.toSet shouldBe Set(ais, cis)
+    delete(bis) shouldBe a[Success[_]]
+
+    inside(enumBags().map(_.toList)) {
+      case Success(bagIds) => bagIds should (have size 2 and contain only (ais, cis))
     }
   }
 
@@ -68,14 +59,11 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val ais = add(TEST_BAG_A).get
     val bis = add(TEST_BAG_B).get
     val cis = add(TEST_BAG_C).get
-    delete(bis)
 
-    val bags = enumBags(includeHidden = true).map(_.toList)
-    bags shouldBe a [Success[_]]
-    inside(bags) {
-      case Success(bagIds) =>
-        bagIds.size shouldBe 3
-        bagIds.toSet shouldBe Set(ais, bis, cis)
+    delete(bis) shouldBe a[Success[_]]
+
+    inside(enumBags(includeHidden = true).map(_.toList)) {
+      case Success(bagIds) => bagIds should (have size 3 and contain only (ais, bis, cis))
     }
   }
 
@@ -83,14 +71,11 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     add(TEST_BAG_A).get
     val bis = add(TEST_BAG_B).get
     add(TEST_BAG_C).get
-    delete(bis)
 
-    val bags = enumBags(includeVisible = false, includeHidden = true).map(_.toList)
-    bags shouldBe a [Success[_]]
-    inside(bags) {
-      case Success(bagIds) =>
-        bagIds.size shouldBe 1
-        bagIds.toSet shouldBe Set(bis)
+    delete(bis) shouldBe a[Success[_]]
+
+    inside(enumBags(includeVisible = false, includeHidden = true).map(_.toList)) {
+      case Success(bagIds) => bagIds should (have size 1 and contain only bis)
     }
   }
 
@@ -98,11 +83,10 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     add(TEST_BAG_A).get
     val bis = add(TEST_BAG_B).get
     add(TEST_BAG_C).get
-    delete(bis)
 
-    val bags = enumBags(includeVisible = false).map(_.toList)
-    bags shouldBe a [Success[_]]
-    inside(bags) {
+    delete(bis) shouldBe a[Success[_]]
+
+    inside(enumBags(includeVisible = false).map(_.toList)) {
       case Success(bagIds) => bagIds shouldBe empty
     }
   }
@@ -110,28 +94,22 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   "enumFiles" should "return all FileIds in a valid Bag" in {
     val ais = add(TEST_BAG_A).get
 
-    val files = enumFiles(ais).map(_.toList)
-    files shouldBe a [Success[_]]
-    inside(files) {
-      case Success(fileIds) =>
-        fileIds.size shouldBe 10
-        fileIds.map(_.path.getFileName.toString).toSet shouldBe Set("u", "v", "w", "x", "y", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "tagmanifest-md5.txt")
+    inside(enumFiles(ais).map(_.toList)) {
+      case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 10 and
+        contain only ("u", "v", "w", "x", "y", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "tagmanifest-md5.txt"))
     }
   }
 
   it should "return all FileIds in a virtually-valid Bag" in {
     val ais = add(TEST_BAG_A).get
-    prune(TEST_BAG_B, ais)
+    prune(TEST_BAG_B, ais) shouldBe a[Success[_]]
     val bis = add(TEST_BAG_B).get
-    prune(TEST_BAG_C, ais, bis)
+    prune(TEST_BAG_C, ais, bis) shouldBe a[Success[_]]
     val cis = add(TEST_BAG_C).get
 
-    val files = enumFiles(cis).map(_.toList)
-    files shouldBe a [Success[_]]
-    inside(files) {
-      case Success(fileIds) =>
-        fileIds.size shouldBe 13
-        fileIds.map(_.path.getFileName.toString).toSet shouldBe Set("q", "w", "u", "p", "x", "y", "y-old", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "tagmanifest-md5.txt", "fetch.txt")
+    inside(enumFiles(cis).map(_.toList)) {
+      case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 13 and
+        contain only ("q", "w", "u", "p", "x", "y", "y-old", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "tagmanifest-md5.txt", "fetch.txt"))
     }
   }
 }

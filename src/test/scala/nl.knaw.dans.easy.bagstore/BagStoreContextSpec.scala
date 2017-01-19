@@ -36,9 +36,8 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
     val uuid = UUID.randomUUID()
     val (parentDir, childDir) = uuid.toString.filterNot(_ == '-').splitAt(2)
     val uuidPath = Paths.get(parentDir, childDir)
-    val id = fromLocation(baseDir.toAbsolutePath.resolve(uuidPath))
-    id shouldBe a[Success[_]]
-    inside(id) {
+
+    inside(fromLocation(baseDir.toAbsolutePath.resolve(uuidPath))) {
       case Success(BagId(foundUuid)) => foundUuid shouldBe uuid
     }
   }
@@ -47,6 +46,7 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
     val uuid = UUID.randomUUID()
     val (parentDir, childDir) = uuid.toString.filterNot(_ == '-').splitAt(3)
     val uuidPath = Paths.get(parentDir, childDir)
+
     fromLocation(baseDir.toAbsolutePath.resolve(uuidPath)) shouldBe a[Failure[_]]
   }
 
@@ -57,15 +57,14 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
       override val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir
       override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
       override val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
-      val bagFacade = new Bagit4Facade()
+      override val bagFacade = new Bagit4Facade()
 
       def test(): Unit = {
         val uuid = UUID.randomUUID()
         val dirs = uuid.toString.filterNot(_ == '-').grouped(1).toList
         val uuidPath = Paths.get(dirs.head, dirs.tail: _*)
-        val id = fromLocation(baseDir.toAbsolutePath.resolve(uuidPath))
-        id shouldBe a[Success[_]]
-        inside(id) {
+
+        inside(fromLocation(baseDir.toAbsolutePath.resolve(uuidPath))) {
           case Success(BagId(foundUuid)) => foundUuid shouldBe uuid
         }
       }
@@ -78,11 +77,9 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
     val uuid = UUID.randomUUID()
     val (parentDir, childDir) = uuid.toString.filterNot(_ == '-').splitAt(2)
     val bagPath = Paths.get(parentDir, childDir, 1.toString, "")
-    val id = fromLocation(baseDir.toAbsolutePath.resolve(bagPath))
-    id shouldBe a[Success[_]]
-    inside(id) {
-      case Success(BagId(foundUuid)) =>
-        foundUuid shouldBe uuid
+
+    inside(fromLocation(baseDir.toAbsolutePath.resolve(bagPath))) {
+      case Success(BagId(foundUuid)) => foundUuid shouldBe uuid
     }
   }
 
@@ -90,9 +87,8 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
     val uuid = UUID.randomUUID()
     val (parentDir, childDir) = uuid.toString.filterNot(_ == '-').splitAt(2)
     val bagPath = Paths.get(parentDir, childDir, "bag-name", "filename")
-    val id = fromLocation(baseDir.toAbsolutePath.resolve(bagPath))
-    id shouldBe a[Success[_]]
-    inside(id) {
+
+    inside(fromLocation(baseDir.toAbsolutePath.resolve(bagPath))) {
       case Success(FileId(BagId(foundUuid), filepath)) =>
         foundUuid shouldBe uuid
         filepath shouldBe Paths.get("filename")
@@ -104,9 +100,8 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
     val uuid = UUID.randomUUID()
     val (parentDir, childDir) = uuid.toString.filterNot(_ == '-').splitAt(2)
     val bagPath = Paths.get(parentDir, childDir, "bag-name", "a", "longer", "path")
-    val id = fromLocation(baseDir.toAbsolutePath.resolve(bagPath))
-    id shouldBe a[Success[_]]
-    inside(id) {
+
+    inside(fromLocation(baseDir.toAbsolutePath.resolve(bagPath))) {
       case Success(FileId(BagId(foundUuid), filepath)) =>
         foundUuid shouldBe uuid
         filepath shouldBe Paths.get("a", "longer", "path")
@@ -115,54 +110,48 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
 
   "toLocation" should "return location of bag when given a bag-id" in {
     val bagId = BagId(UUID.fromString("00000000-0000-0000-0000-000000000001"))
-    val result = toLocation(bagId)
-    result shouldBe a[Success[_]]
-    inside(result) {
+
+    inside(toLocation(bagId)) {
       case Success(p) => p shouldBe baseDir.resolve("00/000000000000000000000000000001/bag-revision-1")
     }
   }
 
   it should "return a failure if two bags found in container" in {
     val bagId = BagId(UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff"))
-    val result = toLocation(bagId)
-    result shouldBe a[Failure[_]]
-    inside(result) {
+
+    inside(toLocation(bagId)) {
       case Failure(e) => e.getMessage should include("Corrupt BagStore")
     }
   }
 
   it should "return location of a file when given a file-id" in {
     val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000001"), Paths.get("data/x"))
-    val result = toLocation(fileId)
-    result shouldBe a[Success[_]]
-    inside(result) {
+
+    inside(toLocation(fileId)) {
       case Success(p) => p shouldBe baseDir.resolve("00/000000000000000000000000000001/bag-revision-1/data/x")
     }
   }
 
   it should "return location of a file when given a file-id, even if it does not exist, as long as bag base does exist" in {
     val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000001"), Paths.get("non-existent/file"))
-    val result = toLocation(fileId)
-    result shouldBe a[Success[_]]
-    inside(result) {
+
+    inside(toLocation(fileId)) {
       case Success(p) => p shouldBe baseDir.resolve("00/000000000000000000000000000001/bag-revision-1/non-existent/file")
     }
   }
 
   "fromUri" should "return a Failure for a URI that is not under the base-uri" in {
     val uuid = UUID.randomUUID()
-    val fail = fromUri(new URI(s"http://some-other-base/$uuid"))
-    inside(fail) {
-      case Failure(e) =>
-        e shouldBe a[NoItemUriException]
+
+    inside(fromUri(new URI(s"http://some-other-base/$uuid"))) {
+      case Failure(e) => e shouldBe a[NoItemUriException]
     }
   }
 
   it should "return a bag-id for valid UUID-path after the base-uri" in {
     val uuid = UUID.randomUUID()
-    val id = fromUri(new URI(s"$baseUri/$uuid"))
-    id shouldBe a[Success[_]]
-    inside(id) {
+
+    inside(fromUri(new URI(s"$baseUri/$uuid"))) {
       case Success(BagId(foundUuid)) => foundUuid shouldBe uuid
     }
   }
@@ -174,13 +163,12 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
       override val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir
       override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
       override val bagPermissions: String = BagStoreContextSpec.this.bagPermissions
-      val bagFacade: BagFacade = new Bagit4Facade()
+      override val bagFacade: BagFacade = new Bagit4Facade()
 
       def test(): Unit = {
         val uuid = UUID.randomUUID()
-        val id = fromUri(new URI(s"$baseUri/$uuid"))
-        id shouldBe a[Success[_]]
-        inside(id) {
+
+        inside(fromUri(new URI(s"$baseUri/$uuid"))) {
           case Success(BagId(foundUuid)) => foundUuid shouldBe uuid
         }
       }
@@ -191,9 +179,8 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
 
   it should "return a file-id for base-uri/uuid/ even though it can never resolve to a file" in {
     val uuid = UUID.randomUUID()
-    val id = fromUri(new URI(s"$baseUri/$uuid/"))
-    id shouldBe a[Success[_]]
-    inside(id) {
+
+    inside(fromUri(new URI(s"$baseUri/$uuid/"))) {
       case Success(FileId(BagId(foundUuid), path)) =>
         foundUuid shouldBe uuid
         path shouldBe Paths.get("")
@@ -202,9 +189,8 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
 
   it should "return a file-id for base-uri/uuid/filename" in {
     val uuid = UUID.randomUUID()
-    val id = fromUri(new URI(s"$baseUri/$uuid/filename"))
-    id shouldBe a[Success[_]]
-    inside(id) {
+
+    inside(fromUri(new URI(s"$baseUri/$uuid/filename"))) {
       case Success(FileId(BagId(foundUuid), filepath)) =>
         foundUuid shouldBe uuid
         filepath shouldBe Paths.get("filename")
@@ -213,10 +199,8 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
 
   it should "return a file-id for base-uri/uuid/a/longer/path" in {
     val uuid = UUID.randomUUID()
-    val id = fromUri(new URI(s"$baseUri/$uuid/a/longer/path"))
-    id shouldBe a[Success[_]]
 
-    inside(id) {
+    inside(fromUri(new URI(s"$baseUri/$uuid/a/longer/path"))) {
       case Success(FileId(BagId(foundUuid), filepath)) =>
         foundUuid shouldBe uuid
         filepath shouldBe Paths.get("a", "longer", "path")
@@ -224,61 +208,51 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
   }
 
   it should "return a Failure if only the base-uri is passed" in {
-    val fail = fromUri(baseUri)
-    fail shouldBe a[Failure[_]]
-    inside(fail) {
+    inside(fromUri(baseUri)) {
       case Failure(e) => e shouldBe a[IncompleteItemUriException]
     }
   }
 
   "toRealLocation" should "resolve to the location pointed to in the fetch.txt" in {
     val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000003"), Paths.get("data/sub-copy/u"))
-    val result = toRealLocation(fileId)
-    result shouldBe a[Success[_]]
-    inside(result) {
+
+    inside(toRealLocation(fileId)) {
       case Success(path) => path shouldBe baseDir.resolve("00/000000000000000000000000000001/bag-revision-1/data/sub/u")
     }
   }
 
   it should "resolve to real location if fetch references other fetch reference" in {
     val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000003"), Paths.get("data/x"))
-    val result = toRealLocation(fileId)
-    result shouldBe a[Success[_]]
-    inside(result) {
+
+    inside(toRealLocation(fileId)) {
       case Success(path) => path shouldBe baseDir.resolve("00/000000000000000000000000000001/bag-revision-1/data/x")
     }
   }
 
   "isVirtuallyValid" should "return true for a valid bag" in {
     FileUtils.copyDirectory(Paths.get("src/test/resources/bags/valid-bag").toFile, testDir.resolve("valid-bag").toFile)
-    val result = isVirtuallyValid(testDir.resolve("valid-bag"))
-    result shouldBe a[Success[_]]
-    inside(result) {
+
+    inside(isVirtuallyValid(testDir.resolve("valid-bag"))) {
       case Success(valid) => valid shouldBe true
     }
   }
 
   it should "return true for a virtually-valid bag" in {
     FileUtils.copyDirectory(Paths.get("src/test/resources/bags/virtually-valid-bag").toFile, testDir.resolve("virtually-valid-bag").toFile)
-    val result = isVirtuallyValid(testDir.resolve("virtually-valid-bag"))
-    result shouldBe a[Success[_]]
-    inside(result) {
+
+    inside(isVirtuallyValid(testDir.resolve("virtually-valid-bag"))) {
       case Success(valid) => valid shouldBe true
     }
   }
 
   "stageBagZip" should "unzip zipped file and return bag base directory" in {
-    val result = stageBagZip(new FileInputStream("src/test/resources/zips/one-basedir.zip"))
-    result shouldBe a[Success[_]]
-    inside(result) {
+    inside(stageBagZip(new FileInputStream("src/test/resources/zips/one-basedir.zip"))) {
       case Success(staged) => staged.getParent.getParent shouldBe stagingBaseDir
     }
   }
 
   it should "result in a failure if there are two base directories in the zip file" in {
-    val result = stageBagZip(new FileInputStream("src/test/resources/zips/two-basedirs.zip"))
-    result shouldBe a[Failure[_]]
-    inside(result) {
+    inside(stageBagZip(new FileInputStream("src/test/resources/zips/two-basedirs.zip"))) {
       case Failure(e) => e shouldBe a[IncorrectNumberOfFilesInBagZipRootException]
     }
   }
@@ -292,9 +266,7 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
   }
 
   it should "result in a failure if there is no base directory in the zip file" in {
-    val result = stageBagZip(new FileInputStream("src/test/resources/zips/one-file.zip"))
-    result shouldBe a[Failure[_]]
-    inside(result) {
+    inside(stageBagZip(new FileInputStream("src/test/resources/zips/one-file.zip"))) {
       case Failure(e) => e shouldBe a[BagBaseNotFoundException]
     }
   }

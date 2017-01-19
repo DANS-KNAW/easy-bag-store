@@ -23,7 +23,7 @@ import org.apache.commons.io.FileUtils
 import scala.util.Success
 
 class BagStoreCompleteSpec extends BagStoreFixture with BagStoreComplete with BagStoreAdd with BagStorePrune with BagStoreOutputContext {
-  val outputBagPermissions: String = "rwxr-xr-x"
+  override val outputBagPermissions: String = "rwxr-xr-x"
   private val TEST_BAGS_DIR = Paths.get("src/test/resources/bags")
   private val TEST_BAGS_PRUNED = TEST_BAGS_DIR.resolve("basic-sequence-pruned")
   private val TEST_BAGS_UNPRUNED = TEST_BAGS_DIR.resolve("basic-sequence-unpruned")
@@ -33,12 +33,14 @@ class BagStoreCompleteSpec extends BagStoreFixture with BagStoreComplete with Ba
   private val TEST_BAG_UNPRUNED_C = TEST_BAGS_UNPRUNED.resolve("c")
 
   "complete" should "make pruned Bag whole again" in {
-    add(TEST_BAG_PRUNED_A, Some(UUID.fromString("00000000-0000-0000-0000-000000000001")))
-    add(TEST_BAG_PRUNED_B, Some(UUID.fromString("00000000-0000-0000-0000-000000000002")))
+    add(TEST_BAG_PRUNED_A, Some(UUID.fromString("00000000-0000-0000-0000-000000000001"))) shouldBe a[Success[_]]
+    add(TEST_BAG_PRUNED_B, Some(UUID.fromString("00000000-0000-0000-0000-000000000002"))) shouldBe a[Success[_]]
+
     val testDirBagC = testDir.resolve("c")
     FileUtils.copyDirectory(TEST_BAG_PRUNED_C.toFile, testDirBagC.toFile)
-    val result = complete(testDirBagC)
-    result shouldBe a[Success[_]]
+
+    complete(testDirBagC) shouldBe a[Success[_]]
+
     pathsEqual(TEST_BAG_UNPRUNED_C, testDirBagC) shouldBe true
   }
 }

@@ -23,7 +23,7 @@ import org.scalatest.{FlatSpec, Inside, Matchers, OneInstancePerTest}
 import scala.util.{Failure, Success}
 
 class ItemIdSpec extends FlatSpec with Matchers with OneInstancePerTest with Inside {
-  val uuid = UUID.randomUUID()
+  val uuid: UUID = UUID.randomUUID()
   import ItemId._
 
   "fromString" should "return a Failure if string is empty" in {
@@ -32,10 +32,9 @@ class ItemIdSpec extends FlatSpec with Matchers with OneInstancePerTest with Ins
 
   it should "return a bag-id if string is a valid UUID" in {
     val uuid = UUID.randomUUID()
-    val itemId = fromString(s"$uuid")
-    itemId shouldBe a[Success[_]]
-    inside(itemId) {
-      case Success(id) => id shouldBe BagId(uuid)
+
+    inside(fromString(s"$uuid")) {
+      case Success(BagId(id)) => id shouldBe uuid
     }
   }
 
@@ -45,28 +44,30 @@ class ItemIdSpec extends FlatSpec with Matchers with OneInstancePerTest with Ins
 
   it should "return a file-id with correct components if a path found after UUID" in {
     val uuid = UUID.randomUUID()
-    val itemId = fromString(s"$uuid/path/to/file")
-    itemId shouldBe a[Success[_]]
-    inside(itemId) {
-      case Success(id) => id shouldBe FileId(BagId(uuid), Paths.get("path/to/file"))
+
+    inside(fromString(s"$uuid/path/to/file")) {
+      case Success(FileId(BagId(id), path)) =>
+        id shouldBe uuid
+        path shouldBe Paths.get("path/to/file")
     }
   }
 
   it should "return a file-id (NOT bag-id) if empty path found after revision" in {
     val uuid = UUID.randomUUID()
-    val itemId = fromString(s"$uuid/")
-    itemId shouldBe a[Success[_]]
-    inside(itemId) {
-      case Success(id) => id shouldBe FileId(uuid, Paths.get(""))
+    inside(fromString(s"$uuid/")) {
+      case Success(FileId(BagId(id), path)) =>
+        id shouldBe uuid
+        path shouldBe Paths.get("")
     }
   }
 
   it should "percent-decode path" in {
     val uuid = UUID.randomUUID()
-    val itemId = fromString(s"$uuid/path/to/file%20with%20spaces")
-    itemId shouldBe a[Success[_]]
-    inside(itemId) {
-      case Success(id) => id shouldBe FileId(uuid, Paths.get("path/to/file with spaces"))
+
+    inside(fromString(s"$uuid/path/to/file%20with%20spaces")) {
+      case Success(FileId(BagId(id), path)) =>
+        id shouldBe uuid
+        path shouldBe Paths.get("path/to/file with spaces")
     }
   }
 
@@ -91,27 +92,33 @@ class ItemIdSpec extends FlatSpec with Matchers with OneInstancePerTest with Ins
   }
 
   "ItemId.toFileId" should "fail when passed a BagId" in {
-    BagId(uuid).toFileId shouldBe a[Failure[_]]
+    val bagId = BagId(uuid)
+
+    inside(bagId.toFileId) {
+      case Failure(NoFileIdException(id)) => id shouldBe bagId
+    }
   }
 
   it should "succeed when passed a FileId" in {
     val fileId = FileId(uuid, Paths.get("some/path"))
-    val result = fileId.toFileId
-    result shouldBe a[Success[_]]
-    inside(result) {
+
+    inside(fileId.toFileId) {
       case Success(f) => f shouldBe fileId
     }
   }
 
   "ItemId.toBagId" should "fail when passed a FileId" in {
-    FileId(uuid, Paths.get("some/path")).toBagId shouldBe a[Failure[_]]
+    val fileId = FileId(uuid, Paths.get("some/path"))
+
+    inside(fileId.toBagId) {
+      case Failure(NoBagIdException(id)) => id shouldBe fileId
+    }
   }
 
   it should "succeed when passed a BagId" in {
     val bagId = BagId(uuid)
-    val result = bagId.toBagId
-    result shouldBe a[Success[_]]
-    inside(result) {
+
+    inside(bagId.toBagId) {
       case Success(b) => b shouldBe bagId
     }
   }

@@ -25,11 +25,11 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
  * common to all these tests, nothing more!
  */
 trait BagStoreFixture extends TestSupportFixture with BagStoreContext with Bagit4FacadeComponent with DebugEnhancedLogging {
-  val baseDir: Path = testDir.resolve("bag-store")
-  val baseUri: URI = new URI("http://example-archive.org")
-  val stagingBaseDir: Path = testDir
-  val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
-  val bagFacade = new Bagit4Facade()
+  override val baseDir: Path = testDir.resolve("bag-store")
+  override val baseUri: URI = new URI("http://example-archive.org")
+  override val stagingBaseDir: Path = testDir
+  override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
+  override val bagFacade = new Bagit4Facade()
 
   /*
    * In a production environment you will set bag file permissions also to read-only for the owner.
