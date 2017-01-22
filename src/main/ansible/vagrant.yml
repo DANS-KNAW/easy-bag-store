@@ -25,7 +25,7 @@
       - libsemanage-python
 
   - name: Enable Apache HTTP Server
-    service: name=httpd enabled=true
+    service: name=httpd enabled=true state=started
 
   - name: Allow Apache HTTP Server to call back-end service
     seboolean:
@@ -41,13 +41,9 @@
   - name: Add configuration for site
     template: src=site-config.template dest=/etc/httpd/conf.d/bagstore.conf
 
-- hosts: bagstore
-  become: yes
-  roles:
-    - easy-bag-store
+  - include_role:
+      name: dans.easy-bag-store
+      tasks_from: install.yml
 
-- hosts: bagstore
-  become: yes
-  tasks:
   - name: Reload Apache HTTP Server
     service: name=httpd state=reloaded

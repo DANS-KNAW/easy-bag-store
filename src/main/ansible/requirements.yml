@@ -14,5 +14,4 @@
 # limitations under the License.
 #
 
-- src: https://github.com/DANS-KNAW/easy-bag-store-role
-  name: easy-bag-store
+- src: https://github.com/DANS-KNAW/dans.easy-bag-store
