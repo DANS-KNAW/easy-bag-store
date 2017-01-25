@@ -157,7 +157,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     for {
       container <- toContainer(id)
       path <- Try {
-        val containedFiles = Files.list(container).iterator().asScala.toList
+        val containedFiles = listFiles(container)
         assert(containedFiles.size == 1, s"Corrupt BagStore, container with less or more than one file: $container")
         val bagDir = container.resolve(containedFiles.head)
 
@@ -228,7 +228,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
   }.flatMap(findBagDir)
 
   private def findBagDir(extractDir: Path): Try[Path] = Try {
-    val files = Files.list(extractDir).iterator().asScala.toList
+    val files = listFiles(extractDir)
     if (files.size != 1) throw IncorrectNumberOfFilesInBagZipRootException(files.size)
     else if(!Files.isDirectory(files.head)) throw BagBaseNotFoundException()
     else files.head
@@ -267,14 +267,14 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
       debug(s"moving ${bagFacade.FETCH_TXT_FILENAME}")
       Files.move(bagDir.resolve(bagFacade.FETCH_TXT_FILENAME), tempDir.resolve(bagFacade.FETCH_TXT_FILENAME))
       // Attention the `toString` after `getFileName` is necessary because Path.startsWith only matches complete path components!
-      val tagmanifests = Files.list(bagDir).iterator().asScala.withFilter(_.getFileName.toString.startsWith("tagmanifest-")).toList
+      val tagmanifests = listFiles(bagDir).withFilter(_.getFileName.toString.startsWith("tagmanifest-"))
       debug(s"tagmanifests: $tagmanifests")
       tagmanifests.foreach(t => Files.move(t, tempDir.resolve(t.getFileName)))
       tempDir
     }
 
     def moveFetchTxtAndTagmanifestsBack(path: Path): Try[Unit] = Try {
-      Files.list(path).iterator().asScala.foreach(f => {
+      listFiles(path).foreach(f => {
         debug(s"Moving $f -> ${bagDir.resolve(f.getFileName)}")
         Files.move(f, bagDir.resolve(f.getFileName))
       })
