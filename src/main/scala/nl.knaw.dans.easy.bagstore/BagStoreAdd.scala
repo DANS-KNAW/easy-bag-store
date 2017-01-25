@@ -116,7 +116,7 @@ trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeCompo
   }
 
   private def removeDirectoryIfEmpty(path: Path): Try[Unit] = Try {
-    if (!Files.list(path).iterator().hasNext) Files.delete(path)
+    if (listFiles(path).isEmpty) Files.delete(path)
   }
 
   private def getPathsInBagStore(path: Path): Try[Seq[Path]] = Try {

@@ -57,8 +57,8 @@ package object bagstore {
         todo match {
           case Nil => acc
           case (file1, file2) :: tail if Files.isDirectory(file1) && Files.isDirectory(file2) =>
-            val files1 = Files.list(file1).iterator().asScala.toSeq
-            val files2 = Files.list(file2).iterator().asScala.toSeq
+            val files1 = listFiles(file1)
+            val files2 = listFiles(file2)
             if (files1.size != files2.size)
               false
             else
@@ -85,5 +85,14 @@ package object bagstore {
         case Failure(throwable) => handle(throwable)
       }
     }
+  }
+
+  // TODO: canditates for dans-scala-lib?
+  def listDirs(dir: Path): Seq[Path] = {
+    listFiles(dir).filter(Files.isDirectory(_))
+  }
+
+  def listFiles(dir: Path): Seq[Path] = {
+    resource.managed(Files.list(dir)).acquireAndGet(_.iterator().asScala.toList)
   }
 }
