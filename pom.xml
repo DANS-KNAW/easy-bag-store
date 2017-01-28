@@ -34,7 +34,7 @@
         <main-class>nl.knaw.dans.easy.bagstore.Command</main-class>
     </properties>
     <scm>
-        <developerConnection>scm:git:https://github.com/DANS-KNAW/easy-bag-store3</developerConnection>
+        <developerConnection>scm:git:https://github.com/DANS-KNAW/easy-bag-store</developerConnection>
         <tag>HEAD</tag>
     </scm>
     <dependencies>
