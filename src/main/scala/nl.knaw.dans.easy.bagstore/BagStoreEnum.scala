@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.nio.file.Files
+import java.nio.file.{FileVisitOption, Files}
 
 import scala.collection.JavaConverters._
 import scala.util.Try
@@ -24,7 +24,7 @@ trait BagStoreEnum { this: BagFacadeComponent with BagStoreContext =>
 
   // TODO: support huge numbers of bags. (The stream should then probably NOT be converted in to a List anymore!)
   def enumBags(includeVisible: Boolean = true, includeHidden: Boolean = false): Try[Seq[BagId]] = Try {
-    resource.managed(Files.walk(baseDir, uuidPathComponentSizes.size)).acquireAndGet {
+    resource.managed(Files.walk(baseDir, uuidPathComponentSizes.size, FileVisitOption.FOLLOW_LINKS)).acquireAndGet {
       _.iterator().asScala.toStream
         .map(baseDir.relativize)
         .withFilter(_.getNameCount == uuidPathComponentSizes.size)
