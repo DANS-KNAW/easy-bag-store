@@ -87,6 +87,7 @@ trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeCompo
     val moved = container.resolve(bagName)
     Try { Files.move(staged, moved) }
       .flatMap(setPermissions(bagPermissions))
+      .map(_ => ())
       .recoverWith {
         case NonFatal(e) =>
           logger.error(s"Failed to move staged directory into container: $staged -> $moved", e)
