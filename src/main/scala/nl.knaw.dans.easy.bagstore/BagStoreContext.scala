@@ -367,7 +367,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
 
       override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
         trace(file, attrs)
-        if (logger.underlying.isDebugEnabled) logAttributes(attrs)
+        if (logger.underlying.isDebugEnabled) logAttributes(file, attrs)
         Files.setPosixFilePermissions(file, posixFilePermissions)
         FileVisitResult.CONTINUE
       }
