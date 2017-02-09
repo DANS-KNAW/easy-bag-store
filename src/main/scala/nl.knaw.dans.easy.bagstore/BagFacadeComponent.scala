@@ -153,9 +153,13 @@ trait Bagit4FacadeComponent extends BagFacadeComponent {
      */
     override def getPayloadFilePaths(bagDir: Path): Try[Set[Path]] =  {
       getBag(bagDir)
-        .map(_.getPayloadManifests.asScala.map(_.asScala.map {
-          case (path, _) => Paths.get(path)
-        }.toSet)).map(_.reduce(_ ++ _))
+        .map(_.getPayloadManifests
+          .asScala
+          .map(_.keySet() // a Manifest extends java.util.Map<String, String>
+            .asScala // converts to mutable set
+            .map(Paths.get(_))
+            .toSet) // make set immutable
+          .reduce(_ ++ _))
     }
   }
 }
