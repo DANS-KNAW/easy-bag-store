@@ -23,9 +23,11 @@ import scala.util.Success
 
 class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAdd with BagStorePrune with BagStoreDelete {
   FileUtils.copyDirectory(Paths.get("src/test/resources/bags/basic-sequence-unpruned").toFile, testDir.toFile)
+  FileUtils.copyDirectoryToDirectory(Paths.get("src/test/resources/bags/valid-bag-complementary-manifests").toFile, testDir.toFile)
   private val TEST_BAG_A = testDir.resolve("a")
   private val TEST_BAG_B = testDir.resolve("b")
   private val TEST_BAG_C = testDir.resolve("c")
+  private val TEST_BAG_COMPLEMENTARY = testDir.resolve("valid-bag-complementary-manifests")
 
   "enumBags" should "return all BagIds" in {
     val ais = add(TEST_BAG_A).get
@@ -110,6 +112,21 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     inside(enumFiles(cis).map(_.toList)) {
       case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 13 and
         contain only ("q", "w", "u", "p", "x", "y", "y-old", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "tagmanifest-md5.txt", "fetch.txt"))
+    }
+  }
+
+  /*
+   * If there are multiple payload manifests the BagIt specs do not require that they all contain ALL the payload files. Therefore, it is possible that
+   * there are two payload manifests, each of contains a part of the payload file paths. The enum operation should still handle this correctly. The
+   * example used also has one overlapping file, to make sure that it does not appear twice in the enumeration.
+   *
+   * See: <https://tools.ietf.org/html/draft-kunze-bagit#section-3> point 4.
+   */
+  it should "return all FileIds even if they are distributed over several payload manifests" in {
+    val complementary = add(TEST_BAG_COMPLEMENTARY).get
+    inside(enumFiles(complementary).map(_.toList)) {
+      case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 11 and
+        contain only ("u", "v", "w", "x", "y", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "manifest-sha1.txt", "tagmanifest-md5.txt"))
     }
   }
 }
