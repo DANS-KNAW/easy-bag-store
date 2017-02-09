@@ -144,11 +144,18 @@ trait Bagit4FacadeComponent extends BagFacadeComponent {
         }))
     }
 
+    /**
+     * Returns the set of payload file paths for a virtually-valid bag. If the bag is not
+     * virtually-valid the results will be unreliable.
+     *
+     * @param bagDir the virtually bag
+     * @return the set of payload file paths
+     */
     override def getPayloadFilePaths(bagDir: Path): Try[Set[Path]] =  {
       getBag(bagDir)
-        .map(_.getPayloadManifests.asScala.headOption.map(_.asScala.map {
+        .map(_.getPayloadManifests.asScala.map(_.asScala.map {
           case (path, _) => Paths.get(path)
-        }.toSet).getOrElse(Set.empty))
+        }.toSet)).map(_.reduce(_ ++ _))
     }
   }
 }
