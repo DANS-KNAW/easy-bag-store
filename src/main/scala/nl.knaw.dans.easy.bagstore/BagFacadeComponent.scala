@@ -146,9 +146,9 @@ trait Bagit4FacadeComponent extends BagFacadeComponent {
 
     override def getPayloadFilePaths(bagDir: Path): Try[Set[Path]] =  {
       getBag(bagDir)
-        .map(_.getPayloadManifests.asScala.headOption.map(_.asScala.map {
+        .map(_.getPayloadManifests.asScala.map(_.asScala.map {
           case (path, _) => Paths.get(path)
-        }.toSet).getOrElse(Set.empty))
+        }.toSet)).map(_.reduce(_ ++ _))
     }
   }
 }
