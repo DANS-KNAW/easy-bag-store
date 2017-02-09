@@ -85,8 +85,8 @@ trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeCompo
   private def ingest(bagName: Path, staged: Path, container: Path): Try[Unit] = {
     trace(bagName, staged, container)
     val moved = container.resolve(bagName)
-    Try { Files.move(staged, moved) }
-      .flatMap(setPermissions(bagPermissions))
+    setPermissions(bagPermissions)(staged)
+      .map(Files.move(_, moved))
       .map(_ => ())
       .recoverWith {
         case NonFatal(e) =>
