@@ -15,10 +15,10 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.io.InputStream
+import java.io.{IOException, InputStream}
 import java.net.URI
-import java.nio.file.attribute.PosixFilePermissions
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.attribute.{BasicFileAttributes, PosixFilePermissions}
+import java.nio.file._
 import java.util.UUID
 
 import net.lingala.zip4j.core.ZipFile
@@ -40,6 +40,8 @@ import scala.util.{Failure, Success, Try}
  * See project's README for details.
  */
 trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
+  import logger._
+
   val baseDir: Path
   // Must be absolute.
   val baseUri: URI
@@ -354,9 +356,51 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     toLocation(bagId).map(Files.isHidden)
   }
 
-  protected def setPermissions(permissions: String)(bagDir: Path): Try[Unit] = Try {
-    Files.walk(bagDir).iterator().asScala.foreach {
-      f => Files.setPosixFilePermissions(f, PosixFilePermissions.fromString(permissions))
+  protected def setPermissions(permissions: String)(bagDir: Path): Try[Path] = Try {
+    info(s"Setting bag permissions to: $permissions, bag directory: $bagDir")
+    val posixFilePermissions = PosixFilePermissions.fromString(permissions)
+    object SetPermissionsFileVisitor extends FileVisitor[Path] {
+      override def visitFileFailed(file: Path, exc: IOException): FileVisitResult = {
+        error(s"Could not visit file $file", exc)
+        FileVisitResult.TERMINATE
+      }
+
+      override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
+        trace(file, attrs)
+        if (logger.underlying.isDebugEnabled) logAttributes(attrs)
+        Files.setPosixFilePermissions(file, posixFilePermissions)
+        FileVisitResult.CONTINUE
+      }
+
+      override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult = {
+        trace(dir, attrs)
+        debug(s"Entering directory: $dir, iwth attributes: $attrs")
+        FileVisitResult.CONTINUE
+      }
+
+      override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = {
+        trace(dir, exc)
+        if(exc != null) {
+          error(s"Error when visiting directory: $dir", exc)
+          FileVisitResult.TERMINATE
+        }
+        else FileVisitResult.CONTINUE
+      }
+
+      private def logAttributes(path: Path, attrs: BasicFileAttributes): Unit = {
+        debug(s"FILE:             $path")
+        debug(s"creationTime:     ${attrs.creationTime}")
+        debug(s"fileKey:          ${attrs.fileKey}")
+        debug(s"isDirectory:      ${attrs.isDirectory}")
+        debug(s"isOther:          ${attrs.isOther}")
+        debug(s"isRegularFile:    ${attrs.isRegularFile}")
+        debug(s"isSymbolicLink:   ${attrs.isSymbolicLink}")
+        debug(s"lastAccessTime:   ${attrs.lastAccessTime}")
+        debug(s"lastModifiedTime: ${attrs.lastModifiedTime}")
+        debug(s"size:             ${attrs.size}")
+      }
+
     }
+    Files.walkFileTree(bagDir, SetPermissionsFileVisitor)
   }
 }
