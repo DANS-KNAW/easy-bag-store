@@ -1,5 +1,6 @@
 easy-bag-store
 ==============
+[![Build Status](https://travis-ci.org/DANS-KNAW/easy-bag-store.png?branch=master)](https://travis-ci.org/DANS-KNAW/easy-bag-store)
 
 Manage a bag store
 
