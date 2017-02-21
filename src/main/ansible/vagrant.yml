@@ -14,8 +14,10 @@
 # limitations under the License.
 #
 
-- hosts: bagstore
+- hosts: testvm
   become: yes
+  vars:
+    force_reinstalls: yes
   tasks:
   - name: Install standard software
     yum: name="{{ item }}"
@@ -23,6 +25,7 @@
       - java-1.8.0-openjdk
       - httpd
       - libsemanage-python
+      - libselinux-python
 
   - name: Enable Apache HTTP Server
     service: name=httpd enabled=true state=started
@@ -43,7 +46,6 @@
 
   - include_role:
       name: dans.easy-bag-store
-      tasks_from: install.yml
 
   - name: Reload Apache HTTP Server
     service: name=httpd state=reloaded

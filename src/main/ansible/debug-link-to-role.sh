@@ -23,8 +23,8 @@
 ROLE1=dans.easy-bag-store
 ROLE2=dans.easy-includes
 
-rm `dirname $0`/roles/$ROLE1
-rm `dirname $0`/roles/$ROLE2
+rm `dirname $0`/roles/$ROLE1 2> /dev/null
+rm `dirname $0`/roles/$ROLE2 2> /dev/null
 
 ln -s ~/git/dtap/roles/$ROLE1 `dirname $0`/roles/$ROLE1
 ln -s ~/git/dtap/roles/$ROLE2 `dirname $0`/roles/$ROLE2
