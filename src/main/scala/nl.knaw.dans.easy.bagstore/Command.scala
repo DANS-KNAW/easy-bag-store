@@ -46,22 +46,22 @@ object Command extends App with BagStoreApp {
             files <- enumFiles(bagId)
           } yield files.foreach(println(_)))
         .getOrElse {
-          val includeVisible = cmd.all() || !cmd.hidden()
-          val includeHidden = cmd.all() || cmd.hidden()
+          val includeVisible = cmd.all() || !cmd.inactive()
+          val includeHidden = cmd.all() || cmd.inactive()
           enumBags(includeVisible, includeHidden).map(_.foreach(println(_)))
         }
         .map(_ => "Done enumerating")
-    case Some(cmd @ opts.delete) =>
+    case Some(cmd @ opts.`deactivate`) =>
       for {
         itemId <- ItemId.fromString(cmd.bagId())
         bagId <- itemId.toBagId
-        _ <- delete(bagId)
+        _ <- deactivate(bagId)
       } yield s"Marked ${cmd.bagId()} as deleted"
-    case Some(cmd @ opts.undelete) =>
+    case Some(cmd @ opts.`reactivate`) =>
       for {
         itemId <- ItemId.fromString(cmd.bagId())
         bagId <- itemId.toBagId
-        _ <- undelete(bagId)
+        _ <- reactivate(bagId)
       } yield s"Removed deleted mark from ${cmd.bagId()}"
     case Some(cmd @ opts.prune) =>
       cmd.referenceBags.toOption

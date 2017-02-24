@@ -36,8 +36,8 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
             |$printedName [--base-dir|-b <dir>] \\
             |${_________}  | add --uuid|-u <uuid> <bag>
             |${_________}  | get <item-id>
-            |${_________}  | enum [--hidden|--all] [<item-id>]
-            |${_________}  | (un)delete <item-id>
+            |${_________}  | enum [--inactive|--all] [<item-id>]
+            |${_________}  | set-(in)active <item-id>
             |${_________}  | prune <bag-dir> <ref-bag-id>...
             |${_________}  | complete <bag-dir>
             |${_________}  | validate <bag-dir>
@@ -80,35 +80,35 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
 
   val enum = new Subcommand("enum") {
     descr("Enumerates Bags or Files")
-    val hidden: ScallopOption[Boolean] = opt[Boolean](name = "deleted", short = 'd',
-      descr = "only enumerate deleted Bags")
+    val inactive: ScallopOption[Boolean] = opt[Boolean](name = "inactive", short = 'd',
+      descr = "only enumerate inactive Bags")
     val all: ScallopOption[Boolean] = opt[Boolean](name = "all", short = 'a',
-      descr = "enumerate all Bags, including deleted ones")
+      descr = "enumerate all Bags, including inactive ones")
     val bagId: ScallopOption[String] = trailArg[String](name = "<bagId>",
       descr = "Bag of which to enumerate the Files",
       required = false)
-    mutuallyExclusive(all, hidden)
+    mutuallyExclusive(all, inactive)
     footer(SUBCOMMAND_SEPARATOR)
   }
   addSubcommand(enum)
 
-  val delete = new Subcommand("delete") {
-    descr("Marks a Bag as deleted")
+  val deactivate = new Subcommand("deactivate") {
+    descr("Marks a Bag as inactive")
     val bagId: ScallopOption[String] = trailArg[String](name = "<bag-id>",
-      descr = "Bag to mark as deleted",
+      descr = "Bag to mark as inactive",
       required = true)
     footer(SUBCOMMAND_SEPARATOR)
   }
-  addSubcommand(delete)
+  addSubcommand(deactivate)
 
-  val undelete = new Subcommand("undelete") {
-    descr("Reverses the effect of delete")
+  val reactivate = new Subcommand("reactivate") {
+    descr("Reactivates an inactive Bag")
     val bagId: ScallopOption[String] = trailArg[String](name = "<bag-id>",
-      descr = "Deleted Bag to restore",
+      descr = "Inactive Bag to re-activate",
       required = true)
     footer(SUBCOMMAND_SEPARATOR)
   }
-  addSubcommand(undelete)
+  addSubcommand(reactivate)
 
   val prune = new Subcommand("prune") {
     descr("Removes Files from Bag, that are already found in reference Bags, replacing them with fetch.txt references")

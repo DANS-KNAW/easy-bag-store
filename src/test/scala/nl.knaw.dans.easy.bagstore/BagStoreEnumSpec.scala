@@ -21,7 +21,7 @@ import org.apache.commons.io.FileUtils
 
 import scala.util.Success
 
-class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAdd with BagStorePrune with BagStoreDelete {
+class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAdd with BagStorePrune with BagStoreDeactivate {
   FileUtils.copyDirectory(Paths.get("src/test/resources/bags/basic-sequence-unpruned").toFile, testDir.toFile)
   FileUtils.copyDirectoryToDirectory(Paths.get("src/test/resources/bags/valid-bag-complementary-manifests").toFile, testDir.toFile)
   private val TEST_BAG_A = testDir.resolve("a")
@@ -50,7 +50,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val bis = add(TEST_BAG_B).get
     val cis = add(TEST_BAG_C).get
 
-    delete(bis) shouldBe a[Success[_]]
+    deactivate(bis) shouldBe a[Success[_]]
 
     inside(enumBags().map(_.toList)) {
       case Success(bagIds) => bagIds should (have size 2 and contain only (ais, cis))
@@ -62,7 +62,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val bis = add(TEST_BAG_B).get
     val cis = add(TEST_BAG_C).get
 
-    delete(bis) shouldBe a[Success[_]]
+    deactivate(bis) shouldBe a[Success[_]]
 
     inside(enumBags(includeHidden = true).map(_.toList)) {
       case Success(bagIds) => bagIds should (have size 3 and contain only (ais, bis, cis))
@@ -74,7 +74,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val bis = add(TEST_BAG_B).get
     add(TEST_BAG_C).get
 
-    delete(bis) shouldBe a[Success[_]]
+    deactivate(bis) shouldBe a[Success[_]]
 
     inside(enumBags(includeVisible = false, includeHidden = true).map(_.toList)) {
       case Success(bagIds) => bagIds should (have size 1 and contain only bis)
@@ -86,7 +86,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
     val bis = add(TEST_BAG_B).get
     add(TEST_BAG_C).get
 
-    delete(bis) shouldBe a[Success[_]]
+    deactivate(bis) shouldBe a[Success[_]]
 
     inside(enumBags(includeVisible = false).map(_.toList)) {
       case Success(bagIds) => bagIds shouldBe empty

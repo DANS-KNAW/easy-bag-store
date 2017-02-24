@@ -30,7 +30,7 @@ trait BagStoreApp extends BagStoreContext
   with BagStoreEnum
   with BagStoreGet
   with BagStoreComplete
-  with BagStoreDelete
+  with BagStoreDeactivate
   with BagStorePrune
   with Bagit4FacadeComponent
   with BagStoreOutputContext

@@ -19,46 +19,44 @@ import java.nio.file.{Files, Paths}
 
 import scala.util.{Failure, Success}
 
-class BagStoreDeleteSpec extends BagStoreFixture with BagStoreDelete with BagStoreAdd with BagStorePrune {
+class BagStoreDeactivateSpec extends BagStoreFixture with BagStoreDeactivate with BagStoreAdd with BagStorePrune {
   private val TEST_BAGS_DIR = Paths.get("src/test/resources/bags")
   private val TEST_BAG_MINIMAL = TEST_BAGS_DIR.resolve("minimal-bag")
 
-  "delete" should "be able to delete a Bag that is not yet deleted" in {
+  "deactivate" should "be able to inactivate a Bag that is not yet inactive" in {
     val tryBagId = add(TEST_BAG_MINIMAL)
     tryBagId shouldBe a[Success[_]]
 
-    val tryHiddenBagId = delete(tryBagId.get)
-    tryHiddenBagId shouldBe a[Success[_]]
+    val tryInactiveBagId = deactivate(tryBagId.get)
+    tryInactiveBagId shouldBe a[Success[_]]
     Files.isHidden(toLocation(tryBagId.get).get) shouldBe true
   }
 
-  it should "result in a Failure if Bag is already deleted" in {
+  it should "result in a Failure if Bag is already inactive" in {
     val tryBagId = add(TEST_BAG_MINIMAL)
+    deactivate(tryBagId.get) shouldBe a[Success[_]]
 
-    delete(tryBagId.get) shouldBe a[Success[_]]
-
-    inside(delete(tryBagId.get)) {
-      case Failure(AlreadyDeletedException(bagId)) => bagId shouldBe tryBagId.get
+    inside(deactivate(tryBagId.get)) {
+      case Failure(e) => e shouldBe a[AlreadyInactiveException]
     }
   }
 
-  "undelete" should "be able to undelete a deleted Bag" in {
+  "reactivate" should "be able to reactivate an inactive Bag" in {
     val tryBagId = add(TEST_BAG_MINIMAL)
-
-    delete(tryBagId.get) shouldBe a[Success[_]]
+    deactivate(tryBagId.get) shouldBe a[Success[_]]
     inside(isHidden(tryBagId.get)) {
       case Success(hidden) => hidden shouldBe true
     }
 
-    undelete(tryBagId.get) shouldBe a[Success[_]]
+    reactivate(tryBagId.get) shouldBe a[Success[_]]
     Files.isHidden(toLocation(tryBagId.get).get) shouldBe false
   }
 
-  it should "result in a Failure if Bag is not marked as deleted" in {
+  it should "result in a Failure if Bag is not marked as inactive" in {
     val tryBagId = add(TEST_BAG_MINIMAL)
 
-    inside(undelete(tryBagId.get)) {
-      case Failure(NotDeletedException(bagId)) => bagId shouldBe tryBagId.get
+    inside(reactivate(tryBagId.get)) {
+      case Failure(e) => e shouldBe a[NotInactiveException]
     }
   }
 }

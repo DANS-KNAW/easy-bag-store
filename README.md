@@ -9,17 +9,20 @@ SYNOPSIS
 --------
 
     easy-bag-store [--base-dir|-b <bag-dir>] \
+                     # operations on bags in bag-store
                      | add <bag> <uuid>
                      | get <item-id>
                      | enum [--hidden|--all] [<bag-id>]
-                     | (un)delete <bag-id>
+                     | deactivate <bag-id>
+                     | reactivate <bag-id>
                      | verify [<bag-id>]
+                     | erase {--authority-name|-n} <name> {--authority-password|-p} <password> \
+                          {--tombstone-message|-m <message>} <file-id>
                      
+                     # operations on bags outside bag-store
                      | prune <bag-dir> <ref-bag-id>...
                      | complete <bag-dir>
                      | validate <bag-dir>
-                     | erase {--authority-name|-n} <name> {--authority-password|-p} <password> \
-                          {--tombstone-message|-m <message>} <file-id>
                           
 
 DESCRIPTION

@@ -19,22 +19,22 @@ import java.nio.file.Files
 
 import scala.util.{Failure, Success, Try}
 
-trait BagStoreDelete { this: BagStoreContext =>
-  def delete(bagId: BagId): Try[Unit] = {
+trait BagStoreDeactivate { this: BagStoreContext =>
+  def deactivate(bagId: BagId): Try[Unit] = {
     for {
       _ <- checkBagExists(bagId)
       path <- toLocation(bagId)
-      _ <- if (Files.isHidden(path)) Failure(AlreadyDeletedException(bagId)) else Success(())
+      _ <- if (Files.isHidden(path)) Failure(AlreadyInactiveException(bagId))else Success(())
       newPath <- Try { path.getParent.resolve(s".${path.getFileName}") }
       _ <- Try { Files.move(path, newPath) }
     } yield ()
   }
 
-  def undelete(bagId: BagId): Try[Unit] = {
+  def reactivate(bagId: BagId): Try[Unit] = {
     for {
       _ <- checkBagExists(bagId)
       path <- toLocation(bagId)
-      _ <- if (!Files.isHidden(path)) Failure(NotDeletedException(bagId)) else Success(())
+      _ <- if (!Files.isHidden(path)) Failure(NotInactiveException(bagId))else Success(())
       newPath <- Try { path.getParent.resolve(s"${path.getFileName.toString.substring(1)}") }
       _ <- Try { Files.move(path, newPath) }
     } yield ()
