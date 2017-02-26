@@ -24,7 +24,34 @@ import scala.collection.JavaConverters._
 import scala.util.Try
 
 trait BagStoreGet { this: BagStoreContext with BagStoreOutputContext =>
+//  def get(itemId: ItemId, output: Path, base: Option[Path] = None): Try[Unit] = {
+//    implicit val baseDir = base
+//
+//    itemId match {
+//      case bagId: BagId => toLocation(bagId).map(path => {
+//        val target = if (Files.isDirectory(output)) output.resolve(path.getFileName) else output
+//        Files.createDirectory(target)
+//        FileUtils.copyDirectory(path.toFile, target.toFile)
+//        Files.walk(output).iterator().asScala.foreach(setPermissions(outputBagPermissions))
+//      })
+//      case fileId: FileId => toRealLocation(fileId).map(path => {
+//        val target = if (Files.isDirectory(output)) output.resolve(path.getFileName) else output
+//        Files.copy(path, target)
+//        Files.setPosixFilePermissions(target, PosixFilePermissions.fromString(outputBagPermissions))
+//      })
+//    }
+//  }
+
+
+
+
+
   def get(itemId: ItemId, output: Path): Try[Unit] = {
+//    stores.toStream.find(checkBagExists(BagId(itemId.getUuid))(_).isSuccess)
+//        .map { case (_, base) => get(base, itemId, output)}
+
+
+
     implicit val baseDir = baseDir2
 
     itemId match {

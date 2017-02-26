@@ -30,6 +30,8 @@ object Command extends App with BagStoreApp {
   override val baseDir2 = opts.bagStoreBaseDir().toAbsolutePath
   implicit val baseDir = baseDir2
 
+  // optBaseDir = van de cmdline indien opgegeven, anders van stores als er maar één is, anders None
+
   val result: Try[FeedBackMessage] = opts.subcommand match {
     case Some(opts.list) => Try {
       "Configured bag-stores:\n" +
@@ -39,7 +41,8 @@ object Command extends App with BagStoreApp {
     }
     case Some(cmd @ opts.add) =>
       val bagUuid = cmd.uuid.toOption.map(UUID.fromString)
-      add(baseDir2, cmd.bag(), bagUuid).map(bagId => s"Added Bag with bag-id: $bagId")
+      // als optBaseDir None is -> vraag interactief
+      add(cmd.bag(), baseDir2, bagUuid).map(bagId => s"Added Bag with bag-id: $bagId")
     case Some(cmd @ opts.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
@@ -53,9 +56,9 @@ object Command extends App with BagStoreApp {
             files <- enumFiles(bagId)
           } yield files.foreach(println(_)))
         .getOrElse {
-          val includeVisible = cmd.all() || !cmd.inactive()
-          val includeHidden = cmd.all() || cmd.inactive()
-          enumBags(includeVisible, includeHidden).map(_.foreach(println(_)))
+          val includeActive = cmd.all() || !cmd.inactive()
+          val includeInactive = cmd.all() || cmd.inactive()
+          enumBags(includeActive, includeInactive).map(_.foreach(println(_)))
         }
         .map(_ => "Done enumerating")
     case Some(cmd @ opts.`deactivate`) =>
@@ -71,10 +74,11 @@ object Command extends App with BagStoreApp {
         _ <- reactivate(bagId)
       } yield s"Removed deleted mark from ${cmd.bagId()}"
     case Some(cmd @ opts.prune) =>
+      // als optBaseDir None is -> vraag interactief. Opmerking: bags must not use local references to other bag stores.
       cmd.referenceBags.toOption
         .map(refBags => refBags.map(ItemId.fromString).map(_.flatMap(_.toBagId))
           .collectResults
-          .flatMap(refBagIds => prune(cmd.bagDir(), refBagIds: _*))
+          .flatMap(refBagIds => prune(cmd.bagDir(), /* baseDir, */ refBagIds: _*))
           .map(_ => "Done pruning"))
         .getOrElse(Success("No reference Bags specified: nothing to do"))
     case Some(cmd @ opts.complete) =>
@@ -90,7 +94,6 @@ object Command extends App with BagStoreApp {
 
   result.map(msg => println(s"OK: $msg"))
     .onError(e => println(s"FAILED: ${e.getMessage}"))
-
 
   private def runAsService(): Try[FeedBackMessage] = Try {
     import logger._

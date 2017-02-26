@@ -33,7 +33,7 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
             |
             |Usage:
             |
-            |$printedName [--base-dir|-b <dir>] \\
+            |$printedName [{--base-dir|-b <dir>}|{-store|-s <name>}] \\
             |${_________}  | add --uuid|-u <uuid> <bag>
             |${_________}  | get <item-id>
             |${_________}  | enum [--inactive|--all] [<item-id>]

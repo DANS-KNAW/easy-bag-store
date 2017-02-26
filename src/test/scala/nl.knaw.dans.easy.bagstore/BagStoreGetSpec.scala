@@ -28,19 +28,19 @@ class BagStoreGetSpec extends BagStoreFixture with BagStoreGet with BagStoreAdd 
   private val TEST_BAG_PRUNED_A = TEST_BAGS_PRUNED.resolve("a")
 
   "get" should "return exactly the same Bag as was added" in {
-    get(add(baseDir, TEST_BAG_PRUNED_A).get, testDir) shouldBe a[Success[_]]
+    get(add(TEST_BAG_PRUNED_A, baseDir).get, testDir) shouldBe a[Success[_]]
     pathsEqual(TEST_BAG_PRUNED_A, testDir.resolve("a")) shouldBe true
   }
 
   it should "create Bag base directory with the name of parameter 'output' if 'output' does not point to existing directory" in {
     val output = testDir.resolve("non-existent-directory-that-will-become-base-dir-of-exported-Bag")
 
-    get(add(baseDir, TEST_BAG_PRUNED_A).get, output) shouldBe a[Success[_]]
+    get(add(TEST_BAG_PRUNED_A, baseDir).get, output) shouldBe a[Success[_]]
     pathsEqual(TEST_BAG_PRUNED_A, output) shouldBe true
   }
 
   it should "return a File in the Bag that was added" in {
-    val bagId = add(baseDir, TEST_BAG_PRUNED_A).get
+    val bagId = add(TEST_BAG_PRUNED_A, baseDir).get
     val fileId = FileId(bagId, Paths.get("data/x"))
 
     get(fileId, testDir) shouldBe a[Success[_]]
@@ -48,7 +48,7 @@ class BagStoreGetSpec extends BagStoreFixture with BagStoreGet with BagStoreAdd 
   }
 
   it should "rename a File to name specified in 'output' if 'output' does not point to an existing directory" in {
-    val bagId = add(baseDir, TEST_BAG_PRUNED_A).get
+    val bagId = add(TEST_BAG_PRUNED_A, baseDir).get
     val fileId = FileId(bagId, Paths.get("data/x"))
 
     get(fileId, testDir.resolve("x-renamed")) shouldBe a[Success[_]]

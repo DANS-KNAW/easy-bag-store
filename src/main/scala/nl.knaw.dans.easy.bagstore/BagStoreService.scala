@@ -145,7 +145,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
       uuid <- getUuidFromString(uuidStr)
       _ <- checkBagDoesNotExist(BagId(uuid))
       staged <- stageBagZip(is)
-      bagId <- add(baseDir2, staged, Some(uuid), skipStage = true)
+      bagId <- add(staged, baseDir2, Some(uuid), skipStage = true)
     } yield bagId
   }
 

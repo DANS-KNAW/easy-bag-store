@@ -30,9 +30,9 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   private val TEST_BAG_COMPLEMENTARY = testDir.resolve("valid-bag-complementary-manifests")
 
   "enumBags" should "return all BagIds" in {
-    val ais = add(baseDir, TEST_BAG_A).get
-    val bis = add(baseDir, TEST_BAG_B).get
-    val cis = add(baseDir, TEST_BAG_C).get
+    val ais = add(TEST_BAG_A, baseDir).get
+    val bis = add(TEST_BAG_B, baseDir).get
+    val cis = add(TEST_BAG_C, baseDir).get
 
     inside(enumBags().map(_.toList)) {
       case Success(bagIds) => bagIds should (have size 3 and contain only (ais, bis, cis))
@@ -46,9 +46,9 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   }
 
   it should "skip hidden Bags by default" in {
-    val ais = add(baseDir, TEST_BAG_A).get
-    val bis = add(baseDir, TEST_BAG_B).get
-    val cis = add(baseDir, TEST_BAG_C).get
+    val ais = add(TEST_BAG_A, baseDir).get
+    val bis = add(TEST_BAG_B, baseDir).get
+    val cis = add(TEST_BAG_C, baseDir).get
 
     deactivate(bis) shouldBe a[Success[_]]
 
@@ -58,9 +58,9 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   }
 
   it should "include hidden Bags if requested" in {
-    val ais = add(baseDir, TEST_BAG_A).get
-    val bis = add(baseDir, TEST_BAG_B).get
-    val cis = add(baseDir, TEST_BAG_C).get
+    val ais = add(TEST_BAG_A, baseDir).get
+    val bis = add(TEST_BAG_B, baseDir).get
+    val cis = add(TEST_BAG_C, baseDir).get
 
     deactivate(bis) shouldBe a[Success[_]]
 
@@ -70,9 +70,9 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   }
 
   it should "skip visible Bags if requested" in {
-    add(baseDir, TEST_BAG_A).get
-    val bis = add(baseDir, TEST_BAG_B).get
-    add(baseDir, TEST_BAG_C).get
+    add(TEST_BAG_A, baseDir).get
+    val bis = add(TEST_BAG_B, baseDir).get
+    add(TEST_BAG_C, baseDir).get
 
     deactivate(bis) shouldBe a[Success[_]]
 
@@ -82,9 +82,9 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   }
 
   it should "skip all Bags if requested" in {
-    add(baseDir, TEST_BAG_A).get
-    val bis = add(baseDir, TEST_BAG_B).get
-    add(baseDir, TEST_BAG_C).get
+    add(TEST_BAG_A, baseDir).get
+    val bis = add(TEST_BAG_B, baseDir).get
+    add(TEST_BAG_C, baseDir).get
 
     deactivate(bis) shouldBe a[Success[_]]
 
@@ -94,7 +94,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   }
 
   "enumFiles" should "return all FileIds in a valid Bag" in {
-    val ais = add(baseDir, TEST_BAG_A).get
+    val ais = add(TEST_BAG_A, baseDir).get
 
     inside(enumFiles(ais).map(_.toList)) {
       case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 10 and
@@ -103,11 +103,11 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
   }
 
   it should "return all FileIds in a virtually-valid Bag" in {
-    val ais = add(baseDir, TEST_BAG_A).get
+    val ais = add(TEST_BAG_A, baseDir).get
     prune(TEST_BAG_B, ais) shouldBe a[Success[_]]
-    val bis = add(baseDir, TEST_BAG_B).get
+    val bis = add(TEST_BAG_B, baseDir).get
     prune(TEST_BAG_C, ais, bis) shouldBe a[Success[_]]
-    val cis = add(baseDir, TEST_BAG_C).get
+    val cis = add(TEST_BAG_C, baseDir).get
 
     inside(enumFiles(cis).map(_.toList)) {
       case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 13 and
@@ -123,7 +123,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
    * See: <https://tools.ietf.org/html/draft-kunze-bagit#section-3> point 4.
    */
   it should "return all FileIds even if they are distributed over several payload manifests" in {
-    val complementary = add(baseDir, TEST_BAG_COMPLEMENTARY).get
+    val complementary = add(TEST_BAG_COMPLEMENTARY, baseDir).get
     inside(enumFiles(complementary).map(_.toList)) {
       case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 11 and
         contain only ("u", "v", "w", "x", "y", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "manifest-sha1.txt", "tagmanifest-md5.txt"))

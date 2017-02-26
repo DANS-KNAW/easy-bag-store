@@ -28,8 +28,8 @@ import scala.util.{ Failure, Success, Try }
 
 trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeComponent with DebugEnhancedLogging =>
 
-  def add(base: Path, bagDir: Path, uuid: Option[UUID] = None, skipStage: Boolean = false): Try[BagId] = {
-    implicit val baseDir = base
+  def add(bagDir: Path, toStore: Path, uuid: Option[UUID] = None, skipStage: Boolean = false): Try[BagId] = {
+    implicit val baseDir = toStore
 
     trace(bagDir)
     if (Files.isHidden(bagDir))

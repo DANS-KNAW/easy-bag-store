@@ -28,7 +28,7 @@ class BagStorePruneSpec extends BagStoreFixture with BagStorePrune with BagStore
   private val TEST_BAG_C = testDir.resolve("c")
 
   "prune" should "change files present in ref-bags to fetch.txt entries" in {
-    val tryA = add(baseDir, TEST_BAG_A)
+    val tryA = add(TEST_BAG_A, baseDir)
     tryA shouldBe a[Success[_]]
     prune(TEST_BAG_B, tryA.get) shouldBe a[Success[_]]
 
@@ -83,7 +83,7 @@ class BagStorePruneSpec extends BagStoreFixture with BagStorePrune with BagStore
     /*
      * Adding the now pruned Bag B so that C may reference it
      */
-    val tryB = add(baseDir, TEST_BAG_B)
+    val tryB = add(TEST_BAG_B, baseDir)
     tryB shouldBe a[Success[_]]
 
     prune(TEST_BAG_C, tryA.get, tryB.get)
