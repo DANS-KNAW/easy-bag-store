@@ -338,12 +338,17 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
   }
 
   protected def checkBagExists(bagId: BagId)(implicit baseDir: Path): Try[Unit] = {
+    trace(bagId)
     toContainer(bagId).flatMap {
       /*
        * If the container exists, the Bag must exist. This function does not check for corruption of the BagStore.
        */
-      case f if Files.exists(f) && Files.isDirectory(f) => Success(())
-      case _ => Failure(NoSuchBagException(bagId))
+      case f if Files.exists(f) && Files.isDirectory(f) =>
+        debug("Returning success (bag exists)")
+        Success(())
+      case _ =>
+        debug("Return failure (bag does not exist)")
+        Failure(NoSuchBagException(bagId))
     }
   }
 

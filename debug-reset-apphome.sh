@@ -26,8 +26,11 @@ if [ -e $TEMPDIR ]; then
     mv $TEMPDIR $TEMPDIR-`date  +"%Y-%m-%d@%H:%M:%S"`
 fi
 
-mkdir -p $TEMPDIR/bag-store
-cp -r src/test/resources/bag-store/00 $TEMPDIR/bag-store/00
+mkdir -p $TEMPDIR/bag-store1
+cp -r src/test/resources/bag-store/00 $TEMPDIR/bag-store1/01
+mkdir -p $TEMPDIR/bag-store2
+cp -r src/test/resources/bag-store/00 $TEMPDIR/bag-store2/02
+
 touch $TEMPDIR/easy-bag-store.log
 chmod -R 777 $TEMPDIR
 

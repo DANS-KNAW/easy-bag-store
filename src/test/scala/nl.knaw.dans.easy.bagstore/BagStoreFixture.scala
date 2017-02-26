@@ -16,7 +16,7 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.net.URI
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
@@ -25,9 +25,15 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
  * common to all these tests, nothing more!
  */
 trait BagStoreFixture extends TestSupportFixture with BagStoreContext with Bagit4FacadeComponent with DebugEnhancedLogging {
-  override val baseDir2: Path = testDir.resolve("bag-store")
-  implicit val baseDir = baseDir2
-  override val stores: Map[String, Path] = Map()
+
+  val store1: Path = testDir.resolve("bag-store-1")
+  val store2: Path = testDir.resolve("bag-store-2")
+
+  override val baseDir2: Path = store1 // TODO: REMOVE THIS
+
+  implicit val baseDir: Path = store1// TODO: REMOVE THIS
+
+  override val stores: Map[String, Path] = Map("store1" -> store1, "store2" -> store2)
   override val baseUri: URI = new URI("http://example-archive.org")
   override val stagingBaseDir: Path = testDir
   override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
@@ -38,6 +44,9 @@ trait BagStoreFixture extends TestSupportFixture with BagStoreContext with Bagit
    * However, for testing this is not handy, as it would require sudo to do a simple mvn clean install.
    */
   val bagPermissions: String = "rwxr-xr-x"
-  baseDir.toFile.mkdirs()
+  //baseDir.toFile.mkdirs()
+
+  Files.createDirectories(store1)
+  Files.createDirectories(store2)
 }
 

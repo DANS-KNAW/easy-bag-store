@@ -16,56 +16,61 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.nio.file.attribute.PosixFilePermissions
-import java.nio.file.{Files, Path}
+import java.nio.file.{FileAlreadyExistsException, Files, Path}
 
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
 
 import scala.collection.JavaConverters._
-import scala.util.Try
+import scala.util.{Failure, Try}
 
-trait BagStoreGet { this: BagStoreContext with BagStoreOutputContext =>
-//  def get(itemId: ItemId, output: Path, base: Option[Path] = None): Try[Unit] = {
-//    implicit val baseDir = base
-//
-//    itemId match {
-//      case bagId: BagId => toLocation(bagId).map(path => {
-//        val target = if (Files.isDirectory(output)) output.resolve(path.getFileName) else output
-//        Files.createDirectory(target)
-//        FileUtils.copyDirectory(path.toFile, target.toFile)
-//        Files.walk(output).iterator().asScala.foreach(setPermissions(outputBagPermissions))
-//      })
-//      case fileId: FileId => toRealLocation(fileId).map(path => {
-//        val target = if (Files.isDirectory(output)) output.resolve(path.getFileName) else output
-//        Files.copy(path, target)
-//        Files.setPosixFilePermissions(target, PosixFilePermissions.fromString(outputBagPermissions))
-//      })
-//    }
-//  }
+trait BagStoreGet {
+  this: BagStoreContext with BagStoreOutputContext with DebugEnhancedLogging =>
 
+  def get(itemId: ItemId, output: Path, fromStore: Option[Path] = None): Try[Path] = {
+    fromStore
+      .map(_.toAbsolutePath)
+      .map(get(itemId, output, _))
+      .getOrElse(getFromAnyStore(itemId, output))
+  }
 
-
-
-
-  def get(itemId: ItemId, output: Path): Try[Unit] = {
-//    stores.toStream.find(checkBagExists(BagId(itemId.getUuid))(_).isSuccess)
-//        .map { case (_, base) => get(base, itemId, output)}
-
-
-
-    implicit val baseDir = baseDir2
-
-    itemId match {
-      case bagId: BagId => toLocation(bagId).map(path => {
-        val target = if (Files.isDirectory(output)) output.resolve(path.getFileName) else output
-        Files.createDirectory(target)
-        FileUtils.copyDirectory(path.toFile, target.toFile)
-        Files.walk(output).iterator().asScala.foreach(setPermissions(outputBagPermissions))
-      })
-      case fileId: FileId => toRealLocation(fileId).map(path => {
-        val target = if (Files.isDirectory(output)) output.resolve(path.getFileName) else output
-        Files.copy(path, target)
-        Files.setPosixFilePermissions(target, PosixFilePermissions.fromString(outputBagPermissions))
-      })
+  def get(itemId: ItemId, output: Path, fromStore: Path): Try[Path] = {
+    trace(itemId, output, fromStore)
+    implicit val baseDir = fromStore.toAbsolutePath
+    checkBagExists(BagId(itemId.getUuid)).flatMap { _ =>
+      itemId match {
+        case bagId: BagId => toLocation(bagId).map(path => {
+          val target = if (Files.isDirectory(output)) output.resolve(path.getFileName)
+                       else output
+          if (Files.exists(target)) {
+            debug("Target already exists")
+            throw OutputAlreadyExists(target)
+          }
+          else {
+            debug(s"Creating directory for output: $target")
+            Files.createDirectory(target)
+            debug(s"Copying bag from $path to $target")
+            FileUtils.copyDirectory(path.toFile, target.toFile)
+            Files.walk(output).iterator().asScala.foreach(setPermissions(outputBagPermissions))
+            fromStore
+          }
+        })
+        case fileId: FileId => toRealLocation(fileId).map(path => {
+          val target = if (Files.isDirectory(output)) output.resolve(path.getFileName)
+                       else output
+          Files.copy(path, target)
+          Files.setPosixFilePermissions(target, PosixFilePermissions.fromString(outputBagPermissions))
+          fromStore
+        })
+      }
     }
+  }
+
+  def getFromAnyStore(itemId: ItemId, output: Path): Try[Path] = {
+    trace(itemId, output)
+    stores.toStream.map(_._2)
+      .find(checkBagExists(BagId(itemId.getUuid))(_).isSuccess)
+      .map(get(itemId, output, _))
+      .getOrElse(Failure(NoSuchBagException(BagId(itemId.getUuid))))
   }
 }

@@ -27,7 +27,6 @@ object Command extends App with BagStoreApp {
 
   val opts = CommandLineOptions(args, properties)
   opts.verify()
-  override val baseDir2 = opts.bagStoreBaseDir().toAbsolutePath
   implicit val baseDir = baseDir2
 
   // optBaseDir = van de cmdline indien opgegeven, anders van stores als er maar één is, anders None
@@ -46,8 +45,9 @@ object Command extends App with BagStoreApp {
     case Some(cmd @ opts.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
-        _ <- Try { get(itemId, cmd.outputDir()) }
-      } yield s"Retrieved item with item-id: $itemId to ${cmd.outputDir()}"
+        store <- get(itemId, cmd.outputDir(), opts.bagStoreBaseDir.toOption)
+        storeName = stores.find { case (name, base) => base == store }.map(_._1).getOrElse(store)
+      } yield s"Retrieved item with item-id: $itemId to ${cmd.outputDir()} from BagStore: $storeName"
     case Some(cmd @ opts.enum) =>
       cmd.bagId.toOption
         .map(s => for {
