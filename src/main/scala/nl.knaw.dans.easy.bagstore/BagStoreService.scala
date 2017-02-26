@@ -88,7 +88,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
     contentType = "text/plain"
     ItemId.fromString(params("uuid"))
       .flatMap(_.toBagId)
-      .flatMap(enumFiles)
+      .flatMap(enumFiles(_))
       .map(bagIds => Ok(bagIds.mkString("\n")))
       .onError {
         case _: NoSuchBagException => NotFound()

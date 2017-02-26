@@ -64,7 +64,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
 
     deactivate(bis) shouldBe a[Success[_]]
 
-    inside(enumBags(includeHidden = true).map(_.toList)) {
+    inside(enumBags(includeInactive = true).map(_.toList)) {
       case Success(bagIds) => bagIds should (have size 3 and contain only (ais, bis, cis))
     }
   }
@@ -76,7 +76,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
 
     deactivate(bis) shouldBe a[Success[_]]
 
-    inside(enumBags(includeVisible = false, includeHidden = true).map(_.toList)) {
+    inside(enumBags(includeActive = false, includeInactive = true).map(_.toList)) {
       case Success(bagIds) => bagIds should (have size 1 and contain only bis)
     }
   }
@@ -88,7 +88,7 @@ class BagStoreEnumSpec extends BagStoreFixture with BagStoreEnum with BagStoreAd
 
     deactivate(bis) shouldBe a[Success[_]]
 
-    inside(enumBags(includeVisible = false).map(_.toList)) {
+    inside(enumBags(includeActive = false).map(_.toList)) {
       case Success(bagIds) => bagIds shouldBe empty
     }
   }
