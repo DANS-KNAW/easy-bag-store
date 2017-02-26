@@ -38,6 +38,7 @@ package object bagstore {
   case class BagBaseNotFoundException() extends Exception(s"The zipped bag contains no bag base directory")
   case class NoBagIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a bag-id")
   case class NoFileIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a file-id")
+  case class CorruptBagStoreException(reason: String) extends Exception(s"BagStore seems to be corrupt: $reason")
 
   val CONTEXT_ATTRIBUTE_KEY_BAGSTORE_APP = "nl.knaw.dans.easy.bagstore.BagStoreApp"
 

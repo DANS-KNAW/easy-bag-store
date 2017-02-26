@@ -128,7 +128,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
   /**
    * Returns the location of the Bag's container directory.
    *
-   * @param id
+   * @param id the item-id
    * @return
    */
   def toContainer(id: ItemId): Try[Path] = Try {
@@ -174,7 +174,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
   /**
    * Returns the path at which the File with the specified file-id is actually stored in the BagStore.
    *
-   * @param fileId
+   * @param fileId id of the file to look for
    */
   def toRealLocation(fileId: FileId): Try[Path] = {
     for {
@@ -347,7 +347,8 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
 
   def checkBagDoesNotExist(bagId: BagId): Try[Unit] = {
     toContainer(bagId).flatMap {
-      case f if Files.exists(f) && Files.isDirectory(f) => Failure(BagIdAlreadyAssignedException(bagId))
+      case f if Files.exists(f) => if (Files.isDirectory(f)) Failure(BagIdAlreadyAssignedException(bagId))
+                                   else Failure(CorruptBagStoreException("Regular file in the place of a container: $f"))
       case _ => Success(())
     }
   }
