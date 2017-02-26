@@ -50,7 +50,7 @@ trait BagStoreApp extends BagStoreContext
   val stores: Map[String, Path] = {
     val map = mutable.Map[String, Path]()
     val props = new PropertiesConfiguration(Paths.get(System.getProperty("app.home"), "cfg/stores.properties").toFile)
-    props.getKeys.asScala.foreach(k => map(k) = Paths.get(props.getString(k)))
+    props.getKeys.asScala.foreach(k => map(k) = Paths.get(props.getString(k)).toAbsolutePath)
     map.toMap
   }
 

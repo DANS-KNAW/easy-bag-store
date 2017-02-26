@@ -29,6 +29,12 @@ object Command extends App with BagStoreApp {
   val opts = CommandLineOptions(args, properties)
   opts.verify()
   implicit val baseDir = baseDir2
+  private val bagStoreBaseDir = opts.bagStoreBaseDir.toOption match {
+    case None => opts.storeName.toOption.flatMap(stores.get)
+    case o => o
+  }
+
+  debug(s"Selected base-dir = $bagStoreBaseDir")
 
   val result: Try[FeedBackMessage] = opts.subcommand match {
     case Some(opts.list) => Try {
@@ -36,8 +42,8 @@ object Command extends App with BagStoreApp {
     }
     case Some(cmd @ opts.add) =>
       val bagUuid = cmd.uuid.toOption.map(UUID.fromString)
-      // als optBaseDir None is -> vraag interactief
-      val base = opts.bagStoreBaseDir.toOption match {
+
+      val base = bagStoreBaseDir match {
         case Some(p) => p
         case None =>
           if(stores.size == 1) stores.head._2
@@ -53,7 +59,7 @@ object Command extends App with BagStoreApp {
     case Some(cmd @ opts.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
-        store <- get(itemId, cmd.outputDir(), opts.bagStoreBaseDir.toOption)
+        store <- get(itemId, cmd.outputDir(), bagStoreBaseDir)
         storeName = getStoreName(store)
       } yield s"Retrieved item with item-id: $itemId to ${cmd.outputDir()} from BagStore: $storeName"
     case Some(cmd @ opts.enum) =>

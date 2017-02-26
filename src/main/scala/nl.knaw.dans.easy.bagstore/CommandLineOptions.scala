@@ -52,7 +52,10 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
   private def resolveTildeToHomeDir(s: String): String = if (s.startsWith("~")) s.replaceFirst("~", System.getProperty("user.home")) else s
 
   val bagStoreBaseDir: ScallopOption[Path] = opt[Path](name = "base-dir", short = 'b',
-    descr = "bag-store base-dir to use")
+    descr = "BagStore base-dir to use")
+  val storeName: ScallopOption[String] = opt[String](name = "store-name", short = 's',
+    descr = "Configured store to use")
+  mutuallyExclusive(bagStoreBaseDir, storeName)
 
   val list = new Subcommand("list") {
     descr(
