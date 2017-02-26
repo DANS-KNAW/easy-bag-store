@@ -15,6 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstore
 
+import java.nio.file.Path
 import java.util.UUID
 
 import nl.knaw.dans.lib.error.TraversableTryExtensions
@@ -29,24 +30,31 @@ object Command extends App with BagStoreApp {
   opts.verify()
   implicit val baseDir = baseDir2
 
-  // optBaseDir = van de cmdline indien opgegeven, anders van stores als er maar één is, anders None
-
   val result: Try[FeedBackMessage] = opts.subcommand match {
     case Some(opts.list) => Try {
-      "Configured bag-stores:\n" +
-      stores.map {
-        case (shortname, base) => s"- $shortname -> $base"
-      }.mkString("\n")
+      s"Configured bag-stores:\n$listStores"
     }
     case Some(cmd @ opts.add) =>
       val bagUuid = cmd.uuid.toOption.map(UUID.fromString)
       // als optBaseDir None is -> vraag interactief
-      add(cmd.bag(), baseDir2, bagUuid).map(bagId => s"Added Bag with bag-id: $bagId")
+      val base = opts.bagStoreBaseDir.toOption match {
+        case Some(p) => p
+        case None =>
+          if(stores.size == 1) stores.head._2
+          else {
+            Stream.continually(()).map {
+              _ =>
+                val name = scala.io.StdIn.readLine(s"Available BagStores:\n$listStores\nSelect a name: ")
+                stores.get(name)
+            }.map{s => if (s.isEmpty) print("Not found. "); s}.filter(_.isDefined).map(_.get).head
+          }
+      }
+      add(cmd.bag(), base, bagUuid).map(bagId => s"Added Bag with bag-id: $bagId to BagStore: ${getStoreName(base)}")
     case Some(cmd @ opts.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
         store <- get(itemId, cmd.outputDir(), opts.bagStoreBaseDir.toOption)
-        storeName = stores.find { case (name, base) => base == store }.map(_._1).getOrElse(store)
+        storeName = getStoreName(store)
       } yield s"Retrieved item with item-id: $itemId to ${cmd.outputDir()} from BagStore: $storeName"
     case Some(cmd @ opts.enum) =>
       cmd.bagId.toOption
@@ -94,6 +102,16 @@ object Command extends App with BagStoreApp {
 
   result.map(msg => println(s"OK: $msg"))
     .onError(e => println(s"FAILED: ${e.getMessage}"))
+
+  private def listStores: String = {
+    stores.map {
+      case (shortname, base) => s"- $shortname -> $base"
+    }.mkString("\n")
+  }
+
+  private def getStoreName(p: Path): String = {
+    stores.find { case (name, base) => base == p }.map(_._1).getOrElse(p.toString)
+  }
 
   private def runAsService(): Try[FeedBackMessage] = Try {
     import logger._
