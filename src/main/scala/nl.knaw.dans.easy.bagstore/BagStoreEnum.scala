@@ -24,6 +24,8 @@ trait BagStoreEnum { this: BagFacadeComponent with BagStoreContext =>
 
   // TODO: support huge numbers of bags. (The stream should then probably NOT be converted in to a List anymore!)
   def enumBags(includeVisible: Boolean = true, includeHidden: Boolean = false): Try[Seq[BagId]] = Try {
+    implicit val baseDir = baseDir2
+
     resource.managed(Files.walk(baseDir, uuidPathComponentSizes.size, FileVisitOption.FOLLOW_LINKS)).acquireAndGet {
       _.iterator().asScala.toStream
         .map(baseDir.relativize)
@@ -37,6 +39,8 @@ trait BagStoreEnum { this: BagFacadeComponent with BagStoreContext =>
   }
 
   def enumFiles(bagId: BagId): Try[Stream[FileId]] = {
+    implicit val baseDir = baseDir2
+
     for {
       path <- toLocation(bagId)
       ppaths <- bagFacade.getPayloadFilePaths(path)

@@ -52,7 +52,7 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
 
   it should "return a bag-id even if there are many slashes" in {
     object OtherContext extends BagStoreContext with Bagit4FacadeComponent with DebugEnhancedLogging {
-      override val baseDir: Path = BagStoreContextSpec.this.baseDir
+      override val baseDir2: Path = BagStoreContextSpec.this.baseDir
       override val stores: Map[String, Path] = Map()
       override val baseUri: URI = BagStoreContextSpec.this.baseUri
       override val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir
@@ -159,7 +159,7 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
 
   it should "return a bag-id for valid UUID-path after the base-uri even if base-uri contains part of path" in {
     object OtherContext extends BagStoreContext with Bagit4FacadeComponent with DebugEnhancedLogging {
-      override val baseDir: Path = BagStoreContextSpec.this.baseDir
+      override val baseDir2: Path = BagStoreContextSpec.this.baseDir
       override val stores: Map[String, Path] = Map()
       override val baseUri: URI = new URI("http://example-archive.org/base-path/")
       override val stagingBaseDir: Path = BagStoreContextSpec.this.stagingBaseDir

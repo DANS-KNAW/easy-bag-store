@@ -39,7 +39,7 @@ trait BagStoreApp extends BagStoreContext
   with DebugEnhancedLogging {
 
   val properties = new PropertiesConfiguration(new File(System.getProperty("app.home"), "cfg/application.properties"))
-  val baseDir: Path = Paths.get(properties.getString("bag-store.base-dir")).toAbsolutePath
+  val baseDir2: Path = Paths.get(properties.getString("bag-store.base-dir")).toAbsolutePath
   val baseUri = new URI(properties.getString("bag-store.base-uri"))
   val stagingBaseDir: Path = Paths.get(properties.getString("staging.base-dir"))
   val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-component-sizes").map(_.toInt).toSeq
@@ -55,7 +55,7 @@ trait BagStoreApp extends BagStoreContext
   }
 
   protected def validateSettings(): Unit =  {
-    assert(Files.isWritable(baseDir), s"Non-existent or non-writable base-dir: $baseDir")
+    assert(Files.isWritable(baseDir2), s"Non-existent or non-writable base-dir: $baseDir2")
     assert(Files.isWritable(stagingBaseDir), s"Non-existent or non-writable staging base-dir: $stagingBaseDir")
     assert(uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${uuidPathComponentSizes.sum}")
     assert(Try(PosixFilePermissions.fromString(bagPermissions)).isSuccess, s"Bag file permissions are invalid: '$bagPermissions'")

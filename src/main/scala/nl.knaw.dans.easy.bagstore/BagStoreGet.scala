@@ -25,6 +25,8 @@ import scala.util.Try
 
 trait BagStoreGet { this: BagStoreContext with BagStoreOutputContext =>
   def get(itemId: ItemId, output: Path): Try[Unit] = {
+    implicit val baseDir = baseDir2
+
     itemId match {
       case bagId: BagId => toLocation(bagId).map(path => {
         val target = if (Files.isDirectory(output)) output.resolve(path.getFileName) else output

@@ -27,7 +27,8 @@ object Command extends App with BagStoreApp {
 
   val opts = CommandLineOptions(args, properties)
   opts.verify()
-  override val baseDir = opts.bagStoreBaseDir().toAbsolutePath
+  override val baseDir2 = opts.bagStoreBaseDir().toAbsolutePath
+  implicit val baseDir = baseDir2
 
   val result: Try[FeedBackMessage] = opts.subcommand match {
     case Some(opts.list) => Try {
@@ -38,7 +39,7 @@ object Command extends App with BagStoreApp {
     }
     case Some(cmd @ opts.add) =>
       val bagUuid = cmd.uuid.toOption.map(UUID.fromString)
-      add(cmd.bag(), bagUuid).map(bagId => s"Added Bag with bag-id: $bagId")
+      add(baseDir2, cmd.bag(), bagUuid).map(bagId => s"Added Bag with bag-id: $bagId")
     case Some(cmd @ opts.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())

@@ -21,6 +21,8 @@ import scala.util.{Failure, Success, Try}
 
 trait BagStoreDeactivate { this: BagStoreContext =>
   def deactivate(bagId: BagId): Try[Unit] = {
+    implicit val baseDir = baseDir2
+
     for {
       _ <- checkBagExists(bagId)
       path <- toLocation(bagId)
@@ -31,6 +33,8 @@ trait BagStoreDeactivate { this: BagStoreContext =>
   }
 
   def reactivate(bagId: BagId): Try[Unit] = {
+    implicit val baseDir = baseDir2
+
     for {
       _ <- checkBagExists(bagId)
       path <- toLocation(bagId)

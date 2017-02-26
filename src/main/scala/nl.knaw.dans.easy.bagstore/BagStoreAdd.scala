@@ -28,7 +28,9 @@ import scala.util.{ Failure, Success, Try }
 
 trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeComponent with DebugEnhancedLogging =>
 
-  def add(bagDir: Path, uuid: Option[UUID] = None, skipStage: Boolean = false): Try[BagId] = {
+  def add(base: Path, bagDir: Path, uuid: Option[UUID] = None, skipStage: Boolean = false): Try[BagId] = {
+    implicit val baseDir = base
+
     trace(bagDir)
     if (Files.isHidden(bagDir))
       Failure(CannotIngestHiddenBagDirectory(bagDir))
@@ -82,7 +84,7 @@ trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeCompo
     } yield ()
   }
 
-  private def ingest(bagName: Path, staged: Path, container: Path): Try[Unit] = {
+  private def ingest(bagName: Path, staged: Path, container: Path)(implicit baseDir: Path): Try[Unit] = {
     trace(bagName, staged, container)
     val moved = container.resolve(bagName)
     setPermissions(bagPermissions)(staged)
@@ -96,7 +98,7 @@ trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeCompo
       }
   }
 
-  private def makePathAndParentsInBagStoreGroupWritable(path: Path): Try[Unit] = {
+  private def makePathAndParentsInBagStoreGroupWritable(path: Path)(implicit baseDir: Path): Try[Unit] = {
     for {
       seq <- getPathsInBagStore(path)
       _ <- seq.map(makeGroupWritable).collectResults
@@ -108,7 +110,7 @@ trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeCompo
     Files.setPosixFilePermissions(path, permissions.union(Set(PosixFilePermission.GROUP_WRITE)).asJava)
   }
 
-  private def removeEmptyParentDirectoriesInBagStore(container: Path): Try[Unit] = {
+  private def removeEmptyParentDirectoriesInBagStore(container: Path)(implicit baseDir: Path): Try[Unit] = {
     getPathsInBagStore(container).flatMap(paths => removeDirectoriesIfEmpty(paths.reverse))
   }
 
@@ -120,7 +122,7 @@ trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeCompo
     if (listFiles(path).isEmpty) Files.delete(path)
   }
 
-  private def getPathsInBagStore(path: Path): Try[Seq[Path]] = Try {
+  private def getPathsInBagStore(path: Path)(implicit baseDir: Path): Try[Seq[Path]] = Try {
     val pathComponents = baseDir.relativize(path).asScala.toSeq
     pathComponents.indices.map(i => baseDir.resolve(pathComponents.slice(0, i + 1).mkString("/")))
   }

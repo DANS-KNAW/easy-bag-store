@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagstore
 
 import java.io.InputStream
 import java.net.{URI, URLConnection}
-import java.nio.file.{Files, Paths}
+import java.nio.file.{Files, Path, Paths}
 import java.util.UUID
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
@@ -33,7 +33,7 @@ import scala.util.Try
 class BagStoreService extends BagStoreApp {
   import logger._
 
-  info(s"base directory: $baseDir")
+  info(s"base directory: $baseDir2")
   info(s"base URI: $baseUri")
   info(s"file permissions for bag files: $bagPermissions")
   info(s"file permissions for exported files: $outputBagPermissions")
@@ -99,6 +99,8 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
   }
 
   get("/:uuid/*") {
+    implicit val baseDir = baseDir2
+
     ItemId.fromString(s"""${params("uuid")}/${multiParams("splat").head}""")
       .flatMap(_.toFileId)
       .flatMap(toRealLocation)
@@ -120,6 +122,8 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
   // TODO: implement content-negatiation: text/plain for enumFiles, application/zip for zipped bag
 
   put("/:uuid") {
+    implicit val baseDir = baseDir2
+
     putBag(request.getInputStream, params("uuid"))
       .map(bagId => Created(headers = Map("Location" -> appendUriPathToExternalBaseUri(toUri(bagId)).toASCIIString)))
       .onError {
@@ -136,12 +140,12 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
     new URI(externalBaseUri.getScheme, externalBaseUri.getAuthority, Paths.get(externalBaseUri.getPath, uri.getPath).toString, null, null)
   }
 
-  private def putBag(is: InputStream, uuidStr: String): Try[BagId] = {
+  private def putBag(is: InputStream, uuidStr: String)(implicit baseDir: Path): Try[BagId] = {
     for {
       uuid <- getUuidFromString(uuidStr)
       _ <- checkBagDoesNotExist(BagId(uuid))
       staged <- stageBagZip(is)
-      bagId <- add(staged, Some(uuid), skipStage = true)
+      bagId <- add(baseDir2, staged, Some(uuid), skipStage = true)
     } yield bagId
   }
 
