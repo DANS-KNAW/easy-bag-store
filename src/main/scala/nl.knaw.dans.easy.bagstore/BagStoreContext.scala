@@ -43,6 +43,8 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
   import logger._
 
   val baseDir: Path
+  val stores: Map[String, Path]
+
   // Must be absolute.
   val baseUri: URI
   val stagingBaseDir: Path

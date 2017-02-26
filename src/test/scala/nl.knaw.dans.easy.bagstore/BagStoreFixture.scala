@@ -26,6 +26,7 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
  */
 trait BagStoreFixture extends TestSupportFixture with BagStoreContext with Bagit4FacadeComponent with DebugEnhancedLogging {
   override val baseDir: Path = testDir.resolve("bag-store")
+  override val stores: Map[String, Path] = Map()
   override val baseUri: URI = new URI("http://example-archive.org")
   override val stagingBaseDir: Path = testDir
   override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)

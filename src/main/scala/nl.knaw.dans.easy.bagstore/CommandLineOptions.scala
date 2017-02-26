@@ -56,6 +56,14 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
     default = Some(Paths.get(properties.getString("bag-store.base-dir"))))
   validatePathExists(bagStoreBaseDir)
 
+  val list = new Subcommand("list") {
+    descr(
+      """Lists the bag-stores for which a shortname has been defined. These are the bag-stores
+        |that are accessible through the HTTP interface
+      """.stripMargin)
+  }
+  addSubcommand(list)
+
   val add = new Subcommand("add") {
     descr("Adds a bag to the bag-store")
     val bag: ScallopOption[Path] = trailArg[Path](name = "bag",

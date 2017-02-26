@@ -30,6 +30,12 @@ object Command extends App with BagStoreApp {
   override val baseDir = opts.bagStoreBaseDir().toAbsolutePath
 
   val result: Try[FeedBackMessage] = opts.subcommand match {
+    case Some(opts.list) => Try {
+      "Configured bag-stores:\n" +
+      stores.map {
+        case (shortname, base) => s"- $shortname -> $base"
+      }.mkString("\n")
+    }
     case Some(cmd @ opts.add) =>
       val bagUuid = cmd.uuid.toOption.map(UUID.fromString)
       add(cmd.bag(), bagUuid).map(bagId => s"Added Bag with bag-id: $bagId")

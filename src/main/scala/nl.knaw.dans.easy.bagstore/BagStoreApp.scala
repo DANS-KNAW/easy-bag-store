@@ -24,6 +24,8 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.configuration.PropertiesConfiguration
 
 import scala.util.Try
+import scala.collection.JavaConverters._
+import scala.collection.mutable
 
 trait BagStoreApp extends BagStoreContext
   with BagStoreAdd
@@ -44,6 +46,13 @@ trait BagStoreApp extends BagStoreContext
   val bagPermissions: String = properties.getString("bag-store.bag-file-permissions")
   val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
   val bagFacade = new Bagit4Facade()
+
+  val stores: Map[String, Path] = {
+    val map = mutable.Map[String, Path]()
+    val props = new PropertiesConfiguration(Paths.get(System.getProperty("app.home"), "cfg/stores.properties").toFile)
+    props.getKeys.asScala.foreach(k => map(k) = Paths.get(props.getString(k)))
+    map.toMap
+  }
 
   protected def validateSettings(): Unit =  {
     assert(Files.isWritable(baseDir), s"Non-existent or non-writable base-dir: $baseDir")
