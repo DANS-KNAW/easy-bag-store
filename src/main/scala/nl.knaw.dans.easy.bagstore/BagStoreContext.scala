@@ -171,6 +171,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
           case FileId(_, path) => bagDir.resolve(path)
         }
       }
+      _ = debug(s"Item $id located at $path")
     } yield path
   }
 
@@ -230,9 +231,9 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     new ZipFile(zip.toFile).extractAll(extractDir.toAbsolutePath.toString)
     Files.delete(zip)
     extractDir
-  }.flatMap(findBagDir)
+  }
 
-  private def findBagDir(extractDir: Path): Try[Path] = Try {
+  def findBagDir(extractDir: Path): Try[Path] = Try {
     val files = listFiles(extractDir)
     if (files.size != 1) throw IncorrectNumberOfFilesInBagZipRootException(files.size)
     else if(!Files.isDirectory(files.head)) throw BagBaseNotFoundException()
@@ -364,12 +365,15 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     }
   }
 
-  def checkBagDoesNotExist(bagId: BagId)(implicit baseDir: Path): Try[Unit] = {
-    toContainer(bagId).flatMap {
-      case f if Files.exists(f) => if (Files.isDirectory(f)) Failure(BagIdAlreadyAssignedException(bagId))
-                                   else Failure(CorruptBagStoreException("Regular file in the place of a container: $f"))
-      case _ => Success(())
-    }
+  def checkBagDoesNotExist(bagId: BagId): Try[Unit] = {
+    stores.map { case (name, base) =>
+      implicit val baseDir = base
+      toContainer(bagId).flatMap {
+        case f if Files.exists(f) => if (Files.isDirectory(f)) Failure(BagIdAlreadyAssignedException(bagId, name))
+                                     else Failure(CorruptBagStoreException("Regular file in the place of a container: $f"))
+        case _ => Success(())
+      }
+    }.collectResults.map(_ => ())
   }
 
   protected def isHidden(bagId: BagId)(implicit baseDir: Path): Try[Boolean] = {

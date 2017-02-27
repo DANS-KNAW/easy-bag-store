@@ -247,28 +247,29 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
     }
   }
 
-  "stageBagZip" should "unzip zipped file and return bag base directory" in {
+  "stageBagZip" should "unzip zipped file and return the staging directory containing as a child the bag base directory" in {
     inside(stageBagZip(new FileInputStream("src/test/resources/zips/one-basedir.zip"))) {
-      case Success(staged) => staged.getParent.getParent shouldBe stagingBaseDir
+      case Success(staging) => staging.getParent shouldBe stagingBaseDir
     }
   }
 
-  it should "result in a failure if there are two base directories in the zip file" in {
-    inside(stageBagZip(new FileInputStream("src/test/resources/zips/two-basedirs.zip"))) {
+  "findBagDir" should "result in a failure if there are two base directories in the zip file" in {
+    val staging = stageBagZip(new FileInputStream("src/test/resources/zips/two-basedirs.zip")).get
+
+    inside(findBagDir(staging)) {
       case Failure(e) => e shouldBe a[IncorrectNumberOfFilesInBagZipRootException]
     }
   }
 
   it should "result in a failure if there are no files in the zip file" in {
-    val result = stageBagZip(new FileInputStream("src/test/resources/zips/empty.zip"))
-    result shouldBe a[Failure[_]]
-
-    // The exception the Failure should actually by IncorrectNumberOfFilesInBagZipRootException, but lingala chokes
-    // on the empty zip, so we do not get to that point.
+    stageBagZip(new FileInputStream("src/test/resources/zips/empty.zip")) shouldBe a[Failure[_]]
+    // Actually, stageBagZip should not end in Failure, but it does because lingala chokes on the empty zip
+    // This is the next best thing.
   }
 
   it should "result in a failure if there is no base directory in the zip file" in {
-    inside(stageBagZip(new FileInputStream("src/test/resources/zips/one-file.zip"))) {
+    val staging = stageBagZip(new FileInputStream("src/test/resources/zips/one-file.zip")).get
+    inside(findBagDir(staging)) {
       case Failure(e) => e shouldBe a[BagBaseNotFoundException]
     }
   }

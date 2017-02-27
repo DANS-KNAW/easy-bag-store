@@ -32,7 +32,7 @@ package object bagstore {
   case class AlreadyInactiveException(bagId: BagId) extends Exception(s"$bagId is already hidden")
   case class NotInactiveException(bagId: BagId) extends Exception(s"$bagId is already visible")
   case class NoSuchBagException(bagId: BagId) extends Exception(s"$bagId does not exist in BagStore")
-  case class BagIdAlreadyAssignedException(bagId: BagId) extends Exception(s"$bagId already exists in BagStore")
+  case class BagIdAlreadyAssignedException(bagId: BagId, store: String) extends Exception(s"$bagId already exists in BagStore $store (bag-ids must be globally unique)")
   case class CannotIngestHiddenBagDirectory(bagDir: Path) extends Exception(s"Cannot ingest hidden directory $bagDir")
   case class IncorrectNumberOfFilesInBagZipRootException(n: Int) extends Exception(s"There must be exactly one file in the root directory of the zipped bag, found $n")
   case class BagBaseNotFoundException() extends Exception(s"The zipped bag contains no bag base directory")

@@ -42,7 +42,7 @@ trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeCompo
         newUuid
       })
       for {
-        staging <- if (skipStage) Try { bagDir } else stageBagDir(bagDir)
+        staging <- if (skipStage) Try { bagDir.getParent } else stageBagDir(bagDir)
         maybeRefbags <- getReferenceBags(staging.resolve(bagDir.getFileName))
         _ = debug(s"refbags tempfile: $maybeRefbags")
         valid <- isVirtuallyValid(staging.resolve(bagDir.getFileName))
