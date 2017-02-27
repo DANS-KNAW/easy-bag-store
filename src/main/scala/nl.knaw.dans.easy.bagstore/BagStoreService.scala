@@ -87,7 +87,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
     stores.map(s => externalBaseUri.resolve("stores").resolve(s"${s._1}")).map(uri => s"<$uri>").mkString("\n")
   }
 
-  get("/stores/bags") {
+  get("/bags") {
     contentType = "text/plain"
     enumBags()
       .map(bagIds => Ok(bagIds.mkString("\n")))
@@ -97,7 +97,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
       })
   }
 
-  get("/stores/bags/:uuid") {
+  get("/bags/:uuid") {
     contentType = "text/plain"
     ItemId.fromString(params("uuid"))
       .flatMap(_.toBagId)
