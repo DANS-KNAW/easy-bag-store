@@ -21,7 +21,7 @@ import org.apache.commons.io.FileUtils
 
 import scala.util.{Failure, Success}
 
-class BagStoreGetSpec extends BagStoreFixture with BagStoreGet with BagStoreAdd with BagStorePrune with BagStoreOutputContext {
+class BagStoreGetSpec extends BagStoreFixture with BagStoreGet with BagStoreAdd with BagStorePrune with BagStoreComplete with BagStoreOutputContext {
   override val outputBagPermissions: String = "rwxrwxrwx"
   private val TEST_BAGS_DIR = Paths.get("src/test/resources/bags")
   private val TEST_BAGS_PRUNED = TEST_BAGS_DIR.resolve("basic-sequence-pruned")

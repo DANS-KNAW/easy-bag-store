@@ -28,7 +28,7 @@ import org.joda.time.DateTime
 import org.scalatra._
 import org.scalatra.servlet.ScalatraListener
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class BagStoreService extends BagStoreApp {
   import logger._
@@ -76,6 +76,16 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
 
   get("/") {
     contentType = "text/plain"
+    Ok(s"EASY Bag Store is running ...\nAvaiable stores at <${externalBaseUri.resolve("stores")}>")
+  }
+
+  get("/stores") {
+    contentType = "text/plain"
+    stores.map(s => externalBaseUri.resolve("stores").resolve(s"${s._1}")).map(uri => s"<$uri>").mkString("\n")
+  }
+
+  get("/stores/bags") {
+    contentType = "text/plain"
     enumBags()
       .map(bagIds => Ok(bagIds.mkString("\n")))
       .onError(e => {
@@ -84,7 +94,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
       })
   }
 
-  get("/:uuid") {
+  get("/stores/bags/:uuid") {
     contentType = "text/plain"
     ItemId.fromString(params("uuid"))
       .flatMap(_.toBagId)
@@ -98,31 +108,48 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
       }
   }
 
-  get("/:uuid/*") {
-    implicit val baseDir = baseDir2
-
-    ItemId.fromString(s"""${params("uuid")}/${multiParams("splat").head}""")
-      .flatMap(_.toFileId)
-      .flatMap(toRealLocation)
-      .map(path => {
-        val bytes = Files.readAllBytes(path)
-        val fileType = Option(URLConnection.getFileNameMap.getContentTypeFor(path.toString)).getOrElse("application/octet-stream")
-        val name = path.getFileName.toString
-        Ok(bytes, Map(
-          "Content-Type" -> fileType,
-          "Content-Disposition" -> s"""attachment; filename="$name""""
-        ))
-      })
-      .onError(e => {
-        logger.error("could not retrieve the requested file.", e)
-        BadRequest(e)
-      })
+  get("/stores/:bagstore/bags/:uuid") {
+    stores.get(params("bagstore"))
+      .map(base => {
+        val result = ItemId.fromString(params("uuid"))
+          .flatMap {
+            itemId: ItemId =>
+              debug(s"Retrieving item $itemId")
+              app.get(itemId, response.outputStream, base)
+          }
+        result match {
+          case Success(_) => Ok()
+          case Failure(NoSuchBagException(bagId)) => NotFound()
+          case Failure(e) => logger.error("Error retrieving bag", e)
+            InternalServerError()
+        }
+      }).getOrElse(NotFound())
   }
 
-  // TODO: implement content-negatiation: text/plain for enumFiles, application/zip for zipped bag
+  get("/stores/:bagstore/bags/:uuid/*") {
+    stores.get(params("bagstore"))
+      .map(base => {
+        val result = ItemId.fromString(s"""${ params("uuid") }/${ multiParams("splat").head }""")
+          .flatMap {
+            itemId: ItemId =>
+              debug(s"Retrieving item $itemId")
+              app.get(itemId, response.outputStream, base)
+          }
+        result match {
+          case Success(_) => Ok()
+          case Failure(NoSuchBagException(bagId)) => NotFound()
+          case Failure(e) => logger.error("Error retrieving bag", e)
+            InternalServerError()
+        }
+      }).getOrElse(NotFound())
+  }
 
-  put("/:uuid") {
+  // TODO: implement content-negotiation: text/plain for enumFiles, application/zip for zipped bag
+
+  put("/stores/:bagstore/bags/:uuid") {
     implicit val baseDir = baseDir2
+
+    // TODO: Check if bagstore exists!
 
     putBag(request.getInputStream, params("uuid"))
       .map(bagId => Created(headers = Map("Location" -> appendUriPathToExternalBaseUri(toUri(bagId)).toASCIIString)))

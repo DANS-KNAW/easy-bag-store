@@ -16,15 +16,16 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.{ Files, Path }
+import java.nio.file.{Files, Path}
 import java.util.UUID
 
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.apache.commons.io.FileUtils
 
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeComponent with DebugEnhancedLogging =>
 
@@ -41,18 +42,19 @@ trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeCompo
         newUuid
       })
       for {
-        staged <- if (skipStage) Try { bagDir } else stageBagDir(bagDir)
-        maybeRefbags <- getReferenceBags(staged)
+        staging <- if (skipStage) Try { bagDir } else stageBagDir(bagDir)
+        maybeRefbags <- getReferenceBags(staging.resolve(bagDir.getFileName))
         _ = debug(s"refbags tempfile: $maybeRefbags")
-        valid <- isVirtuallyValid(staged)
+        valid <- isVirtuallyValid(staging.resolve(bagDir.getFileName))
         if valid
-        _ <- maybeRefbags.map(pruneWithReferenceBags(staged)).getOrElse(Success(()))
+        _ <- maybeRefbags.map(pruneWithReferenceBags(staging.resolve(bagDir.getFileName))).getOrElse(Success(()))
         _ = debug("bag succesfully pruned")
         container <- toContainer(bagId)
         _ <- Try { Files.createDirectories(container) }
         _ <- makePathAndParentsInBagStoreGroupWritable(container)
         _ = debug(s"created container for Bag: $container")
-        _ <- ingest(bagDir.getFileName, staged, container)
+        _ <- ingest(bagDir.getFileName, staging, container)
+        _ <- Try { FileUtils.deleteDirectory(staging.toFile) }
       } yield bagId
     }
   }
@@ -84,17 +86,17 @@ trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeCompo
     } yield ()
   }
 
-  private def ingest(bagName: Path, staged: Path, container: Path)(implicit baseDir: Path): Try[Unit] = {
-    trace(bagName, staged, container)
+  private def ingest(bagName: Path, staging: Path, container: Path)(implicit baseDir: Path): Try[Unit] = {
+    trace(bagName, staging, container)
     val moved = container.resolve(bagName)
-    setPermissions(bagPermissions)(staged)
+    setPermissions(bagPermissions)(staging.resolve(bagName))
       .map(Files.move(_, moved))
       .map(_ => ())
       .recoverWith {
         case NonFatal(e) =>
-          logger.error(s"Failed to move staged directory into container: $staged -> $moved", e)
+          logger.error(s"Failed to move staged directory into container: ${staging.resolve(bagName)} -> $moved", e)
           removeEmptyParentDirectoriesInBagStore(container)
-          Failure(MoveToStoreFailedException(staged, container))
+          Failure(MoveToStoreFailedException(staging.resolve(bagName), container))
       }
   }
 

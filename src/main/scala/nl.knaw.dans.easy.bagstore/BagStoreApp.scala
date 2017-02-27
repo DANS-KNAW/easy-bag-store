@@ -55,7 +55,7 @@ trait BagStoreApp extends BagStoreContext
   }
 
   protected def validateSettings(): Unit =  {
-    assert(Files.isWritable(baseDir2), s"Non-existent or non-writable base-dir: $baseDir2")
+    //assert(Files.isWritable(baseDir2), s"Non-existent or non-writable base-dir: $baseDir2")
     assert(Files.isWritable(stagingBaseDir), s"Non-existent or non-writable staging base-dir: $stagingBaseDir")
     assert(uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${uuidPathComponentSizes.sum}")
     assert(Try(PosixFilePermissions.fromString(bagPermissions)).isSuccess, s"Bag file permissions are invalid: '$bagPermissions'")

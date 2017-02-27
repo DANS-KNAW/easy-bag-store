@@ -15,17 +15,18 @@
  */
 package nl.knaw.dans.easy.bagstore
 
+import java.io.OutputStream
 import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{FileAlreadyExistsException, Files, Path}
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.apache.commons.io.FileUtils
+import org.apache.commons.io.{FileUtils, IOUtils}
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Try}
 
 trait BagStoreGet {
-  this: BagStoreContext with BagStoreOutputContext with DebugEnhancedLogging =>
+  this: BagStoreContext with BagStoreOutputContext with BagStoreComplete with DebugEnhancedLogging =>
 
   def get(itemId: ItemId, output: Path, fromStore: Option[Path] = None): Try[Path] = {
     fromStore
@@ -33,6 +34,33 @@ trait BagStoreGet {
       .map(get(itemId, output, _))
       .getOrElse(getFromAnyStore(itemId, output))
   }
+
+  def get(itemId: ItemId, output: OutputStream, fromStore: Path): Try[Path] = {
+    trace(itemId, output, fromStore)
+    implicit val baseDir = fromStore.toAbsolutePath
+    checkBagExists(BagId(itemId.getUuid)).flatMap { _ =>
+      itemId match {
+        case bagId: BagId =>
+          toLocation(bagId).flatMap { path =>
+              for {
+                dirStaging <- stageBagDir(path)
+                _ <- complete(dirStaging.resolve(path.getFileName))
+                zipStaging <- stageBagZip(dirStaging.resolve(path.getFileName))
+                _ <- Try {Files.copy(zipStaging.resolve(path.getFileName), output)}
+                _ <- Try { FileUtils.deleteDirectory(dirStaging.toFile) }
+                _ <- Try { FileUtils.deleteDirectory(zipStaging.toFile) }
+              } yield fromStore
+          }
+        case fileId: FileId =>
+          toRealLocation(fileId).map(path => {
+            debug(s"Copying $path to outputstream")
+            Files.copy(path, output)
+            fromStore
+          })
+      }
+    }
+  }
+
 
   def get(itemId: ItemId, output: Path, fromStore: Path): Try[Path] = {
     trace(itemId, output, fromStore)

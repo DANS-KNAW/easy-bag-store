@@ -22,6 +22,7 @@ import java.nio.file._
 import java.util.UUID
 
 import net.lingala.zip4j.core.ZipFile
+import net.lingala.zip4j.model.ZipParameters
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
@@ -212,16 +213,16 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
    */
   protected def stageBagDir(dir: Path): Try[Path] = Try {
     trace(dir)
-    val staged = Files.createTempFile(stagingBaseDir, "staged-bag-", "")
-    Files.deleteIfExists(staged)
-    FileUtils.copyDirectory(dir.toFile, staged.toFile)
-    debug(s"Staged directory $dir in $staged")
-    staged
+    val staging = Files.createTempFile(stagingBaseDir, "bagdir-staging-", "")
+    Files.deleteIfExists(staging)
+    FileUtils.copyDirectoryToDirectory(dir.toFile, staging.toFile)
+    debug(s"Staging directory $dir into $staging")
+    staging
   }
 
   def stageBagZip(is: InputStream): Try[Path] = Try {
     trace(is)
-    val extractDir = Files.createTempFile(stagingBaseDir, "staged-zip-", "")
+    val extractDir = Files.createTempFile(stagingBaseDir, "bagzip-staging-", "")
     Files.deleteIfExists(extractDir)
     Files.createDirectory(extractDir)
     val zip = extractDir.resolve("bag.zip")
@@ -236,6 +237,17 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     if (files.size != 1) throw IncorrectNumberOfFilesInBagZipRootException(files.size)
     else if(!Files.isDirectory(files.head)) throw BagBaseNotFoundException()
     else files.head
+  }
+
+  def stageBagZip(path: Path): Try[Path] = Try {
+    trace(path)
+    val staging = Files.createTempFile(stagingBaseDir, "bagzip-staging-", "")
+    Files.deleteIfExists(staging)
+    Files.createDirectory(staging)
+    val zf = new ZipFile(staging.resolve(path.getFileName).toFile)
+    val parameters = new ZipParameters
+    zf.addFolder(path.toFile, parameters)
+    staging
   }
 
   protected def mapProjectedToRealLocation(bagDir: Path)(implicit baseDir: Path): Try[Seq[(Path, Path)]] = {

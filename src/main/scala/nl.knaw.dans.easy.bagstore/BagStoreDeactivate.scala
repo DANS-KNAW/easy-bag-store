@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.nio.file.Files
+import java.nio.file.{Files, Path}
 
 import scala.util.{Failure, Success, Try}
 
