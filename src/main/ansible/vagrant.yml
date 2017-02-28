@@ -46,6 +46,10 @@
 
   - include_role:
       name: dans.easy-bag-store
+    vars:
+      easy_bag_store_base_dirs:
+       - /var/local/store1
+       - /var/local/store2
 
   - name: Reload Apache HTTP Server
     service: name=httpd state=reloaded
