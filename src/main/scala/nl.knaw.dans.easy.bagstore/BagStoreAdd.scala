@@ -77,11 +77,11 @@ trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeCompo
     else None
   }
 
-  private def pruneWithReferenceBags(bagDir: Path)(refbags: Path): Try[Unit] = {
+  private def pruneWithReferenceBags(bagDir: Path)(refbags: Path)(implicit baseDir: Path): Try[Unit] = {
     trace(bagDir, refbags)
     for {
       refs <- Try { Files.readAllLines(refbags).asScala.map(UUID.fromString _ andThen BagId) }
-      _ <- prune(bagDir, refs:_*)
+      _ <- prune(bagDir, baseDir, refs:_*)
       _ <- Try { Files.delete(refbags) }
     } yield ()
   }

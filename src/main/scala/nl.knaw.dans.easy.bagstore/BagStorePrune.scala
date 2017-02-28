@@ -36,8 +36,8 @@ trait BagStorePrune { this: BagFacadeComponent with BagStoreContext with DebugEn
    * @param refBag the reference Bags to search
    * @return
    */
-  def prune(bagDir: Path, refBag: BagId*): Try[Unit] = {
-    implicit val baseDir = baseDir2
+  def prune(bagDir: Path, fromStore: Path, refBag: BagId*): Try[Unit] = {
+    implicit val baseDir = fromStore
 
     replaceRedundantFilesWithFetchReferences(bagDir, refBag.toList)
   }

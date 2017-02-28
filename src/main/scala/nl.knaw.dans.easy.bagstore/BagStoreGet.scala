@@ -44,7 +44,7 @@ trait BagStoreGet {
           toLocation(bagId).flatMap { path =>
               for {
                 dirStaging <- stageBagDir(path)
-                _ <- complete(dirStaging.resolve(path.getFileName))
+                _ <- complete(dirStaging.resolve(path.getFileName), fromStore)
                 zipStaging <- stageBagZip(dirStaging.resolve(path.getFileName))
                 _ <- Try {Files.copy(zipStaging.resolve(path.getFileName), output)}
                 _ <- Try { FileUtils.deleteDirectory(dirStaging.toFile) }
@@ -60,7 +60,6 @@ trait BagStoreGet {
       }
     }
   }
-
 
   def get(itemId: ItemId, output: Path, fromStore: Path): Try[Path] = {
     trace(itemId, output, fromStore)

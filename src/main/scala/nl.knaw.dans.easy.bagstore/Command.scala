@@ -28,7 +28,6 @@ object Command extends App with BagStoreApp {
 
   val opts = CommandLineOptions(args, properties)
   opts.verify()
-  implicit val baseDir = baseDir2
   private val bagStoreBaseDir = opts.bagStoreBaseDir.toOption match {
     case None => opts.storeName.toOption.flatMap(stores.get)
     case o => o
@@ -47,13 +46,7 @@ object Command extends App with BagStoreApp {
         case Some(p) => p
         case None =>
           if(stores.size == 1) stores.head._2
-          else {
-            Stream.continually(()).map {
-              _ =>
-                val name = scala.io.StdIn.readLine(s"Available BagStores:\n$listStores\nSelect a name: ")
-                stores.get(name)
-            }.map{s => if (s.isEmpty) print("Not found. "); s}.filter(_.isDefined).map(_.get).head
-          }
+          else promptForStore("Please, select which BagStore to add to.")
       }
       add(cmd.bag(), base, bagUuid).map(bagId => s"Added Bag with bag-id: $bagId to BagStore: ${getStoreName(base)}")
     case Some(cmd @ opts.get) =>
@@ -79,27 +72,44 @@ object Command extends App with BagStoreApp {
       for {
         itemId <- ItemId.fromString(cmd.bagId())
         bagId <- itemId.toBagId
-        _ <- deactivate(bagId)
-      } yield s"Marked ${cmd.bagId()} as deleted"
+        _ <- deactivate(bagId, bagStoreBaseDir)
+      } yield s"Marked ${cmd.bagId()} as inactive"
     case Some(cmd @ opts.reactivate) =>
       for {
         itemId <- ItemId.fromString(cmd.bagId())
         bagId <- itemId.toBagId
-        _ <- reactivate(bagId)
-      } yield s"Removed deleted mark from ${cmd.bagId()}"
+        _ <- reactivate(bagId, bagStoreBaseDir)
+      } yield s"Removed inactive mark from ${cmd.bagId()}"
     case Some(cmd @ opts.prune) =>
-      // als optBaseDir None is -> vraag interactief. Opmerking: bags must not use local references to other bag stores.
+      val base = bagStoreBaseDir match {
+        case Some(p) => p
+        case None =>
+          if(stores.size == 1) stores.head._2
+          else promptForStore("Please, select the BagStore containing the reference bags.")
+      }
       cmd.referenceBags.toOption
         .map(refBags => refBags.map(ItemId.fromString).map(_.flatMap(_.toBagId))
           .collectResults
-          .flatMap(refBagIds => prune(cmd.bagDir(), /* baseDir, */ refBagIds: _*))
+          .flatMap(refBagIds => prune(cmd.bagDir(), base, refBagIds: _*))
           .map(_ => "Done pruning"))
         .getOrElse(Success("No reference Bags specified: nothing to do"))
     case Some(cmd @ opts.complete) =>
-      complete(cmd.bagDir())
+      val base = bagStoreBaseDir match {
+        case Some(p) => p
+        case None =>
+          if(stores.size == 1) stores.head._2
+          else promptForStore("Please, select the BagStore in which to resolved localhost references.")
+      }
+      complete(cmd.bagDir(), base)
         .map(_ => s"Done completing ${cmd.bagDir()}")
     case Some(cmd @ opts.validate) =>
-      isVirtuallyValid(cmd.bagDir())
+      val base = bagStoreBaseDir match {
+        case Some(p) => p
+        case None =>
+          if(stores.size == 1) stores.head._2
+          else promptForStore("Please, select the BagStore against which to check localhost references.")
+      }
+      isVirtuallyValid(cmd.bagDir())(base)
         .map(valid => s"Done validating. Result: virtually-valid = $valid")
     case Some(cmd @ opts.runService) => runAsService()
     case _ => throw new IllegalArgumentException(s"Unknown command: ${opts.subcommand}")
@@ -117,6 +127,14 @@ object Command extends App with BagStoreApp {
 
   private def getStoreName(p: Path): String = {
     stores.find { case (name, base) => base == p }.map(_._1).getOrElse(p.toString)
+  }
+
+  private def promptForStore(msg: String): Path = {
+    Stream.continually(()).map {
+      _ =>
+        val name = scala.io.StdIn.readLine(s"$msg\nAvailable BagStores:\n$listStores\nSelect a name: ")
+        stores.get(name)
+    }.map{s => if (s.isEmpty) print("Not found. "); s}.filter(_.isDefined).map(_.get).head
   }
 
   private def runAsService(): Try[FeedBackMessage] = Try {

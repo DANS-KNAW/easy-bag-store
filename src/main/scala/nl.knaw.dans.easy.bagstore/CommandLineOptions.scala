@@ -37,7 +37,7 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
             |${_________}  | add --uuid|-u <uuid> <bag>
             |${_________}  | get <item-id>
             |${_________}  | enum [--inactive|--all] [<item-id>]
-            |${_________}  | set-(in)active <item-id>
+            |${_________}  | {deactivate|reactivate} <item-id>
             |${_________}  | prune <bag-dir> <ref-bag-id>...
             |${_________}  | complete <bag-dir>
             |${_________}  | validate <bag-dir>

@@ -39,8 +39,7 @@ trait BagStoreApp extends BagStoreContext
   with DebugEnhancedLogging {
 
   val properties = new PropertiesConfiguration(new File(System.getProperty("app.home"), "cfg/application.properties"))
-  val baseDir2: Path = Paths.get(properties.getString("bag-store.base-dir")).toAbsolutePath
-  val baseUri = new URI(properties.getString("bag-store.base-uri"))
+  val localBaseUri = new URI(properties.getString("bag-store.base-uri"))
   val stagingBaseDir: Path = Paths.get(properties.getString("staging.base-dir"))
   val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-component-sizes").map(_.toInt).toSeq
   val bagPermissions: String = properties.getString("bag-store.bag-file-permissions")

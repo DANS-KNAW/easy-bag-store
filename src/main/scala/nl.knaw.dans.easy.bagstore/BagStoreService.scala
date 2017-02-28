@@ -36,8 +36,6 @@ import scala.util.{Failure, Success, Try}
 class BagStoreService extends BagStoreApp {
   import logger._
 
-  info(s"base directory: $baseDir2")
-  info(s"base URI: $baseUri")
   info(s"file permissions for bag files: $bagPermissions")
   info(s"file permissions for exported files: $outputBagPermissions")
   validateSettings()
@@ -89,12 +87,21 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
 
   get("/bags") {
     contentType = "text/plain"
-    enumBags()
+    val (includeActive, includeInactive) = includedStates(params.get("state"))
+    enumBags(includeActive, includeInactive)
       .map(bagIds => Ok(bagIds.mkString("\n")))
       .onError(e => {
         logger.error("Unexpected type of failure", e)
         InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
       })
+  }
+
+  private def includedStates(state: Option[String]): (Boolean, Boolean) = {
+    state match {
+      case Some("all") => (true, true)
+      case Some("inactive") => (false, true)
+      case _ => (true, false)
+    }
   }
 
   get("/bags/:uuid") {

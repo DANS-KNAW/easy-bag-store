@@ -29,12 +29,11 @@ trait BagStoreFixture extends TestSupportFixture with BagStoreContext with Bagit
   val store1: Path = testDir.resolve("bag-store-1")
   val store2: Path = testDir.resolve("bag-store-2")
 
-  override val baseDir2: Path = store1 // TODO: REMOVE THIS
 
-  implicit val baseDir: Path = store1// TODO: REMOVE THIS
+//  implicit val baseDir: Path = store1// TODO: REMOVE THIS
 
   override val stores: Map[String, Path] = Map("store1" -> store1, "store2" -> store2)
-  override val baseUri: URI = new URI("http://example-archive.org")
+  override val localBaseUri: URI = new URI("http://example-archive.org")
   override val stagingBaseDir: Path = testDir
   override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
   override val bagFacade = new Bagit4Facade()

@@ -43,11 +43,8 @@ import scala.util.{Failure, Success, Try}
 trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
   import logger._
 
-  val baseDir2: Path
   val stores: Map[String, Path]
-
-  // Must be absolute.
-  val baseUri: URI
+  val localBaseUri: URI
   val stagingBaseDir: Path
   val uuidPathComponentSizes: Seq[Int]
   val bagPermissions: String
@@ -106,7 +103,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     }
 
     val UriComponents(scheme, _, host, port, path, _, _) = uri
-    val UriComponents(baseUriScheme, _, baseUriHost, baseUriPort, baseUriPath, _, _) = baseUri
+    val UriComponents(baseUriScheme, _, baseUriHost, baseUriPort, baseUriPath, _, _) = localBaseUri
 
     if (scheme == baseUriScheme && host == baseUriHost && port == baseUriPort && (baseUriPath.toString == "" || path.startsWith(baseUriPath))) {
       // The path part after the base-uri is basically the item-id, but in a Path object.
@@ -125,7 +122,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
           Try(bagId)
       }
     }
-    else Failure(NoItemUriException(uri, baseUri))
+    else Failure(NoItemUriException(uri, localBaseUri))
   }
 
   /**
@@ -203,7 +200,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
    * @param id the item-id
    * @return the item-uri
    */
-  def toUri(id: ItemId): URI = baseUri.resolve("/" + id.toString)
+  def toUri(id: ItemId): URI = localBaseUri.resolve("/" + id.toString)
 
   /**
    * Utility function that copies a directory to a staging area. This is used to stage bag directories for

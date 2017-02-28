@@ -44,7 +44,7 @@ class BagStoreAddSpec extends BagStoreFixture with BagStoreAdd with BagStorePrun
   "add" should "result in exact copy (except for bag-info.txt) of bag in archive when bag is valid" in {
     val tryBagId = add(TEST_BAG_MINIMAL, store1)
     tryBagId shouldBe a[Success[_]]
-    val bagDirInStore = tryBagId.flatMap(toLocation).get
+    val bagDirInStore = tryBagId.flatMap(toLocation(_)(store1)).get
     pathsEqual(TEST_BAG_MINIMAL, bagDirInStore, excludeFiles = "bag-info.txt") shouldBe true
   }
 

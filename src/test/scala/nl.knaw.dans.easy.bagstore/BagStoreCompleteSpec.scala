@@ -33,13 +33,13 @@ class BagStoreCompleteSpec extends BagStoreFixture with BagStoreComplete with Ba
   private val TEST_BAG_UNPRUNED_C = TEST_BAGS_UNPRUNED.resolve("c")
 
   "complete" should "make pruned Bag whole again" in {
-    add(TEST_BAG_PRUNED_A, baseDir, Some(UUID.fromString("00000000-0000-0000-0000-000000000001"))) shouldBe a[Success[_]]
-    add(TEST_BAG_PRUNED_B, baseDir, Some(UUID.fromString("00000000-0000-0000-0000-000000000002"))) shouldBe a[Success[_]]
+    add(TEST_BAG_PRUNED_A, store1, Some(UUID.fromString("00000000-0000-0000-0000-000000000001"))) shouldBe a[Success[_]]
+    add(TEST_BAG_PRUNED_B, store1, Some(UUID.fromString("00000000-0000-0000-0000-000000000002"))) shouldBe a[Success[_]]
 
     val testDirBagC = testDir.resolve("c")
     FileUtils.copyDirectory(TEST_BAG_PRUNED_C.toFile, testDirBagC.toFile)
 
-    complete(testDirBagC) shouldBe a[Success[_]]
+    complete(testDirBagC, store1) shouldBe a[Success[_]]
 
     pathsEqual(TEST_BAG_UNPRUNED_C, testDirBagC) shouldBe true
   }
