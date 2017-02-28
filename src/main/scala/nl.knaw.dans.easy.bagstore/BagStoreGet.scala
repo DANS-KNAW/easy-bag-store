@@ -17,10 +17,10 @@ package nl.knaw.dans.easy.bagstore
 
 import java.io.OutputStream
 import java.nio.file.attribute.PosixFilePermissions
-import java.nio.file.{FileAlreadyExistsException, Files, Path}
+import java.nio.file.{Files, Path}
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.apache.commons.io.{FileUtils, IOUtils}
+import org.apache.commons.io.FileUtils
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Try}

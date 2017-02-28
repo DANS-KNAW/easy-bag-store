@@ -16,8 +16,8 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.io.InputStream
-import java.net.{URI, URLConnection}
-import java.nio.file.{Files, Path, Paths}
+import java.net.URI
+import java.nio.file.{Path, Paths}
 import java.util.UUID
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
@@ -29,9 +29,8 @@ import org.joda.time.DateTime
 import org.scalatra._
 import org.scalatra.servlet.ScalatraListener
 
-import collection.JavaConverters._
+import scala.util.Try
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success, Try}
 
 class BagStoreService extends BagStoreApp {
   import logger._
@@ -116,6 +115,19 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
           logger.error("Unexpected type of failure", e)
           InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
       }
+  }
+
+  get("/stores/:bagstore/bags") {
+    stores.get(params("bagstore"))
+      .map(base => {
+        val (includeActive, includeInactive) = includedStates(params.get("state"))
+        enumBags(includeActive, includeInactive, base)
+          .map(bagIds => Ok(bagIds.mkString("\n")))
+          .onError(e => {
+            logger.error("Unexpected type of failure", e)
+            InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
+          })
+      }).getOrElse(NotFound(s"No such bag-store ${params("bagstore")}"))
   }
 
   get("/stores/:bagstore/bags/:uuid") {

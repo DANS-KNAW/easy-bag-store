@@ -23,9 +23,9 @@ import java.nio.file.{Files, Path, Paths}
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.configuration.PropertiesConfiguration
 
-import scala.util.Try
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.util.Try
 
 trait BagStoreApp extends BagStoreContext
   with BagStoreAdd

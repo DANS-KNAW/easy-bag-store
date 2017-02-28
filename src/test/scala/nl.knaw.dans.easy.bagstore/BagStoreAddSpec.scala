@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.nio.file.{ Path, Paths }
+import java.nio.file.{Path, Paths}
 import java.util.UUID
 
 import org.apache.commons.io.FileUtils

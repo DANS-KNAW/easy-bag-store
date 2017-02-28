@@ -17,13 +17,13 @@ package nl.knaw.dans.easy.bagstore
 
 import java.nio.file.{FileVisitOption, Files, Path}
 
-import scala.collection.JavaConverters._
-import scala.util.{Failure, Try}
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
+import scala.collection.JavaConverters._
+import scala.util.{Failure, Try}
+
 trait BagStoreEnum { this: BagFacadeComponent with BagStoreContext with DebugEnhancedLogging =>
-  import logger._
 
   // TODO: support huge numbers of bags. (The stream should then probably NOT be converted in to a List anymore!)
   def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false, fromStore: Option[Path] = None): Try[Seq[BagId]] =  {

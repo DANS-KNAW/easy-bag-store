@@ -17,8 +17,8 @@ package nl.knaw.dans.easy.bagstore
 
 import java.io.{IOException, InputStream}
 import java.net.URI
-import java.nio.file.attribute.{BasicFileAttributes, PosixFilePermissions}
 import java.nio.file._
+import java.nio.file.attribute.{BasicFileAttributes, PosixFilePermissions}
 import java.util.UUID
 
 import net.lingala.zip4j.core.ZipFile
