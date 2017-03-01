@@ -18,6 +18,12 @@
   become: yes
   vars:
     force_reinstalls: yes
+    easy_bag_stores_remove_default: yes
+    easy_bag_stores:
+      - { name: "store1",     base_dir: "/var/local/store1" }
+      - { name: "store2",     base_dir: "/var/local/store2" }
+    easy_bag_store_external_base_uri: "http://localhost:8080/"
+
   tasks:
   - name: Install standard software
     yum: name="{{ item }}"
@@ -46,10 +52,6 @@
 
   - include_role:
       name: dans.easy-bag-store
-    vars:
-      easy_bag_store_base_dirs:
-       - /var/local/store1
-       - /var/local/store2
 
   - name: Reload Apache HTTP Server
     service: name=httpd state=reloaded
