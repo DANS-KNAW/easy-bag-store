@@ -28,9 +28,10 @@ trait BagStoreEnum { this: BagFacadeComponent with BagStoreContext with DebugEnh
   // TODO: support huge numbers of bags. (The stream should then probably NOT be converted in to a List anymore!)
   def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false, fromStore: Option[Path] = None): Try[Seq[BagId]] =  {
     fromStore.map(enumBags(includeActive, includeInactive, _)).getOrElse(
-        stores.map {
-          case (_, base) => enumBags(includeActive, includeInactive, base)
-        }.collectResults.map(_.reduce(_ ++ _)))
+        stores.values
+          .map(enumBags(includeActive, includeInactive, _))
+          .collectResults
+          .map(_.reduce(_ ++ _)))
   }
 
   def enumBags(includeActive: Boolean, includeInactive: Boolean, fromStore: Path): Try[Seq[BagId]] = Try {

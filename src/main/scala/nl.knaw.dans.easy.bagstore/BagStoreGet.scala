@@ -95,7 +95,8 @@ trait BagStoreGet {
 
   def getFromAnyStore(itemId: ItemId, output: Path): Try[Path] = {
     trace(itemId, output)
-    stores.toStream.map(_._2)
+    // TODO: Find more efficient way of looking up?
+    stores.values.toStream
       .find(checkBagExists(BagId(itemId.getUuid))(_).isSuccess)
       .map(get(itemId, output, _))
       .getOrElse(Failure(NoSuchBagException(BagId(itemId.getUuid))))

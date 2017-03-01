@@ -71,6 +71,7 @@ class BagStoreService extends BagStoreApp {
 }
 
 case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugEnhancedLogging {
+  // TODO: Refactor away repetitive code in this class
   import app._
   val externalBaseUri = new URI(properties.getString("daemon.external-base-uri"))
 
@@ -81,7 +82,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
 
   get("/stores") {
     contentType = "text/plain"
-    stores.map(s => externalBaseUri.resolve("stores").resolve(s"${s._1}")).map(uri => s"<$uri>").mkString("\n")
+    stores.map(s => externalBaseUri.resolve("stores/").resolve(s"${s._1}")).map(uri => s"<$uri>").mkString("\n")
   }
 
   get("/bags") {
@@ -95,6 +96,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
       })
   }
 
+  // TODO: Boolean -> type aliases.
   private def includedStates(state: Option[String]): (Boolean, Boolean) = {
     state match {
       case Some("all") => (true, true)
@@ -171,19 +173,23 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
   }
 
   put("/stores/:bagstore/bags/:uuid") {
-    stores.get(params("bagstore"))
-        .map(base => {
-          putBag(request.getInputStream, base, params("uuid"))
-            .map(bagId => Created(headers = Map("Location" -> appendUriPathToExternalBaseUri(toUri(bagId), params("bagstore")).toASCIIString)))
-            .onError {
-              case e: IllegalArgumentException if e.getMessage.contains("Invalid UUID string") => BadRequest(s"Invalid UUID: ${params("uuid")}")
-              case _: NumberFormatException => BadRequest(s"Invalid UUID: ${params("uuid")}")
-              case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage)
-              case e =>
-                logger.error("Unexpected type of failure", e)
-                InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
-            }
-        }).getOrElse(NotFound(s"No such bag-store ${params("bagstore")}"))
+    withBagStore(params("bagstore")) { base =>
+      putBag(request.getInputStream, base, params("uuid"))
+        .map(bagId => Created(headers = Map("Location" -> appendUriPathToExternalBaseUri(toUri(bagId), params("bagstore")).toASCIIString)))
+        .onError {
+          case e: IllegalArgumentException if e.getMessage.contains("Invalid UUID string") => BadRequest(s"Invalid UUID: ${ params("uuid") }")
+          case _: NumberFormatException => BadRequest(s"Invalid UUID: ${ params("uuid") }")
+          case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage)
+          case e =>
+            logger.error("Unexpected type of failure", e)
+            InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
+        }
+    }
+  }
+
+  // TODO: use in all REST methods
+  private def withBagStore(name: String)(f: Path => ActionResult): ActionResult = {
+    stores.get(name).map(f).getOrElse(NotFound(s"No such bag-store: $name"))
   }
 
   private def appendUriPathToExternalBaseUri(uri: URI, store: String): URI = {

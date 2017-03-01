@@ -28,10 +28,8 @@ object Command extends App with BagStoreApp {
 
   val opts = CommandLineOptions(args, properties)
   opts.verify()
-  private val bagStoreBaseDir = opts.bagStoreBaseDir.toOption match {
-    case None => opts.storeName.toOption.flatMap(stores.get)
-    case o => o
-  }
+  private val bagStoreBaseDir = opts.bagStoreBaseDir.toOption.orElse(
+    opts.storeName.toOption.flatMap(stores.get))
 
   debug(s"Selected base-dir = $bagStoreBaseDir")
 
@@ -103,9 +101,8 @@ object Command extends App with BagStoreApp {
       complete(cmd.bagDir(), base)
         .map(_ => s"Done completing ${cmd.bagDir()}")
     case Some(cmd @ opts.validate) =>
-      val base = bagStoreBaseDir match {
-        case Some(p) => p
-        case None =>
+      // TODO: apply this pattern throughout this file.
+      val base = bagStoreBaseDir.getOrElse {
           if(stores.size == 1) stores.head._2
           else promptForStore("Please, select the BagStore against which to check localhost references.")
       }
@@ -130,11 +127,12 @@ object Command extends App with BagStoreApp {
   }
 
   private def promptForStore(msg: String): Path = {
-    Stream.continually(()).map {
-      _ =>
+    Stream.continually {
         val name = scala.io.StdIn.readLine(s"$msg\nAvailable BagStores:\n$listStores\nSelect a name: ")
-        stores.get(name)
-    }.map{s => if (s.isEmpty) print("Not found. "); s}.filter(_.isDefined).map(_.get).head
+        val optStore = stores.get(name)
+        if (optStore.isEmpty) print("Not found. ")
+        optStore
+    }.find(_.isDefined).flatten.get
   }
 
   private def runAsService(): Try[FeedBackMessage] = Try {

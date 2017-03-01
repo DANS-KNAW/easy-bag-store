@@ -46,6 +46,7 @@ trait BagStoreApp extends BagStoreContext
   val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
   val bagFacade = new Bagit4Facade()
 
+  // TODO: make this shorter and validate (check path syntax + writeability).
   val stores: Map[String, Path] = {
     val map = mutable.Map[String, Path]()
     val props = new PropertiesConfiguration(Paths.get(System.getProperty("app.home"), "cfg/stores.properties").toFile)
@@ -54,7 +55,6 @@ trait BagStoreApp extends BagStoreContext
   }
 
   protected def validateSettings(): Unit =  {
-    //assert(Files.isWritable(baseDir2), s"Non-existent or non-writable base-dir: $baseDir2")
     assert(Files.isWritable(stagingBaseDir), s"Non-existent or non-writable staging base-dir: $stagingBaseDir")
     assert(uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${uuidPathComponentSizes.sum}")
     assert(Try(PosixFilePermissions.fromString(bagPermissions)).isSuccess, s"Bag file permissions are invalid: '$bagPermissions'")
