@@ -33,11 +33,11 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
             |
             |Usage:
             |
-            |$printedName [--base-dir|-b <dir>] \\
+            |$printedName [{--base-dir|-b <dir>}|{-store|-s <name>}] \\
             |${_________}  | add --uuid|-u <uuid> <bag>
             |${_________}  | get <item-id>
             |${_________}  | enum [--inactive|--all] [<item-id>]
-            |${_________}  | set-(in)active <item-id>
+            |${_________}  | {deactivate|reactivate} <item-id>
             |${_________}  | prune <bag-dir> <ref-bag-id>...
             |${_________}  | complete <bag-dir>
             |${_________}  | validate <bag-dir>
@@ -52,9 +52,18 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
   private def resolveTildeToHomeDir(s: String): String = if (s.startsWith("~")) s.replaceFirst("~", System.getProperty("user.home")) else s
 
   val bagStoreBaseDir: ScallopOption[Path] = opt[Path](name = "base-dir", short = 'b',
-    descr = "bag-store base-dir to use",
-    default = Some(Paths.get(properties.getString("bag-store.base-dir"))))
-  validatePathExists(bagStoreBaseDir)
+    descr = "BagStore base-dir to use")
+  val storeName: ScallopOption[String] = opt[String](name = "store-name", short = 's',
+    descr = "Configured store to use")
+  mutuallyExclusive(bagStoreBaseDir, storeName)
+
+  val list = new Subcommand("list") {
+    descr(
+      """Lists the bag-stores for which a shortname has been defined. These are the bag-stores
+        |that are accessible through the HTTP interface
+      """.stripMargin)
+  }
+  addSubcommand(list)
 
   val add = new Subcommand("add") {
     descr("Adds a bag to the bag-store")

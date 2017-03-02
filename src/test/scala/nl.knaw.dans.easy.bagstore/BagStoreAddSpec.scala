@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.nio.file.{ Path, Paths }
+import java.nio.file.{Path, Paths}
 import java.util.UUID
 
 import org.apache.commons.io.FileUtils
@@ -36,20 +36,20 @@ class BagStoreAddSpec extends BagStoreFixture with BagStoreAdd with BagStorePrun
   private val TEST_BAG_WITH_REFS_C = TEST_BAGS_WITH_REFS.resolve("c")
 
   def testSuccessfulAdd(path: Path, uuid: UUID): Unit = {
-    inside(add(path, Some(uuid))) {
+    inside(add(path, store1, Some(uuid))) {
       case Success(bagId) => bagId.uuid shouldBe uuid
     }
   }
 
   "add" should "result in exact copy (except for bag-info.txt) of bag in archive when bag is valid" in {
-    val tryBagId = add(TEST_BAG_MINIMAL)
+    val tryBagId = add(TEST_BAG_MINIMAL, store1)
     tryBagId shouldBe a[Success[_]]
-    val bagDirInStore = tryBagId.flatMap(toLocation).get
+    val bagDirInStore = tryBagId.flatMap(toLocation(_)(store1)).get
     pathsEqual(TEST_BAG_MINIMAL, bagDirInStore, excludeFiles = "bag-info.txt") shouldBe true
   }
 
   it should "result in a Failure if bag is incomplete" in {
-    add(TEST_BAG_INCOMPLETE) shouldBe a[Failure[_]]
+    add(TEST_BAG_INCOMPLETE, store1) shouldBe a[Failure[_]]
   }
 
   it should "accept virtually-valid bags" in {
@@ -69,7 +69,7 @@ class BagStoreAddSpec extends BagStoreFixture with BagStoreAdd with BagStorePrun
   it should "refuse to ingest hidden bag directories" in {
     val HIDDEN_BAGDIR = testDir.resolve(".some-hidden-bag")
     FileUtils.copyDirectory(TEST_BAG_MINIMAL.toFile, HIDDEN_BAGDIR.toFile)
-    val result = add(HIDDEN_BAGDIR)
+    val result = add(HIDDEN_BAGDIR, store1)
     inside(result) {
       case Failure(e) => e shouldBe a[CannotIngestHiddenBagDirectory]
     }

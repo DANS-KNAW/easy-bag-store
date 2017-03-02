@@ -16,19 +16,22 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.{ Files, Path }
+import java.nio.file.{Files, Path}
 import java.util.UUID
 
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.apache.commons.io.FileUtils
 
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeComponent with DebugEnhancedLogging =>
 
-  def add(bagDir: Path, uuid: Option[UUID] = None, skipStage: Boolean = false): Try[BagId] = {
+  def add(bagDir: Path, toStore: Path, uuid: Option[UUID] = None, skipStage: Boolean = false): Try[BagId] = {
+    implicit val baseDir = toStore
+
     trace(bagDir)
     if (Files.isHidden(bagDir))
       Failure(CannotIngestHiddenBagDirectory(bagDir))
@@ -39,18 +42,19 @@ trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeCompo
         newUuid
       })
       for {
-        staged <- if (skipStage) Try { bagDir } else stageBagDir(bagDir)
-        maybeRefbags <- getReferenceBags(staged)
+        staging <- if (skipStage) Try { bagDir.getParent } else stageBagDir(bagDir)
+        maybeRefbags <- getReferenceBags(staging.resolve(bagDir.getFileName))
         _ = debug(s"refbags tempfile: $maybeRefbags")
-        valid <- isVirtuallyValid(staged)
+        valid <- isVirtuallyValid(staging.resolve(bagDir.getFileName))
         if valid
-        _ <- maybeRefbags.map(pruneWithReferenceBags(staged)).getOrElse(Success(()))
+        _ <- maybeRefbags.map(pruneWithReferenceBags(staging.resolve(bagDir.getFileName))).getOrElse(Success(()))
         _ = debug("bag succesfully pruned")
         container <- toContainer(bagId)
         _ <- Try { Files.createDirectories(container) }
         _ <- makePathAndParentsInBagStoreGroupWritable(container)
         _ = debug(s"created container for Bag: $container")
-        _ <- ingest(bagDir.getFileName, staged, container)
+        _ <- ingest(bagDir.getFileName, staging, container)
+        _ <- Try { FileUtils.deleteDirectory(staging.toFile) }
       } yield bagId
     }
   }
@@ -73,30 +77,30 @@ trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeCompo
     else None
   }
 
-  private def pruneWithReferenceBags(bagDir: Path)(refbags: Path): Try[Unit] = {
+  private def pruneWithReferenceBags(bagDir: Path)(refbags: Path)(implicit baseDir: Path): Try[Unit] = {
     trace(bagDir, refbags)
     for {
       refs <- Try { Files.readAllLines(refbags).asScala.map(UUID.fromString _ andThen BagId) }
-      _ <- prune(bagDir, refs:_*)
+      _ <- prune(bagDir, baseDir, refs:_*)
       _ <- Try { Files.delete(refbags) }
     } yield ()
   }
 
-  private def ingest(bagName: Path, staged: Path, container: Path): Try[Unit] = {
-    trace(bagName, staged, container)
+  private def ingest(bagName: Path, staging: Path, container: Path)(implicit baseDir: Path): Try[Unit] = {
+    trace(bagName, staging, container)
     val moved = container.resolve(bagName)
-    setPermissions(bagPermissions)(staged)
+    setPermissions(bagPermissions)(staging.resolve(bagName))
       .map(Files.move(_, moved))
       .map(_ => ())
       .recoverWith {
         case NonFatal(e) =>
-          logger.error(s"Failed to move staged directory into container: $staged -> $moved", e)
+          logger.error(s"Failed to move staged directory into container: ${staging.resolve(bagName)} -> $moved", e)
           removeEmptyParentDirectoriesInBagStore(container)
-          Failure(MoveToStoreFailedException(staged, container))
+          Failure(MoveToStoreFailedException(staging.resolve(bagName), container))
       }
   }
 
-  private def makePathAndParentsInBagStoreGroupWritable(path: Path): Try[Unit] = {
+  private def makePathAndParentsInBagStoreGroupWritable(path: Path)(implicit baseDir: Path): Try[Unit] = {
     for {
       seq <- getPathsInBagStore(path)
       _ <- seq.map(makeGroupWritable).collectResults
@@ -108,7 +112,7 @@ trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeCompo
     Files.setPosixFilePermissions(path, permissions.union(Set(PosixFilePermission.GROUP_WRITE)).asJava)
   }
 
-  private def removeEmptyParentDirectoriesInBagStore(container: Path): Try[Unit] = {
+  private def removeEmptyParentDirectoriesInBagStore(container: Path)(implicit baseDir: Path): Try[Unit] = {
     getPathsInBagStore(container).flatMap(paths => removeDirectoriesIfEmpty(paths.reverse))
   }
 
@@ -120,7 +124,7 @@ trait BagStoreAdd { this: BagStoreContext with BagStorePrune with BagFacadeCompo
     if (listFiles(path).isEmpty) Files.delete(path)
   }
 
-  private def getPathsInBagStore(path: Path): Try[Seq[Path]] = Try {
+  private def getPathsInBagStore(path: Path)(implicit baseDir: Path): Try[Seq[Path]] = Try {
     val pathComponents = baseDir.relativize(path).asScala.toSeq
     pathComponents.indices.map(i => baseDir.resolve(pathComponents.slice(0, i + 1).mkString("/")))
   }

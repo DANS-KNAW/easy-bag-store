@@ -3,6 +3,7 @@ Vagrant.configure(2) do |config|
       testvm.vm.box = "centos/6"
       testvm.vm.hostname = "testvm"
       testvm.vm.network :private_network, ip: "192.168.33.32"
+      testvm.vm.network "forwarded_port", guest: 80, host: 8080
       testvm.vm.provision "ansible" do |ansible|
         ansible.playbook = "src/main/ansible/vagrant.yml"
         ansible.config_file = "src/main/ansible/ansible.cfg"

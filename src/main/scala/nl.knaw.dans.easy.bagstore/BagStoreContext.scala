@@ -17,11 +17,12 @@ package nl.knaw.dans.easy.bagstore
 
 import java.io.{IOException, InputStream}
 import java.net.URI
-import java.nio.file.attribute.{BasicFileAttributes, PosixFilePermissions}
 import java.nio.file._
+import java.nio.file.attribute.{BasicFileAttributes, PosixFilePermissions}
 import java.util.UUID
 
 import net.lingala.zip4j.core.ZipFile
+import net.lingala.zip4j.model.ZipParameters
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
@@ -42,9 +43,8 @@ import scala.util.{Failure, Success, Try}
 trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
   import logger._
 
-  val baseDir: Path
-  // Must be absolute.
-  val baseUri: URI
+  val stores: Map[String, Path]
+  val localBaseUri: URI
   val stagingBaseDir: Path
   val uuidPathComponentSizes: Seq[Int]
   val bagPermissions: String
@@ -59,7 +59,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
    * @param path the path for which to construct an item-id
    * @return the item-id
    */
-  protected def fromLocation(path: Path): Try[ItemId] = {
+  protected def fromLocation(path: Path)(implicit baseDir: Path): Try[ItemId] = {
     Try {
       val p = baseDir.relativize(path.toAbsolutePath)
       val nameCount = p.getNameCount
@@ -103,7 +103,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     }
 
     val UriComponents(scheme, _, host, port, path, _, _) = uri
-    val UriComponents(baseUriScheme, _, baseUriHost, baseUriPort, baseUriPath, _, _) = baseUri
+    val UriComponents(baseUriScheme, _, baseUriHost, baseUriPort, baseUriPath, _, _) = localBaseUri
 
     if (scheme == baseUriScheme && host == baseUriHost && port == baseUriPort && (baseUriPath.toString == "" || path.startsWith(baseUriPath))) {
       // The path part after the base-uri is basically the item-id, but in a Path object.
@@ -122,16 +122,16 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
           Try(bagId)
       }
     }
-    else Failure(NoItemUriException(uri, baseUri))
+    else Failure(NoItemUriException(uri, localBaseUri))
   }
 
   /**
    * Returns the location of the Bag's container directory.
    *
-   * @param id
+   * @param id the item-id
    * @return
    */
-  def toContainer(id: ItemId): Try[Path] = Try {
+  def toContainer(id: ItemId)(implicit baseDir: Path): Try[Path] = Try {
     def uuidToPath(uuid: UUID): Path = {
       val (result, _) = uuidPathComponentSizes.foldLeft((Seq[String](), uuid.toString.filterNot(_ == '-'))) {
         case ((acc, rest), size) =>
@@ -155,7 +155,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
    * @param id the item-id
    * @return the item-location
    */
-  protected def toLocation(id: ItemId): Try[Path] = {
+  protected def toLocation(id: ItemId)(implicit baseDir: Path): Try[Path] = {
     for {
       container <- toContainer(id)
       path <- Try {
@@ -168,15 +168,16 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
           case FileId(_, path) => bagDir.resolve(path)
         }
       }
+      _ = debug(s"Item $id located at $path")
     } yield path
   }
 
   /**
    * Returns the path at which the File with the specified file-id is actually stored in the BagStore.
    *
-   * @param fileId
+   * @param fileId id of the file to look for
    */
-  def toRealLocation(fileId: FileId): Try[Path] = {
+  def toRealLocation(fileId: FileId)(implicit baseDir: Path): Try[Path] = {
     for {
       path <- toLocation(fileId)
       realPath <- if (Files.exists(path)) Try(path)
@@ -186,7 +187,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     } yield realPath
   }
 
-  private def getFetchUri(fileId: FileId): Try[URI] = {
+  private def getFetchUri(fileId: FileId)(implicit baseDir: Path): Try[URI] = {
     for {
       bagDir <- toLocation(fileId.bagId)
       items <- bagFacade.getFetchItems(bagDir)
@@ -199,7 +200,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
    * @param id the item-id
    * @return the item-uri
    */
-  def toUri(id: ItemId): URI = baseUri.resolve("/" + id.toString)
+  def toUri(id: ItemId): URI = localBaseUri.resolve("/" + id.toString)
 
   /**
    * Utility function that copies a directory to a staging area. This is used to stage bag directories for
@@ -210,16 +211,16 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
    */
   protected def stageBagDir(dir: Path): Try[Path] = Try {
     trace(dir)
-    val staged = Files.createTempFile(stagingBaseDir, "staged-bag-", "")
-    Files.deleteIfExists(staged)
-    FileUtils.copyDirectory(dir.toFile, staged.toFile)
-    debug(s"Staged directory $dir in $staged")
-    staged
+    val staging = Files.createTempFile(stagingBaseDir, "bagdir-staging-", "")
+    Files.deleteIfExists(staging)
+    FileUtils.copyDirectoryToDirectory(dir.toFile, staging.toFile)
+    debug(s"Staging directory $dir into $staging")
+    staging
   }
 
   def stageBagZip(is: InputStream): Try[Path] = Try {
     trace(is)
-    val extractDir = Files.createTempFile(stagingBaseDir, "staged-zip-", "")
+    val extractDir = Files.createTempFile(stagingBaseDir, "bagzip-staging-", "")
     Files.deleteIfExists(extractDir)
     Files.createDirectory(extractDir)
     val zip = extractDir.resolve("bag.zip")
@@ -227,16 +228,27 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     new ZipFile(zip.toFile).extractAll(extractDir.toAbsolutePath.toString)
     Files.delete(zip)
     extractDir
-  }.flatMap(findBagDir)
+  }
 
-  private def findBagDir(extractDir: Path): Try[Path] = Try {
+  def findBagDir(extractDir: Path): Try[Path] = Try {
     val files = listFiles(extractDir)
     if (files.size != 1) throw IncorrectNumberOfFilesInBagZipRootException(files.size)
     else if(!Files.isDirectory(files.head)) throw BagBaseNotFoundException()
     else files.head
   }
 
-  protected def mapProjectedToRealLocation(bagDir: Path): Try[Seq[(Path, Path)]] = {
+  def stageBagZip(path: Path): Try[Path] = Try {
+    trace(path)
+    val staging = Files.createTempFile(stagingBaseDir, "bagzip-staging-", "")
+    Files.deleteIfExists(staging)
+    Files.createDirectory(staging)
+    val zf = new ZipFile(staging.resolve(path.getFileName).toFile)
+    val parameters = new ZipParameters
+    zf.addFolder(path.toFile, parameters)
+    staging
+  }
+
+  protected def mapProjectedToRealLocation(bagDir: Path)(implicit baseDir: Path): Try[Seq[(Path, Path)]] = {
     for {
       items <- bagFacade.getFetchItems(bagDir)
       mapping <- items.map(item => {
@@ -249,7 +261,7 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     } yield mapping
   }
 
-  protected def isVirtuallyValid(bagDir: Path): Try[Boolean] =  {
+  protected def isVirtuallyValid(bagDir: Path)(implicit baseDir: Path): Try[Boolean] =  {
     def getExtraDirectories(links: Seq[Path]): Try[Seq[Path]] = Try {
       val dirs = for {
         link <- links
@@ -335,24 +347,33 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     List(s.slice(0, 8), s.slice(8, 12), s.slice(12, 16), s.slice(16, 20), s.slice(20, 32)).mkString("-")
   }
 
-  protected def checkBagExists(bagId: BagId): Try[Unit] = {
+  protected def checkBagExists(bagId: BagId)(implicit baseDir: Path): Try[Unit] = {
+    trace(bagId)
     toContainer(bagId).flatMap {
       /*
        * If the container exists, the Bag must exist. This function does not check for corruption of the BagStore.
        */
-      case f if Files.exists(f) && Files.isDirectory(f) => Success(())
-      case _ => Failure(NoSuchBagException(bagId))
+      case f if Files.exists(f) && Files.isDirectory(f) =>
+        debug("Returning success (bag exists)")
+        Success(())
+      case _ =>
+        debug("Return failure (bag does not exist)")
+        Failure(NoSuchBagException(bagId))
     }
   }
 
   def checkBagDoesNotExist(bagId: BagId): Try[Unit] = {
-    toContainer(bagId).flatMap {
-      case f if Files.exists(f) && Files.isDirectory(f) => Failure(BagIdAlreadyAssignedException(bagId))
-      case _ => Success(())
-    }
+    stores.map { case (name, base) =>
+      implicit val baseDir = base
+      toContainer(bagId).flatMap {
+        case f if Files.exists(f) => if (Files.isDirectory(f)) Failure(BagIdAlreadyAssignedException(bagId, name))
+                                     else Failure(CorruptBagStoreException("Regular file in the place of a container: $f"))
+        case _ => Success(())
+      }
+    }.collectResults.map(_ => ())
   }
 
-  protected def isHidden(bagId: BagId): Try[Boolean] = {
+  protected def isHidden(bagId: BagId)(implicit baseDir: Path): Try[Boolean] = {
     toLocation(bagId).map(Files.isHidden)
   }
 

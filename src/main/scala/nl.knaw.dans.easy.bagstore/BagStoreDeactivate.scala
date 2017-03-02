@@ -15,12 +15,30 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.nio.file.Files
+import java.nio.file.{Files, Path}
 
 import scala.util.{Failure, Success, Try}
 
 trait BagStoreDeactivate { this: BagStoreContext =>
-  def deactivate(bagId: BagId): Try[Unit] = {
+  // TODO: Refactor this to git rid of repetitive code.
+
+  def deactivate(bagId: BagId, fromStore: Option[Path] = None): Try[Unit] = {
+    fromStore
+      .map(_.toAbsolutePath)
+      .map(deactivate(bagId, _))
+      .getOrElse(deactivateInAnyStore(bagId))
+  }
+
+  def deactivateInAnyStore(bagId: BagId): Try[Unit] = {
+    stores.toStream.map(_._2)
+      .find(checkBagExists(bagId)(_).isSuccess)
+      .map(deactivate(bagId, _))
+      .getOrElse(Failure(NoSuchBagException(bagId)))
+  }
+
+  def deactivate(bagId: BagId, fromStore: Path): Try[Unit] = {
+    implicit val baseDir = fromStore
+
     for {
       _ <- checkBagExists(bagId)
       path <- toLocation(bagId)
@@ -30,7 +48,23 @@ trait BagStoreDeactivate { this: BagStoreContext =>
     } yield ()
   }
 
-  def reactivate(bagId: BagId): Try[Unit] = {
+  def reactivate(bagId: BagId, fromStore: Option[Path] = None): Try[Unit] = {
+    fromStore
+      .map(_.toAbsolutePath)
+      .map(reactivate(bagId, _))
+      .getOrElse(reactivateInAnyStore(bagId))
+  }
+
+  def reactivateInAnyStore(bagId: BagId): Try[Unit] = {
+    stores.toStream.map(_._2)
+      .find(checkBagExists(bagId)(_).isSuccess)
+      .map(reactivate(bagId, _))
+      .getOrElse(Failure(NoSuchBagException(bagId)))
+  }
+
+  def reactivate(bagId: BagId, fromStore: Path): Try[Unit] = {
+    implicit val baseDir = fromStore
+
     for {
       _ <- checkBagExists(bagId)
       path <- toLocation(bagId)

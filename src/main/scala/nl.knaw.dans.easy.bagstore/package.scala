@@ -32,12 +32,14 @@ package object bagstore {
   case class AlreadyInactiveException(bagId: BagId) extends Exception(s"$bagId is already hidden")
   case class NotInactiveException(bagId: BagId) extends Exception(s"$bagId is already visible")
   case class NoSuchBagException(bagId: BagId) extends Exception(s"$bagId does not exist in BagStore")
-  case class BagIdAlreadyAssignedException(bagId: BagId) extends Exception(s"$bagId already exists in BagStore")
+  case class BagIdAlreadyAssignedException(bagId: BagId, store: String) extends Exception(s"$bagId already exists in BagStore $store (bag-ids must be globally unique)")
   case class CannotIngestHiddenBagDirectory(bagDir: Path) extends Exception(s"Cannot ingest hidden directory $bagDir")
   case class IncorrectNumberOfFilesInBagZipRootException(n: Int) extends Exception(s"There must be exactly one file in the root directory of the zipped bag, found $n")
   case class BagBaseNotFoundException() extends Exception(s"The zipped bag contains no bag base directory")
   case class NoBagIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a bag-id")
   case class NoFileIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a file-id")
+  case class CorruptBagStoreException(reason: String) extends Exception(s"BagStore seems to be corrupt: $reason")
+  case class OutputAlreadyExists(path: Path) extends Exception(s"Output path already exists; not overwriting $path")
 
   val CONTEXT_ATTRIBUTE_KEY_BAGSTORE_APP = "nl.knaw.dans.easy.bagstore.BagStoreApp"
 

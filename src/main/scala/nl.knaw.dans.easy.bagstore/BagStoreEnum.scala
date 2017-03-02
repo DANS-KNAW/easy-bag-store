@@ -15,15 +15,28 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.nio.file.{FileVisitOption, Files}
+import java.nio.file.{FileVisitOption, Files, Path}
+
+import nl.knaw.dans.lib.error._
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 import scala.collection.JavaConverters._
-import scala.util.Try
+import scala.util.{Failure, Try}
 
-trait BagStoreEnum { this: BagFacadeComponent with BagStoreContext =>
+trait BagStoreEnum { this: BagFacadeComponent with BagStoreContext with DebugEnhancedLogging =>
 
   // TODO: support huge numbers of bags. (The stream should then probably NOT be converted in to a List anymore!)
-  def enumBags(includeVisible: Boolean = true, includeHidden: Boolean = false): Try[Seq[BagId]] = Try {
+  def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false, fromStore: Option[Path] = None): Try[Seq[BagId]] =  {
+    fromStore.map(enumBags(includeActive, includeInactive, _)).getOrElse(
+        stores.values
+          .map(enumBags(includeActive, includeInactive, _))
+          .collectResults
+          .map(_.reduce(_ ++ _)))
+  }
+
+  def enumBags(includeActive: Boolean, includeInactive: Boolean, fromStore: Path): Try[Seq[BagId]] = Try {
+    implicit val baseDir = fromStore
+
     resource.managed(Files.walk(baseDir, uuidPathComponentSizes.size, FileVisitOption.FOLLOW_LINKS)).acquireAndGet {
       _.iterator().asScala.toStream
         .map(baseDir.relativize)
@@ -31,21 +44,34 @@ trait BagStoreEnum { this: BagFacadeComponent with BagStoreContext =>
         .map(p => fromLocation(baseDir.resolve(p)).flatMap(_.toBagId).get) // TODO: is there a better way to fail fast ?
         .filter(bagId => {
         val hiddenBag = isHidden(bagId).get
-        hiddenBag && includeHidden || !hiddenBag && includeVisible
+        hiddenBag && includeInactive || !hiddenBag && includeActive
       }).toList
     }
   }
 
-  def enumFiles(bagId: BagId): Try[Stream[FileId]] = {
-    for {
-      path <- toLocation(bagId)
-      ppaths <- bagFacade.getPayloadFilePaths(path)
-    } yield listFiles(path)
-      .withFilter(Files.isRegularFile(_))
-      .map(path.relativize)
-      .toSet
-      .union(ppaths)
-      .map(FileId(bagId, _))
-      .toStream
+  def enumFiles(bagId: BagId, fromStore: Option[Path] = None): Try[Stream[FileId]] = {
+    fromStore
+      .map(enumFiles(bagId, _)).getOrElse(
+      stores.toStream.map(_._2)
+        .find(checkBagExists(bagId)(_).isSuccess)
+        .map(enumFiles(bagId, _)).getOrElse(Failure(NoSuchBagException(bagId))))
+  }
+
+  def enumFiles(bagId: BagId, fromStore: Path): Try[Stream[FileId]] = {
+    implicit val baseDir = fromStore
+
+    checkBagExists(bagId).flatMap { _ =>
+        for {
+          path <- toLocation(bagId)
+          ppaths <- bagFacade.getPayloadFilePaths(path)
+          _ = debug(s"Payload files: $ppaths")
+        } yield listFiles(path)
+          .withFilter(Files.isRegularFile(_))
+          .map(path.relativize)
+          .toSet
+          .union(ppaths)
+          .map(FileId(bagId, _))
+          .toStream
+    }
   }
 }

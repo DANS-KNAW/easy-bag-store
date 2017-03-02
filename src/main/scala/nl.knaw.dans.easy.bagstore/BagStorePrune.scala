@@ -36,11 +36,13 @@ trait BagStorePrune { this: BagFacadeComponent with BagStoreContext with DebugEn
    * @param refBag the reference Bags to search
    * @return
    */
-  def prune(bagDir: Path, refBag: BagId*): Try[Unit] = {
+  def prune(bagDir: Path, fromStore: Path, refBag: BagId*): Try[Unit] = {
+    implicit val baseDir = fromStore
+
     replaceRedundantFilesWithFetchReferences(bagDir, refBag.toList)
   }
 
-  private def replaceRedundantFilesWithFetchReferences(bagDir: Path, refBags: List[BagId]): Try[Unit] = {
+  private def replaceRedundantFilesWithFetchReferences(bagDir: Path, refBags: List[BagId])(implicit baseDir: Path): Try[Unit] = {
     trace(bagDir, refBags)
     val result = for {
       refBagLocations <- refBags.map(toLocation).collectResults
@@ -69,11 +71,11 @@ trait BagStorePrune { this: BagFacadeComponent with BagStoreContext with DebugEn
     result
   }
 
-  private def getChecksumToUriMap(refBags: Seq[BagId], algorithm: Algorithm): Try[Map[String, URI]] = {
+  private def getChecksumToUriMap(refBags: Seq[BagId], algorithm: Algorithm)(implicit baseDir: Path): Try[Map[String, URI]] = {
     refBags.map(getChecksumToUriMap(_, algorithm)).collectResults.map(_.reduce(_ ++ _))
   }
 
-  private def getChecksumToUriMap(refBag: BagId, algorithm: Algorithm): Try[Map[String, URI]] = {
+  private def getChecksumToUriMap(refBag: BagId, algorithm: Algorithm)(implicit baseDir: Path): Try[Map[String, URI]] = {
     trace(refBag, algorithm)
     for {
       refBagDir <- toLocation(refBag)

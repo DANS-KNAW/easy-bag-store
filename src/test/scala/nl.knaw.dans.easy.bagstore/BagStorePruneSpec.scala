@@ -28,9 +28,9 @@ class BagStorePruneSpec extends BagStoreFixture with BagStorePrune with BagStore
   private val TEST_BAG_C = testDir.resolve("c")
 
   "prune" should "change files present in ref-bags to fetch.txt entries" in {
-    val tryA = add(TEST_BAG_A)
+    val tryA = add(TEST_BAG_A, store1)
     tryA shouldBe a[Success[_]]
-    prune(TEST_BAG_B, tryA.get) shouldBe a[Success[_]]
+    prune(TEST_BAG_B, store1, tryA.get) shouldBe a[Success[_]]
 
     /*
      * Now follow checks on the content of of the ingested bags. Each file should be EITHER actually present in the
@@ -47,46 +47,46 @@ class BagStorePruneSpec extends BagStoreFixture with BagStorePrune with BagStore
     val uuidForA = tryA.get.uuid
 
     // data/sub/u      unchanged               => reference in fetch.txt
-    bFetchTxt should include regex s"""\n?$baseUri/$uuidForA/data/sub/u\\s+\\d+\\s+data/sub/u\n"""
+    bFetchTxt should include regex s"""\n?$localBaseUri/$uuidForA/data/sub/u\\s+\\d+\\s+data/sub/u\n"""
     TEST_BAG_B.resolve("data/sub/u").toFile shouldNot exist
 
     // [data/sub/v]    moved                   => not present here, no reference in fetch.txt
-    bFetchTxt should not include regex(s"""\n?$baseUri.*\\s+\\d+\\s+data/sub/v\n""")
+    bFetchTxt should not include regex(s"""\n?$localBaseUri.*\\s+\\d+\\s+data/sub/v\n""")
     TEST_BAG_B.resolve("data/sub/v").toFile shouldNot exist
 
     // [data/sub/w]    deleted                 => not present here, no reference in fetch.txt
-    bFetchTxt should not include regex(s"""\n?$baseUri.*\\s+\\d+\\s+data/sub/w\n""")
+    bFetchTxt should not include regex(s"""\n?$localBaseUri.*\\s+\\d+\\s+data/sub/w\n""")
     TEST_BAG_B.resolve("data/sub/w").toFile shouldNot exist
 
     // data/v          moved                   => reference in fetch.txt
-    bFetchTxt should include regex s"""\n?$baseUri/$uuidForA/data/sub/v\\s+\\d+\\s+data/v\n"""
+    bFetchTxt should include regex s"""\n?$localBaseUri/$uuidForA/data/sub/v\\s+\\d+\\s+data/v\n"""
     TEST_BAG_B.resolve("data/v").toFile shouldNot exist
     TEST_BAG_B.resolve("data/sub/v").toFile shouldNot exist
 
     // data/x          unchanged               => reference in fetch.txt
-    bFetchTxt should include regex s"""\n?$baseUri/$uuidForA/data/x\\s+\\d+\\s+data/x\n"""
+    bFetchTxt should include regex s"""\n?$localBaseUri/$uuidForA/data/x\\s+\\d+\\s+data/x\n"""
     TEST_BAG_B.resolve("data/x").toFile shouldNot exist
 
     // data/y          changed                 => actual file
-    bFetchTxt should not include regex(s"""\n?$baseUri.*\\s+\\d+\\s+data/y\n""")
+    bFetchTxt should not include regex(s"""\n?$localBaseUri.*\\s+\\d+\\s+data/y\n""")
     TEST_BAG_B.resolve("data/y").toFile should exist
     io.Source.fromFile(TEST_BAG_B.resolve("data/y").toFile).mkString should include("content of y edited in b")
 
     // data/y-old      copy of y               => reference in fetch.txt
-    bFetchTxt should include regex s"""\n?$baseUri/$uuidForA/data/y\\s+\\d+\\s+data/y-old\n"""
+    bFetchTxt should include regex s"""\n?$localBaseUri/$uuidForA/data/y\\s+\\d+\\s+data/y-old\n"""
     TEST_BAG_B.resolve("data/y-old").toFile shouldNot exist
 
     // [data/z]        deleted                 => not present, no reference in fetch.txt
-    bFetchTxt should not include regex(s"""\n?$baseUri.*\\s+\\d+\\s+data/z\n""")
+    bFetchTxt should not include regex(s"""\n?$localBaseUri.*\\s+\\d+\\s+data/z\n""")
     TEST_BAG_B.resolve("data/z").toFile shouldNot exist
 
     /*
      * Adding the now pruned Bag B so that C may reference it
      */
-    val tryB = add(TEST_BAG_B)
+    val tryB = add(TEST_BAG_B, store1)
     tryB shouldBe a[Success[_]]
 
-    prune(TEST_BAG_C, tryA.get, tryB.get)
+    prune(TEST_BAG_C, store1, tryA.get, tryB.get)
 
     /*
      * Check bag C
@@ -95,39 +95,39 @@ class BagStorePruneSpec extends BagStoreFixture with BagStorePrune with BagStore
     val uuidForB = tryB.get.uuid
 
     // data/sub/q      new file                => actual file
-    cFetchTxt should not include regex(s"""\n?$baseUri.*\\s+\\d+\\s+data/sub/q\n""")
+    cFetchTxt should not include regex(s"""\n?$localBaseUri.*\\s+\\d+\\s+data/sub/q\n""")
     TEST_BAG_C.resolve("data/sub/q").toFile should exist
 
     // data/sub/w      restored file from a
-    cFetchTxt should include regex s"""\n?$baseUri/$uuidForA/data/sub/w\\s+\\d+\\s+data/sub/w\n"""
+    cFetchTxt should include regex s"""\n?$localBaseUri/$uuidForA/data/sub/w\\s+\\d+\\s+data/sub/w\n"""
     TEST_BAG_C.resolve("data/sub/w").toFile shouldNot exist
 
     // data/sub-copy/u the same as in b        => reference in fetch.txt to a (copied from b's fetch.txt)
-    cFetchTxt should include regex s"""\n?$baseUri/$uuidForA/data/sub/u\\s+\\d+\\s+data/sub-copy/u\n"""
+    cFetchTxt should include regex s"""\n?$localBaseUri/$uuidForA/data/sub/u\\s+\\d+\\s+data/sub-copy/u\n"""
     TEST_BAG_C.resolve("data/sub-copy/u").toFile shouldNot exist
 
     // data/p          new file                => actual file
-    cFetchTxt should not include regex(s"""\n?$baseUri.*\\s+\\d+\\s+data/p\n""")
+    cFetchTxt should not include regex(s"""\n?$localBaseUri.*\\s+\\d+\\s+data/p\n""")
     TEST_BAG_C.resolve("data/p").toFile should exist
 
     // data/x          unchanged               => reference in fetch.txt to a
-    cFetchTxt should include regex s"""\n?$baseUri/$uuidForA/data/x\\s+\\d+\\s+data/x\n"""
+    cFetchTxt should include regex s"""\n?$localBaseUri/$uuidForA/data/x\\s+\\d+\\s+data/x\n"""
     TEST_BAG_C.resolve("data/x").toFile shouldNot exist
 
     // data/y          unchanged               => reference in fetch.txt to b
-    cFetchTxt should include regex s"""\n?$baseUri/$uuidForB/data/y\\s+\\d+\\s+data/y\n"""
+    cFetchTxt should include regex s"""\n?$localBaseUri/$uuidForB/data/y\\s+\\d+\\s+data/y\n"""
     TEST_BAG_C.resolve("data/y").toFile shouldNot exist
 
     // data/y-old      unchanged               => reference in fetch.txt to a
-    cFetchTxt should include regex s"""\n?$baseUri/$uuidForA/data/y\\s+\\d+\\s+data/y-old\n"""
+    cFetchTxt should include regex s"""\n?$localBaseUri/$uuidForA/data/y\\s+\\d+\\s+data/y-old\n"""
     TEST_BAG_C.resolve("data/y-old").toFile shouldNot exist
 
     // [data/v]        deleted                 => not present here, no reference in fetch.txt
-    cFetchTxt should not include regex(s"""\n?$baseUri.*\\s+\\d+\\s+data/v\n""")
+    cFetchTxt should not include regex(s"""\n?$localBaseUri.*\\s+\\d+\\s+data/v\n""")
     TEST_BAG_C.resolve("data/v").toFile shouldNot exist
 
     // data/z          unchanged               => reference in fetch.txt to a
-    cFetchTxt should include regex s"""\n?$baseUri/$uuidForA/data/z\\s+\\d+\\s+data/z\n"""
+    cFetchTxt should include regex s"""\n?$localBaseUri/$uuidForA/data/z\\s+\\d+\\s+data/z\n"""
     TEST_BAG_C.resolve("data/z").toFile shouldNot exist
   }
 }
