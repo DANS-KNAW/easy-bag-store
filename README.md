@@ -92,7 +92,7 @@ where there is a legal obligation to destroy the data. For other use cases there
 
 
 [easy-bag-index]: https://github.com/DANS-KNAW/easy-bag-index
-[Clean-up BagStore]: ./migrations.md#cleanup-bagstore
+[Clean-up BagStore]: ./migrations.md#clean-up-bagstore
 
 ### Summary of Structure and Operations
 
