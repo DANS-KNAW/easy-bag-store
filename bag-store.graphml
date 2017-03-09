@@ -153,10 +153,10 @@ local-item-uri = "http://localhost/" + item-id</y:NodeLabel>
           <y:Geometry height="101.0" width="377.0" x="844.5" y="233.0"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="88.796875" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tl" textColor="#000000" verticalTextPosition="bottom" visible="true" width="328.48046875" x="4.0" y="4.0">LOCATIONS
+          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="88.796875" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tl" textColor="#000000" verticalTextPosition="bottom" visible="true" width="343.66796875" x="4.0" y="4.0">LOCATIONS
 
 item-location = bag-location | file-location
-bag-location = base-dir/slashed(bag-id)/bag-base-dir
+bag-location = base-dir / slashed(bag-id) / bag-base-dir
 file-location = bag-location / path-in-bag
 
 </y:NodeLabel>
@@ -183,7 +183,6 @@ ERASE ( file-id... )
       </data>
     </node>
     <node id="n8">
-      <data key="d5"/>
       <data key="d6">
         <y:ShapeNode>
           <y:Geometry height="18.1328125" width="9.783203125" x="666.0" y="214.8671875"/>
@@ -195,7 +194,6 @@ ERASE ( file-id... )
       </data>
     </node>
     <node id="n9">
-      <data key="d5"/>
       <data key="d6">
         <y:ShapeNode>
           <y:Geometry height="18.1328125" width="9.783203125" x="635.1083984375" y="504.0"/>
@@ -237,7 +235,6 @@ ERASE ( file-id... )
       </data>
     </edge>
     <edge id="e3" source="n2" target="n3">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="35.5" sy="1.5" tx="-53.5" ty="6.5"/>
@@ -248,7 +245,6 @@ ERASE ( file-id... )
       </data>
     </edge>
     <edge id="e4" source="n1" target="n3">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="82.0" sy="5.5" tx="37.5" ty="3.5"/>
