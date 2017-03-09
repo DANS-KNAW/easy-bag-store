@@ -19,7 +19,7 @@
   vars:
     force_reinstalls: yes
     easy_bag_stores_remove_default: yes
-    easy_bag_stores:
+    easy_bag_store:
       - { name: "store1",     base_dir: "/var/local/store1" }
       - { name: "store2",     base_dir: "/var/local/store2" }
     easy_bag_store_external_base_uri: "http://localhost:8080/"

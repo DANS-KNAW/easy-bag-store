@@ -28,7 +28,9 @@ SYNOPSIS
 DESCRIPTION
 -----------
 
-A BagStore is a way to store and identify data packages following a few very simple rules. 
+A BagStore is a way to store and identify data packages following a few very simple rules.
+ 
+(See [tutorial] for a more hands-on introduction.)
 
 ### Structure
 1. **DEFINITION**: a **BagStore** is a collection of immutable **Bag**s (see [BagIt]) stored on a 
@@ -61,6 +63,7 @@ A BagStore is a way to store and identify data packages following a few very sim
 5. **INACTIVE**: a Bag is either **active** or **inactive**. It starts off active. The item-ids of a Bag and the Files 
    it contains stay the same whether the Bag is active or inactive. 
 
+[tutorial]: ./tutorial.md
 [BagIt]: https://tools.ietf.org/html/draft-kunze-bagit
 [as defined by the BagIt specs]: https://tools.ietf.org/html/draft-kunze-bagit#section-3
 [UUID]: https://en.wikipedia.org/wiki/Universally_unique_identifier
@@ -89,7 +92,6 @@ where there is a legal obligation to destroy the data. For other use cases there
   form the revision history of one logical (and mutable) Bag. See for an example implementation the
   [easy-bag-index] project.
 * To clean up a BagStore that has gathered too much "garbage", do a [Clean-up BagStore] migration.
-
 
 [easy-bag-index]: https://github.com/DANS-KNAW/easy-bag-index
 [Clean-up BagStore]: ./migrations.md#clean-up-bagstore
