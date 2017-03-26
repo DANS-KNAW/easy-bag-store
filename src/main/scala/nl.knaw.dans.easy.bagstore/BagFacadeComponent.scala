@@ -1,11 +1,11 @@
 /**
- * Copyright (C) 2016-17 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
+ * Copyright (C) 2016 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,7 +40,8 @@ trait BagFacadeComponent {
 
   val bagFacade: BagFacade
 
-  trait BagFacade { this: DebugEnhancedLogging =>
+  trait BagFacade {
+    this: DebugEnhancedLogging =>
     val FETCH_TXT_FILENAME = "fetch.txt"
 
     def isValid(bagDir: Path): Try[Boolean]
@@ -58,7 +59,7 @@ trait BagFacadeComponent {
     def writeFetchFile(bagDir: Path, fetchList: List[FetchItem]): Try[Unit] =
       Using.fileWriter()(bagDir.resolve("fetch.txt").toFile)
         .map(writer => fetchList.foreach {
-          case FetchItem(uri, size, path) => writer.write(s"${uri.toASCIIString}  $size  $path\n")
+          case FetchItem(uri, size, path) => writer.write(s"${ uri.toASCIIString }  $size  $path\n")
         })
         .tried
 
@@ -151,7 +152,7 @@ trait Bagit4FacadeComponent extends BagFacadeComponent {
      * @param bagDir the virtually bag
      * @return the set of payload file paths
      */
-    override def getPayloadFilePaths(bagDir: Path): Try[Set[Path]] =  {
+    override def getPayloadFilePaths(bagDir: Path): Try[Set[Path]] = {
       getBag(bagDir)
         .map(_.getPayloadManifests
           .asScala

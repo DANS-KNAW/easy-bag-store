@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright (C) 2016-17 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
+    Copyright (C) 2016 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-            http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,17 +20,17 @@
     <parent>
         <groupId>nl.knaw.dans.shared</groupId>
         <artifactId>dans-scala-prototype</artifactId>
-        <version>1.42</version>
+        <version>1.43</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>nl.knaw.dans.easy</groupId>
     <artifactId>easy-bag-store</artifactId>
     <packaging>jar</packaging>
-    <version>1.1-beta-1</version>
+    <version>1.x-SNAPSHOT</version>
     <name>EASY Bag Store</name>
     <url>https://github.com/DANS-KNAW/easy-bag-store</url>
-    <description>Manage a BagStore</description>
-    <inceptionYear>2016-17</inceptionYear>
+    <description>Manage one or more BagStores</description>
+    <inceptionYear>2016</inceptionYear>
     <properties>
         <main-class>nl.knaw.dans.easy.bagstore.Command</main-class>
     </properties>
@@ -140,60 +140,7 @@
     </pluginRepositories>
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>rpm-maven-plugin</artifactId>
-                <version>2.1.5</version>
-                <configuration>
-                    <group>Applications/Archiving</group>
-                    <packager>DANS</packager>
-                    <defaultUsername>easy-bag-store</defaultUsername>
-                    <defaultGroupname>easy-bag-store</defaultGroupname>
-                    <targetOS>Linux</targetOS>
-                    <mappings>
-                        <mapping>
-                            <directory>/usr/local/easy-bag-store/bin</directory>
-                            <filemode>640</filemode>
-                            <sources>
-                                <source>
-                                    <location>src/main/assembly/dist/bin</location>
-                                </source>
-                            </sources>
-                        </mapping>
-                        <mapping>
-                            <directory>/usr/local/bin</directory>
-                            <filemode>750</filemode>
-                            <sources>
-                                <source>
-                                    <location>src/main/assembly/dist/bin/easy-bag-store</location>
-                                </source>
-                            </sources>
-                        </mapping>
-                        <mapping>
-                            <directory>/usr/local/easy-bag-store/bin</directory>
-                            <filemode>640</filemode>
-                            <sources>
-                                <source>
-                                    <location>target/easy-bag-store.jar</location>
-                                </source>
-                            </sources>
-                        </mapping>
-                        <mapping>
-                            <directory>/usr/local/easy-bag-store/cfg</directory>
-                            <configuration>true</configuration>
-                            <filemode>640</filemode>
-                            <username>easy-bag-store</username>
-                            <groupname>easy-bag-store</groupname>
-                            <sources>
-                                <source>
-                                    <location>src/main/assembly/dist/cfg</location>
-                                </source>
-                            </sources>
-                        </mapping>
-                    </mappings>
-                </configuration>
-            </plugin>
-            <plugin>
+           <plugin>
                 <groupId>org.jfrog.buildinfo</groupId>
                 <artifactId>artifactory-maven-plugin</artifactId>
             </plugin>
