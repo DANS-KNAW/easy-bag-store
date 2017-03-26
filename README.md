@@ -31,7 +31,7 @@ DESCRIPTION
 A BagStore is a way to store and identify data packages following a few very simple rules. See the [BagStore] page
 for a description.
 
-[BagStore]: bag-store.html
+[BagStore]: bag-store.md
 
 
 INSTALLATION AND CONFIGURATION
