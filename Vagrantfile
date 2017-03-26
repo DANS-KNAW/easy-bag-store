@@ -9,6 +9,7 @@ Vagrant.configure(2) do |config|
         ansible.config_file = "src/main/ansible/ansible.cfg"
 #        ansible.verbose = "vvvv"
       end
+      testvm.vm.synced_folder "data",  "/vagrant"
       testvm.vm.provider "virtualbox" do |vb|
         vb.gui = false
         vb.memory = 2072
