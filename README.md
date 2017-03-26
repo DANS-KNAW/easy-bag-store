@@ -29,7 +29,8 @@ DESCRIPTION
 -----------
 
 A BagStore is a way to store and identify data packages following a few very simple rules. See the [BagStore] page
-for a description.
+for a description. The `easy-bag-store` command line tool and REST-service facilitate the management of one or
+more BagStores.
 
 [BagStore]: bag-store.md
 
