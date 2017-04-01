@@ -1,10 +1,12 @@
-The BagStore
-============
+The bag store
+=============
 
 Introduction
 ------------
 
-A BagStore is a way to store and identify data packages following a few very simple rules.
+A bag store is a way to store and identify data packages following a few very simple rules. In this
+quasi formal definition we will use CamelCase for classes and lowercase-with-dashes for attributes of
+those classes.
  
 (See [tutorial] for a more hands-on introduction.)
 
