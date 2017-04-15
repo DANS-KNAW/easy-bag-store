@@ -26,7 +26,7 @@
     <groupId>nl.knaw.dans.easy</groupId>
     <artifactId>easy-bag-store</artifactId>
     <packaging>jar</packaging>
-    <version>1.x-SNAPSHOT</version>
+    <version>1.1-SNAPSHOT</version>
     <name>EASY Bag Store</name>
     <url>https://github.com/DANS-KNAW/easy-bag-store</url>
     <description>Manage one or more BagStores</description>
@@ -140,7 +140,79 @@
     </pluginRepositories>
     <build>
         <plugins>
-           <plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>rpm-maven-plugin</artifactId>
+                <version>2.1.5</version>
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>generate-rpm</id>-->
+                        <!--<goals>-->
+                            <!--<goal>rpm</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+                <configuration>
+                    <group>Applications/Archiving</group>
+                    <vendor>DANS-KNAW</vendor>
+                    <packager>DANS-KNAW</packager>
+                    <defaultUsername>easy-bag-store</defaultUsername>
+                    <defaultGroupname>easy-bag-store</defaultGroupname>
+                    <license>Apache 2.0</license>
+                    <targetOS>Linux</targetOS>
+                    <defaultFilemode>744</defaultFilemode>
+                    <defaultDirmode>755</defaultDirmode>
+                    <defaultUsername>easy-bag-store</defaultUsername>
+                    <defaultGroupname>easy-bag-store</defaultGroupname>
+                    <mappings>
+                        <mapping>
+                            <directory>/usr/local/easy-bag-store/bin</directory>
+                            <sources>
+                                <source>
+                                    <location>src/main/assembly/dist/bin</location>
+                                    <excludes>
+                                        <exclude>easy-bag-store</exclude>
+                                    </excludes>
+                                </source>
+                                <source>
+                                    <location>${project.build.directory}/easy-bag-store.jar</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/usr/local/easy-bag-store/lib</directory>
+                            <dependency />
+                        </mapping>
+                        <mapping>
+                            <directory>/usr/local/easy-bag-store/bin</directory>
+                            <filemode>755</filemode>
+                            <sources>
+                                <source>
+                                    <location>src/main/assembly/dist/bin/easy-bag-store</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/usr/local/easy-bag-store/cfg</directory>
+                            <configuration>true</configuration>
+                            <sources>
+                                <source>
+                                    <location>src/main/assembly/dist/cfg</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                    </mappings>
+                    <preinstallScriptlet>
+                        <scriptFile>src/main/script/pre-install.sh</scriptFile>
+                        <fileEncoding>UTF-8</fileEncoding>
+                    </preinstallScriptlet>
+                    <postinstallScriptlet>
+                        <scriptFile>src/main/script/post-install.sh</scriptFile>
+                        <fileEncoding>UTF-8</fileEncoding>
+                    </postinstallScriptlet>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.jfrog.buildinfo</groupId>
                 <artifactId>artifactory-maven-plugin</artifactId>
             </plugin>

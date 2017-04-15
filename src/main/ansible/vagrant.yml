@@ -50,8 +50,8 @@
   - name: Add configuration for site
     template: src=site-config.template dest=/etc/httpd/conf.d/bagstore.conf
 
-  - include_role:
-      name: dans.easy-bag-store
+#  - include_role:
+#      name: dans.easy-bag-store
 
   - name: Reload Apache HTTP Server
     service: name=httpd state=reloaded
