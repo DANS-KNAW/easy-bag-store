@@ -225,7 +225,9 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     Files.createDirectory(extractDir)
     val zip = extractDir.resolve("bag.zip")
     FileUtils.copyInputStreamToFile(is, zip.toFile)
-    new ZipFile(zip.toFile).extractAll(extractDir.toAbsolutePath.toString)
+    val zipFile = new ZipFile(zip.toFile)
+    zipFile.setFileNameCharset("UTF-8")
+    zipFile.extractAll(extractDir.toAbsolutePath.toString)
     Files.delete(zip)
     extractDir
   }
