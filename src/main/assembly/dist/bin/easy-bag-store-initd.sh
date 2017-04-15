@@ -27,6 +27,8 @@ WAIT_TIME=60
 jsvc_exec()
 {
     cd ${APPHOME}
+    # Set LC_ALL to a locale with UTF-8 to make sure non-ASCII file names are written correctly to the file system (see: EASY-1254).
+    LC_ALL=en_US.UTF-8 \
     ${EXEC} -home ${JAVA_HOME} -cp ${CLASSPATH} -user ${USER} -outfile ${OUTFILE} -errfile ${ERRFILE} -pidfile ${PID} -wait ${WAIT_TIME} \
           -Dapp.home=${APPHOME} -Dconfig.file=${APPHOME}/cfg/application.conf \
           -Dlogback.configurationFile=${APPHOME}/cfg/logback-service.xml $1 ${CLASS} ${ARGS}
