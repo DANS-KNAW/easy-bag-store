@@ -17,6 +17,7 @@ package nl.knaw.dans.easy.bagstore
 
 import java.io.{IOException, InputStream}
 import java.net.URI
+import java.nio.charset.StandardCharsets
 import java.nio.file._
 import java.nio.file.attribute.{BasicFileAttributes, PosixFilePermissions}
 import java.util.UUID
@@ -225,7 +226,9 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
     Files.createDirectory(extractDir)
     val zip = extractDir.resolve("bag.zip")
     FileUtils.copyInputStreamToFile(is, zip.toFile)
-    new ZipFile(zip.toFile).extractAll(extractDir.toAbsolutePath.toString)
+    new ZipFile(zip.toFile) {
+      setFileNameCharset(StandardCharsets.UTF_8.name)
+    }.extractAll(extractDir.toAbsolutePath.toString)
     Files.delete(zip)
     extractDir
   }

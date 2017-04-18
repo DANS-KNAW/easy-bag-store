@@ -18,9 +18,11 @@
 
 ARGS=$@
 APPHOME=home
-. apphome.sh
 
+
+MAVEN_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y" \
 mvn exec:java -Dapp.home=$APPHOME \
               -Dconfig.file=$APPHOME/cfg/application.conf \
               -Dlogback.configurationFile=$APPHOME/cfg/logback.xml \
               -Dexec.args="$ARGS"
+
