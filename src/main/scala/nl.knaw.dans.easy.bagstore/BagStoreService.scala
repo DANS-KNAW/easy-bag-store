@@ -164,7 +164,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
             itemId: ItemId =>
               debug(s"Retrieving item $itemId")
               app.get(itemId, response.outputStream, base)
-          }.onError {
+          }.map(_ => Ok()).onError {
           case NoSuchBagException(bagId) => NotFound()
           case NonFatal(e) => logger.error("Error retrieving bag", e)
             InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
