@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <configuration scan="true" scanPeriod="1 minute">
-	<property name="LOGDIR" value="/var/log/easy-bag-store" />
+	<property name="LOGDIR" value="/var/opt/dans.knaw.nl/log/easy-bag-store" />
 	<appender name="FILE"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>${LOGDIR}/easy-bag-store.log</file>
@@ -9,7 +9,7 @@
 			<maxHistory>30</maxHistory>
 		</rollingPolicy>
 		<encoder>
-			<pattern>[%date{ISO8601}] %-5level %msg%n %ex{full}</pattern>
+			<pattern>[%date{ISO8601}] %-5level %msg%n%ex</pattern>
 		</encoder>
 	</appender>
 	<root level="warn">

@@ -2,7 +2,7 @@
 Description=EASY Bag Store Service
 
 [Service]
-ExecStart=/usr/local/easy-bag-store/bin/easy-bag-store-service-start
+ExecStart=/opt/dans.knaw.nl/easy-bag-store/bin/easy-bag-store-service-start
 
 User=easy-bag-store
 Group=easy-bag-store

@@ -37,8 +37,13 @@ trait BagStoreApp extends BagStoreContext
   with Bagit4FacadeComponent
   with BagStoreOutputContext
   with DebugEnhancedLogging {
+  private val fhsCfgDir = "/etc/opt/dans.knaw.nl/easy-bag-store/"
+  private val cfgPath = Seq(
+    Paths.get(fhsCfgDir),
+    Paths.get(System.getProperty("app.home")).resolve("cfg/"))
+  private val cfg = cfgPath.find(Files.exists(_)).get
+  val properties = new PropertiesConfiguration(cfg.resolve("application.properties").toFile)
 
-  val properties = new PropertiesConfiguration(new File(System.getProperty("app.home"), "cfg/application.properties"))
   val localBaseUri = new URI(properties.getString("bag-store.base-uri"))
   val stagingBaseDir: Path = Paths.get(properties.getString("staging.base-dir"))
   val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-component-sizes").map(_.toInt).toSeq
@@ -46,10 +51,10 @@ trait BagStoreApp extends BagStoreContext
   val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
   val bagFacade = new Bagit4Facade()
 
-  // TODO: make this shorter and validate (check path syntax + writeability).
+  // TODO: make this shorter and validate (check path syntax + writability).
   val stores: Map[String, Path] = {
     val map = mutable.Map[String, Path]()
-    val props = new PropertiesConfiguration(Paths.get(System.getProperty("app.home"), "cfg/stores.properties").toFile)
+    val props = new PropertiesConfiguration(cfg.resolve("stores.properties").toFile)
     props.getKeys.asScala.foreach(k => map(k) = Paths.get(props.getString(k)).toAbsolutePath)
     map.toMap
   }
