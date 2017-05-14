@@ -16,6 +16,9 @@
 
 #!/usr/bin/env bash
 
+NUMBER_OF_INSTALLATIONS=$1
+echo "Executing POST-INSTALL. Number of current installations: $NUMBER_OF_INSTALLATIONS"
+
 INSTALL_DIR=/opt/dans.knaw.nl/easy-bag-store
 LOGDIR=/var/opt/dans.knaw.nl/log/easy-bag-store
 BAG_STAGING_DIR=/srv/dans.knaw.nl/stage
@@ -24,9 +27,7 @@ BAG_STORE_USER=easy-bag-store
 INITD_SCRIPTS=/etc/init.d
 SYSTEMD_SCRIPTS=/usr/lib/systemd/system
 
-echo "Value of script arg = $1"
-
-if [ $1 -eq 1 ]; then # First install
+if [ $NUMBER_OF_INSTALLATIONS -eq 1 ]; then # First install
     echo "First time install, replacing default config with RPM-aligned one"
     #
     # Temporary arrangement to make sure the default config settings align with the FHS-abiding

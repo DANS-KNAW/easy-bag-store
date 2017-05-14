@@ -21,11 +21,13 @@
 # to have changed during the time that the program was installed. Particularly, we do NOT remove the
 # log files and the the bag stores that my have been created.
 #
+NUMBER_OF_INSTALLATIONS=$1
+echo "Executing POST-REMOVE. Number of current installations: $NUMBER_OF_INSTALLATIONS"
 
 INITD_SCRIPT=/etc/init.d/easy-bag-store
 SYSTEMD_UNIT=/usr/lib/systemd/system/easy-bag-store.service
 
-if [ $1 -eq 1 ]; then # Last install, so remove service scripts
+if [ $NUMBER_OF_INSTALLATIONS -eq 0 ]; then # Last installation to remove, so delete service scripts
     if [ -f $INITD_SCRIPT ]; then
         rm $INITD_SCRIPT
     fi

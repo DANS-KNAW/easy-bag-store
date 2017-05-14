@@ -16,6 +16,9 @@
 
 #!/usr/bin/env bash
 
+NUMBER_OF_INSTALLATIONS=$1
+echo "Executing PRE-INSTALL. Number of current installations: $NUMBER_OF_INSTALLATIONS"
+
 USER_NAME=easy-bag-store
 id -u $USER_NAME 2> /dev/null 1> /dev/null
 
