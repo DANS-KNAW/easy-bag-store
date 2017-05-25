@@ -37,11 +37,14 @@ trait BagStoreApp extends BagStoreContext
   with Bagit4FacadeComponent
   with BagStoreOutputContext
   with DebugEnhancedLogging {
-  private val fhsCfgDir = "/etc/opt/dans.knaw.nl/easy-bag-store/"
-  private val cfgPath = Seq(
-    Paths.get(fhsCfgDir),
-    Paths.get(System.getProperty("app.home")).resolve("cfg/"))
-  private val cfg = cfgPath.find(Files.exists(_)).get
+  private val home = Paths.get(System.getProperty("app.home"))
+  private val cfg = Seq(
+    Paths.get(s"/etc/opt/dans.knaw.nl/easy-bag-store/"),
+    home.resolve("cfg")).find(Files.exists(_)).getOrElse { throw new IllegalStateException("No configuration directory found")}
+
+  val version: String = resource.managed(scala.io.Source.fromFile(home.resolve("bin/version").toFile)).acquireAndGet {
+    _.mkString
+  }
   val properties = new PropertiesConfiguration(cfg.resolve("application.properties").toFile)
 
   val localBaseUri = new URI(properties.getString("bag-store.base-uri"))

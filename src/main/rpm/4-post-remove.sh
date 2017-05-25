@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # Copyright (C) 2016 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
 #
@@ -14,25 +15,27 @@
 # limitations under the License.
 #
 
-#!/usr/bin/env bash
-
-#
-# Note that we DO NOT REMOVE ALL resources created by the installer, but only those that are unlikely
-# to have changed during the time that the program was installed. Particularly, we do NOT remove the
-# log files and the the bag stores that my have been created.
-#
 NUMBER_OF_INSTALLATIONS=$1
-echo "Executing POST-REMOVE. Number of current installations: $NUMBER_OF_INSTALLATIONS"
+MODULE_NAME=easy-bag-store
+MODULE_USER=$MODULE_NAME
+INSTALL_DIR=/opt/dans.knaw.nl/$MODULE_NAME
+INITD_SCRIPTS_DIR=/etc/init.d
+SYSTEMD_SCRIPTS_DIR=/usr/lib/systemd/system
 
-INITD_SCRIPT=/etc/init.d/easy-bag-store
-SYSTEMD_UNIT=/usr/lib/systemd/system/easy-bag-store.service
+echo "POST-REMOVE: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
 
 if [ $NUMBER_OF_INSTALLATIONS -eq 0 ]; then # Last installation to remove, so delete service scripts
-    if [ -f $INITD_SCRIPT ]; then
-        rm $INITD_SCRIPT
+    if [ -f $INITD_SCRIPTS_DIR/$MODULE_NAME ]; then
+        echo -n "Removing initd service script... "
+        rm $INITD_SCRIPTS_DIR/$MODULE_NAME
+        echo "OK"
     fi
 
-    if [ -f $SYSTEMD_UNIT ]; then
-        rm $SYSTEMD_UNIT
+    if [ -f $SYSTEMD_SCRIPTS_DIR/${MODULE_NAME}.service ]; then
+        echo -n "Removing systemd service script... "
+        rm $SYSTEMD_SCRIPTS_DIR/${MODULE_NAME}.service
+        echo "OK"
     fi
 fi
+
+echo "POST-REMOVE: DONE."

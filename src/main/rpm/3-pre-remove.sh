@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # Copyright (C) 2016 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
 #
@@ -14,7 +15,14 @@
 # limitations under the License.
 #
 
-#!/usr/bin/env bash
-
 NUMBER_OF_INSTALLATIONS=$1
-echo "Executing PRE-REMOVE. Number of current installations: $NUMBER_OF_INSTALLATIONS"
+MODULE_NAME=easy-bag-store
+MODULE_USER=$MODULE_NAME
+INSTALL_DIR=/opt/dans.knaw.nl/$MODULE_NAME
+LOG_DIR=/var/opt/dans.knaw.nl/log/$MODULE_NAME
+INITD_SCRIPTS_DIR=/etc/init.d
+SYSTEMD_SCRIPTS_DIR=/usr/lib/systemd/system
+
+echo "PRE-REMOVE: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
+
+echo "PRE-REMOVE: DONE."

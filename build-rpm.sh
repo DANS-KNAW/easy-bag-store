@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # Copyright (C) 2016 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
 #
@@ -14,4 +15,4 @@
 # limitations under the License.
 #
 
-- src: https://github.com/DANS-KNAW/dans.easy-bag-store
+mvn -Prpm rpm:rpm

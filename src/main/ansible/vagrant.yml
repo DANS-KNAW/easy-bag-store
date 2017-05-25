@@ -17,7 +17,6 @@
 - hosts: testvm
   become: yes
   vars:
-    force_reinstalls: yes
     easy_bag_stores_remove_default: yes
     easy_bag_store:
       - { name: "store1",     base_dir: "/var/local/store1" }
@@ -28,13 +27,17 @@
   - name: Install standard software
     yum: name="{{ item }}"
     with_items:
-      - java-1.8.0-openjdk
       - httpd
       - libsemanage-python
       - libselinux-python
 
   - name: Enable Apache HTTP Server
     service: name=httpd enabled=true state=started
+
+  - name: Enable SELinux
+    selinux:
+       policy: targeted
+       state: enforcing
 
   - name: Allow Apache HTTP Server to call back-end service
     seboolean:
@@ -48,10 +51,33 @@
       insertafter='^# ServerName.*$'
 
   - name: Add configuration for site
-    template: src=site-config.template dest=/etc/httpd/conf.d/bagstore.conf
-
-  - include_role:
-      name: dans.easy-bag-store
+    template: src=site-config.template dest=/etc/httpd/conf.d/test.conf
 
   - name: Reload Apache HTTP Server
     service: name=httpd state=reloaded
+
+  - name: Add /opt/bin to PATH
+    copy:
+      src: opt.sh
+      dest: /etc/profile.d/
+      mode: "755"
+
+  - include: yum-repo.yml
+
+
+  - name: Installing package
+    yum:
+      name: dans.knaw.nl-easy-bag-store
+      state: latest
+
+    #
+    # Using command to upgrade as a work-around, as the yum module has a bug with "state: latest" in 2.2.1.0
+    # Should be fixed in 2.3. See: https://github.com/ansible/ansible-modules-core/commit/e28cea7e0520f8d1b81e57a9951d55a4feb3e34b
+    #
+  - name: Upgrading package
+    command: yum upgrade -y dans.knaw.nl-easy-bag-store
+
+  - service:
+      name: easy-bag-store
+      state: started
+      enabled: yes
