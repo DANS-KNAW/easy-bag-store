@@ -35,8 +35,9 @@ trait BagStoreGet {
       .getOrElse(getFromAnyStore(itemId, output))
   }
 
-  def get(itemId: ItemId, output: OutputStream, fromStore: Path): Try[Path] = {
-    trace(itemId, output, fromStore)
+  // only create the OutputStream if the specific bag or file exists
+  def getWithOutputStream(itemId: ItemId, fromStore: Path)(output: () => OutputStream): Try[Path] = {
+    trace(itemId, fromStore)
     implicit val baseDir = fromStore.toAbsolutePath
     checkBagExists(BagId(itemId.getUuid)).flatMap { _ =>
       itemId match {
@@ -46,7 +47,7 @@ trait BagStoreGet {
                 dirStaging <- stageBagDir(path)
                 _ <- complete(dirStaging.resolve(path.getFileName), fromStore)
                 zipStaging <- stageBagZip(dirStaging.resolve(path.getFileName))
-                _ <- Try {Files.copy(zipStaging.resolve(path.getFileName), output)}
+                _ <- Try { Files.copy(zipStaging.resolve(path.getFileName), output()) }
                 _ <- Try { FileUtils.deleteDirectory(dirStaging.toFile) }
                 _ <- Try { FileUtils.deleteDirectory(zipStaging.toFile) }
               } yield fromStore
@@ -54,7 +55,7 @@ trait BagStoreGet {
         case fileId: FileId =>
           toRealLocation(fileId).map(path => {
             debug(s"Copying $path to outputstream")
-            Files.copy(path, output)
+            Files.copy(path, output())
             fromStore
           })
       }

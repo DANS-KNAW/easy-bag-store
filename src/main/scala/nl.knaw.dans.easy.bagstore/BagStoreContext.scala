@@ -181,18 +181,18 @@ trait BagStoreContext { this: BagFacadeComponent with DebugEnhancedLogging =>
   def toRealLocation(fileId: FileId)(implicit baseDir: Path): Try[Path] = {
     for {
       path <- toLocation(fileId)
-      realPath <- if (Files.exists(path)) Try(path)
+      realPath <- if (Files.exists(path)) Success(path)
                   else getFetchUri(fileId)
-                          .flatMap(fromUri)
+                          .flatMap(_.map(fromUri).getOrElse(Failure(NoSuchFileException(fileId))))
                           .flatMap { case fileId: FileId => toRealLocation(fileId)}
     } yield realPath
   }
 
-  private def getFetchUri(fileId: FileId)(implicit baseDir: Path): Try[URI] = {
+  private def getFetchUri(fileId: FileId)(implicit baseDir: Path): Try[Option[URI]] = {
     for {
       bagDir <- toLocation(fileId.bagId)
       items <- bagFacade.getFetchItems(bagDir)
-    } yield items.find(_.path == fileId.path).map(_.uri).get
+    } yield items.find(_.path == fileId.path).map(_.uri)
   }
 
   /**
