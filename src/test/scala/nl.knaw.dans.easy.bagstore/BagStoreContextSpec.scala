@@ -230,6 +230,12 @@ class BagStoreContextSpec extends BagStoreFixture with BagStoreContext {
     }
   }
 
+  it should "fail if the file does not exist" in {
+    val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000003"), Paths.get("data/not-existing-file"))
+
+    toRealLocation(fileId) should matchPattern { case Failure(NoSuchFileException(`fileId`)) => }
+  }
+
   "isVirtuallyValid" should "return true for a valid bag" in {
     FileUtils.copyDirectory(Paths.get("src/test/resources/bags/valid-bag").toFile, testDir.resolve("valid-bag").toFile)
 
