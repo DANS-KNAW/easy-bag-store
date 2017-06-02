@@ -46,7 +46,7 @@ trait BagStoreGet {
                 dirStaging <- stageBagDir(path)
                 _ <- complete(dirStaging.resolve(path.getFileName), fromStore)
                 zipStaging <- stageBagZip(dirStaging.resolve(path.getFileName))
-                _ <- Try { Files.copy(zipStaging.resolve(path.getFileName), output )}
+                _ <- Try { Files.copy(zipStaging.resolve(path.getFileName), output)}
                 _ <- Try { FileUtils.deleteDirectory(dirStaging.toFile) }
                 _ <- Try { FileUtils.deleteDirectory(zipStaging.toFile) }
               } yield fromStore
