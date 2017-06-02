@@ -173,6 +173,9 @@
             <id>rpm</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
+                <file>
+                    <exists>/usr/local/bin/rpm</exists>
+                </file>
             </activation>
             <build>
                 <plugins>
