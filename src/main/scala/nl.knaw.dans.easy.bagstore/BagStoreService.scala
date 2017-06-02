@@ -144,7 +144,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
             case bagId: BagId =>
               debug(s"Retrieving item $bagId")
               request.getHeader("Accept") match {
-                case "application/zip" => app.getWithOutputStream(bagId, base)(() => response.outputStream).map(_ => Ok())
+                case "application/zip" => app.getWithOutputStream(bagId, base, response.outputStream).map(_ => Ok())
                 case "text/plain" | "*/*" | null =>
                   enumFiles(bagId, base).map(files => Ok(files.toList.mkString("\n")))
                 case _ => Try { NotAcceptable() }
@@ -168,7 +168,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
       .map(base => ItemId.fromString(s"""$uuid/${ multiParams("splat").head }""")
         .flatMap(itemId => {
           debug(s"Retrieving item $itemId")
-          app.getWithOutputStream(itemId, base)(() => response.outputStream)
+          app.getWithOutputStream(itemId, base, response.outputStream)
         })
         .map(_ => Ok())
         .onError {
