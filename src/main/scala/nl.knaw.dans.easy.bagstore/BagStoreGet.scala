@@ -35,7 +35,7 @@ trait BagStoreGet {
       .getOrElse(getFromAnyStore(itemId, output))
   }
 
-  def getWithOutputStream(itemId: ItemId, fromStore: Path, output: => OutputStream): Try[Path] = {
+  def get(itemId: ItemId, output: => OutputStream, fromStore: Path): Try[Path] = {
     trace(itemId, fromStore)
     implicit val baseDir = fromStore.toAbsolutePath
     checkBagExists(BagId(itemId.getUuid)).flatMap { _ =>
