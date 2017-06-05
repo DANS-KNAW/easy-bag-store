@@ -27,7 +27,7 @@
     <groupId>nl.knaw.dans.easy</groupId>
     <artifactId>easy-bag-store</artifactId>
     <packaging>jar</packaging>
-    <version>1.x-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>EASY Bag Store</name>
     <url>https://github.com/DANS-KNAW/easy-bag-store</url>
     <description>Manage one or more BagStores</description>
