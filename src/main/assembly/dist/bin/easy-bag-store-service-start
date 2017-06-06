@@ -11,7 +11,6 @@ else
     LOGCONFIG=$APPHOME/cfg/logback-service.xml
 fi
 
-
 # Set LC_ALL to a locale with UTF-8 to make sure non-ASCII file names are written correctly to the file system (see: EASY-1254).
 LC_ALL=en_US.UTF-8 \
 java -Dlogback.configurationFile=$LOGCONFIG \

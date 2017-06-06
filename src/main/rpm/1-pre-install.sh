@@ -35,7 +35,7 @@ id -u $MODULE_USER 2> /dev/null 1> /dev/null
 if [ "$?" == "1" ]; # User not found
 then
     echo -n "Creating module user: $MODULE_USER... "
-    useradd $MODULE_USER 2> /dev/null
+    useradd --system $MODULE_USER 2> /dev/null
 echo "OK"
 else
     echo "Module user $MODULE_USER already exists. No action taken."
