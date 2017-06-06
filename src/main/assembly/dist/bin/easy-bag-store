@@ -2,9 +2,14 @@
 
 BINPATH=`command readlink -f $0 2> /dev/null || command grealpath $0 2> /dev/null`
 APPHOME=`dirname \`dirname $BINPATH \``
+FHS_CONFIG=/etc/opt/dans.knaw.nl/easy-bag-store/
+
 if [ -f $HOME/logback.xml ]
 then
     LOGCONFIG=$HOME/logback.xml
+elif [ -d $FHS_CONFIG ]
+then
+    LOGCONFIG=$FHS_CONFIG/logback.xml
 else
     LOGCONFIG=$APPHOME/cfg/logback.xml
 fi

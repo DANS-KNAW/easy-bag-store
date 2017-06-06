@@ -15,17 +15,14 @@
 # limitations under the License.
 #
 
-# Creates a symbolic link to the local standard location of the role project.
-# Only intended for debugging the role project. Normally, you should use the
-# ansible-galaxy installed role from GitHub, which is automatically downloaded
-# when doing "vagrant up".
+NUMBER_OF_INSTALLATIONS=$1
+MODULE_NAME=easy-bag-store
+MODULE_USER=$MODULE_NAME
+INSTALL_DIR=/opt/dans.knaw.nl/$MODULE_NAME
+LOG_DIR=/var/opt/dans.knaw.nl/log/$MODULE_NAME
+INITD_SCRIPTS_DIR=/etc/init.d
+SYSTEMD_SCRIPTS_DIR=/usr/lib/systemd/system
 
-ROLE1=dans.easy-bag-store
-ROLE2=dans.easy-includes
+echo "PRE-REMOVE: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
 
-rm `dirname $0`/roles/$ROLE1 2> /dev/null
-rm `dirname $0`/roles/$ROLE2 2> /dev/null
-
-ln -s ~/git/dtap/roles/$ROLE1 `dirname $0`/roles/$ROLE1
-ln -s ~/git/dtap/roles/$ROLE2 `dirname $0`/roles/$ROLE2
-
+echo "PRE-REMOVE: DONE."

@@ -2,9 +2,17 @@
 
 BINPATH=`command readlink -f $0 2> /dev/null || command grealpath $0 2> /dev/null`
 APPHOME=`dirname \`dirname $BINPATH \``
+FHS_CONFIG=/etc/opt/dans.knaw.nl/easy-bag-store
+
+if [ -d $FHS_CONFIG ]
+then
+    LOGCONFIG=$FHS_CONFIG/logback-service.xml
+else
+    LOGCONFIG=$APPHOME/cfg/logback-service.xml
+fi
 
 # Set LC_ALL to a locale with UTF-8 to make sure non-ASCII file names are written correctly to the file system (see: EASY-1254).
 LC_ALL=en_US.UTF-8 \
-java -Dlogback.configurationFile=$APPHOME/cfg/logback-service.xml \
+java -Dlogback.configurationFile=$LOGCONFIG \
      -Dapp.home=$APPHOME \
      -jar $APPHOME/bin/easy-bag-store.jar run-service

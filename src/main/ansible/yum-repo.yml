@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright (C) 2016 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
 #
@@ -15,7 +14,20 @@
 # limitations under the License.
 #
 
+- name: Create local yum repo dir
+  become: no
+  local_action: file path="../../../.yum-repo" state=directory
 
-ansible-galaxy install -f -r `dirname $0`/requirements.yml
-vagrant destroy -f
-vagrant up
+- name: Copy RPMs
+  become: no
+  local_action: shell cp ../../../target/rpm/*/RPMS/noarch/*.rpm ../../../.yum-repo/
+
+- yum: name=createrepo
+
+- name: Update repo
+  command: createrepo --update /vagrant/.yum-repo
+
+- name: Configure repo
+  copy:
+    src: test.repo
+    dest: /etc/yum.repos.d/

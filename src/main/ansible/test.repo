@@ -1,0 +1,7 @@
+[test]
+name=Test Repository
+baseurl=file:///vagrant/.yum-repo
+enabled=1
+gpgcheck=0
+keepcache=0
+metadata_expire=0s
