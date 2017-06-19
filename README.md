@@ -65,17 +65,17 @@ The following table summarizes the HTTP API. "Method" refers to the HTTP method 
 In a path pattern `*` refers to any completion of the path, and placeholders for variables start with a colon. Optional part are enclosed
 in square brackets, a pipe symbol denotes alternatives and parentheses are used to group those alternatives.
 
-Method | Path                                         |Action
--------|----------------------------------------------|------------------------------------
-`GET`  | `/`                                          | Return a simple message to indicate that the service is up: "EASY Bag Store is running ..."
-`GET`  | `/bags[?state=(inactive|all)]`               | Enumerate bags in all stores. Only active bags are returned, unless specified otherwise by the `state` query parameter.
-`GET`  | `/bags/:uuid`                                | Enumerate files from the bag with bag-id `:uuid`.
-`GET`  | `/bags/:uuid/*`                              | Get file with bag local path `*` from bag with bag-id `:uuid`, from any bag store.
-`GET`  | `/stores`                                    | Enumerate all bag stores managed by this service.     
-`GET`  | `/stores/:bag-store/bags[?state=(inactive|all)]`| Enumerate bags in `:bag-store`.
-`GET`  | `/stores/:bag-store/bags/:uuid`              | Enumerate files from bag with bag-id `:uuid`, but only look in `:bag-store` .
-`GET`  | `/stores/:bag-store/bags/:uuid/*`            | Get file with bag local path `*` from bag with bag-id `:uuid`, but only from `:bag-store`.
-`PUT`  | `/stores/:bag-store/bags/:uuid`              | Add the body of the request to `:bag-store` under bag-id `:uuid`.
+Method | Path                                             |Action
+-------|--------------------------------------------------|------------------------------------
+`GET`  | `/`                                              | Return a simple message to indicate that the service is up: "EASY Bag Store is running ..."
+`GET`  | `/bags[?state=(inactive\|all)]`                  | Enumerate bags in all stores. Only active bags are returned, unless specified otherwise by the `state` query parameter.
+`GET`  | `/bags/:uuid`                                    | Enumerate files from the bag with bag-id `:uuid`.
+`GET`  | `/bags/:uuid/*`                                  | Get file with bag local path `*` from bag with bag-id `:uuid`, from any bag store.
+`GET`  | `/stores`                                        | Enumerate all bag stores managed by this service.     
+`GET`  | `/stores/:bag-store/bags[?state=(inactive\|all)]`| Enumerate bags in `:bag-store`.
+`GET`  | `/stores/:bag-store/bags/:uuid`                  | Enumerate files from bag with bag-id `:uuid`, but only look in `:bag-store` .
+`GET`  | `/stores/:bag-store/bags/:uuid/*`                | Get file with bag local path `*` from bag with bag-id `:uuid`, but only from `:bag-store`.
+`PUT`  | `/stores/:bag-store/bags/:uuid`                  | Add the body of the request to `:bag-store` under bag-id `:uuid`.
 
 
 INSTALLATION AND CONFIGURATION
