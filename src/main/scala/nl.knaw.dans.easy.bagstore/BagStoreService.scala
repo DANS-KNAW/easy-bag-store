@@ -22,7 +22,6 @@ import java.util.UUID
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
-import org.eclipse.jetty.ajp.Ajp13SocketConnector
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.joda.time.DateTime
@@ -46,14 +45,6 @@ class BagStoreService extends BagStoreApp {
   context.addEventListener(new ScalatraListener())
   server.setHandler(context)
   info(s"HTTP port is $port")
-
-  if (properties.containsKey("daemon.ajp.port")) {
-    val ajp = new Ajp13SocketConnector()
-    val ajpPort = properties.getInt("daemon.ajp.port")
-    ajp.setPort(ajpPort)
-    server.addConnector(ajp)
-    info(s"AJP port is $ajpPort")
-  }
 
   def start(): Try[Unit] = Try {
     info("Starting HTTP service ...")
