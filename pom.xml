@@ -53,6 +53,12 @@
             <artifactId>scalamock-scalatest-support_2.11</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.scalatra</groupId>
+            <artifactId>scalatra-scalatest_2.11</artifactId>
+            <version>2.5.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.rogach</groupId>
             <artifactId>scallop_2.11</artifactId>
         </dependency>
@@ -93,10 +99,12 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
+            <version>9.4.6.v20170531</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
+            <version>9.4.6.v20170531</version>
         </dependency>
         <dependency>
             <groupId>org.scalatra</groupId>
