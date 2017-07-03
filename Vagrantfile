@@ -1,15 +1,15 @@
 Vagrant.configure(2) do |config|
-   config.vm.define "testvm" do |testvm|
-      testvm.vm.box = "geerlingguy/centos6"
-      testvm.vm.hostname = "testvm"
-      testvm.vm.network :private_network, ip: "192.168.33.32"
-      testvm.vm.network "forwarded_port", guest: 80, host: 8080
-      testvm.vm.provision "ansible" do |ansible|
+   config.vm.define "test" do |test|
+      test.vm.box = "geerlingguy/centos6"
+      test.vm.hostname = "test"
+      test.vm.network :private_network, ip: "192.168.33.32"
+      test.vm.network "forwarded_port", guest: 80, host: 8080
+      test.vm.provision "ansible" do |ansible|
         ansible.playbook = "src/main/ansible/vagrant.yml"
         ansible.config_file = "src/main/ansible/ansible.cfg"
 #        ansible.verbose = "vvvv"
       end
-      testvm.vm.provider "virtualbox" do |vb|
+      test.vm.provider "virtualbox" do |vb|
         vb.gui = false
         vb.memory = 2072
         vb.cpus = 2

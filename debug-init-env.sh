@@ -15,14 +15,11 @@
 # limitations under the License.
 #
 
+DATADIR=data
 
-ARGS=$@
-APPHOME=home
-
-MAVEN_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n" \
-mvn exec:java -Dapp.home=$APPHOME \
-              -Dexec.args="run-service" \
-              -Dlogback.configurationFile=$APPHOME/cfg/logback-service.xml \
-#              -Dlogback.statusListenerClass=ch.qos.logback.core.status.OnConsoleStatusListener
-
-# Uncomment the last line if you need to examine the logback initialization process.
+echo -n "Copying test bag stores to $DATADIR..."
+mkdir -p $DATADIR/bag-store1
+cp -r src/test/resources/bag-store/00 $DATADIR/bag-store1/01
+mkdir -p $DATADIR/bag-store2
+cp -r src/test/resources/bag-store/00 $DATADIR/bag-store2/02
+echo "OK"

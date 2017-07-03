@@ -14,25 +14,23 @@
 # limitations under the License.
 #
 
-- hosts: testvm
+- hosts: "test"
   become: yes
-  vars:
-    easy_bag_stores_remove_default: yes
-    easy_bag_store:
-      - { name: "store1",     base_dir: "/var/local/store1" }
-      - { name: "store2",     base_dir: "/var/local/store2" }
-    easy_bag_store_external_base_uri: "http://localhost:8080/"
-
   tasks:
   - name: Install standard software
     yum: name="{{ item }}"
     with_items:
       - httpd
-      - libsemanage-python
       - libselinux-python
+      - libsemanage-python
+      - tree
+      - tmux
 
   - name: Enable Apache HTTP Server
-    service: name=httpd enabled=true state=started
+    service:
+      name: httpd
+      enabled: yes
+      state: started
 
   - name: Enable SELinux
     selinux:
@@ -46,15 +44,20 @@
       persistent: yes
 
   - name: Configure server name
-    lineinfile: dest=/etc/httpd/conf/httpd.conf
-      line='ServerName bagstore'
-      insertafter='^# ServerName.*$'
+    lineinfile:
+      dest: "/etc/httpd/conf/httpd.conf"
+      line: 'ServerName test'
+      insertafter: '^#\s?ServerName.*80$'
 
   - name: Add configuration for site
-    template: src=site-config.template dest=/etc/httpd/conf.d/test.conf
+    copy:
+      src: "test.conf"
+      dest: "/etc/httpd/conf.d/"
 
   - name: Reload Apache HTTP Server
-    service: name=httpd state=reloaded
+    service:
+      name: httpd
+      state: reloaded
 
   - name: Add /opt/bin to PATH
     copy:
@@ -62,22 +65,23 @@
       dest: /etc/profile.d/
       mode: "755"
 
-  - include: yum-repo.yml
-
+  - include_role:
+      name: yum-repo
 
   - name: Installing package
     yum:
       name: dans.knaw.nl-easy-bag-store
       state: latest
 
-    #
-    # Using command to upgrade as a work-around, as the yum module has a bug with "state: latest" in 2.2.1.0
-    # Should be fixed in 2.3. See: https://github.com/ansible/ansible-modules-core/commit/e28cea7e0520f8d1b81e57a9951d55a4feb3e34b
-    #
-  - name: Upgrading package
-    command: yum upgrade -y dans.knaw.nl-easy-bag-store
+  - name: Configure application (application.properties)
+    replace:
+      dest: '/etc/opt/dans.knaw.nl/easy-bag-store/application.properties'
+      regexp: '^{{ item.key }}.*$'
+      replace: '{{ item.key }}={{ item.value }}'
+    with_items:
+      - { key: 'daemon.external-base-uri',          value: 'http://test.dans.knaw.nl/' }
 
   - service:
       name: easy-bag-store
-      state: started
+      state: restarted
       enabled: yes

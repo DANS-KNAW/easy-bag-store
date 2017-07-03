@@ -16,12 +16,11 @@
 #
 
 
-ARGS=$@
-APPHOME=home
+#include <service.sh>
 
+MODULE_NAME=easy-bag-store
+PHASE="POST-TRANS"
 
-mvn exec:java -Dapp.home=$APPHOME \
-              -Dconfig.file=$APPHOME/cfg/application.conf \
-              -Dlogback.configurationFile=$APPHOME/cfg/logback.xml \
-              -Dexec.args="$ARGS"
-
+echo "$PHASE: START"
+service_restart $MODULE_NAME
+echo "$PHASE: DONE"

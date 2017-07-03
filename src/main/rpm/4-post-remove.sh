@@ -15,27 +15,14 @@
 # limitations under the License.
 #
 
+#include <service.sh>
+
 NUMBER_OF_INSTALLATIONS=$1
 MODULE_NAME=easy-bag-store
-MODULE_USER=$MODULE_NAME
 INSTALL_DIR=/opt/dans.knaw.nl/$MODULE_NAME
-INITD_SCRIPTS_DIR=/etc/init.d
-SYSTEMD_SCRIPTS_DIR=/usr/lib/systemd/system
+PHASE="POST-REMOVE"
 
-echo "POST-REMOVE: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
-
-if [ $NUMBER_OF_INSTALLATIONS -eq 0 ]; then # Last installation to remove, so delete service scripts
-    if [ -f $INITD_SCRIPTS_DIR/$MODULE_NAME ]; then
-        echo -n "Removing initd service script... "
-        rm $INITD_SCRIPTS_DIR/$MODULE_NAME
-        echo "OK"
-    fi
-
-    if [ -f $SYSTEMD_SCRIPTS_DIR/${MODULE_NAME}.service ]; then
-        echo -n "Removing systemd service script... "
-        rm $SYSTEMD_SCRIPTS_DIR/${MODULE_NAME}.service
-        echo "OK"
-    fi
-fi
-
-echo "POST-REMOVE: DONE."
+echo "$PHASE: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
+service_remove_initd_service_script $MODULE_NAME $NUMBER_OF_INSTALLATIONS
+service_remove_systemd_unit $MODULE_NAME $NUMBER_OF_INSTALLATIONS
+echo "$PHASE: DONE"
