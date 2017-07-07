@@ -18,9 +18,10 @@ package nl.knaw.dans.easy.bagstore
 import java.nio.file.Path
 import java.util.UUID
 
-import nl.knaw.dans.lib.error.TraversableTryExtensions
+import nl.knaw.dans.lib.error._
 
-import scala.util.{Success, Try}
+import scala.util.control.NonFatal
+import scala.util.{ Success, Try }
 
 object Command extends App with BagStoreApp {
   import scala.language.reflectiveCalls
@@ -108,13 +109,13 @@ object Command extends App with BagStoreApp {
       }
       isVirtuallyValid(cmd.bagDir())(base)
         .map(valid => s"Done validating. Result: virtually-valid = $valid")
-    case Some(cmd @ opts.runService) => runAsService()
+    case Some(_ @ opts.runService) => runAsService()
     case _ => throw new IllegalArgumentException(s"Unknown command: ${opts.subcommand}")
       Try { "Unknown command" }
   }
 
-  result.map(msg => println(s"OK: $msg"))
-    .onError(e => println(s"FAILED: ${e.getMessage}"))
+  result.doIfSuccess(msg => println(s"OK: $msg"))
+    .doIfFailure { case NonFatal(e) => println(s"FAILED: ${e.getMessage}") }
 
   private def listStores: String = {
     stores.map {
@@ -123,7 +124,7 @@ object Command extends App with BagStoreApp {
   }
 
   private def getStoreName(p: Path): String = {
-    stores.find { case (name, base) => base == p }.map(_._1).getOrElse(p.toString)
+    stores.find { case (_, base) => base == p }.map(_._1).getOrElse(p.toString)
   }
 
   private def promptForStore(msg: String): Path = {

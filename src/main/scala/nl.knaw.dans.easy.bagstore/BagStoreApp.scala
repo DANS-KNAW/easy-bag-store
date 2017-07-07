@@ -15,10 +15,9 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.io.File
 import java.net.URI
 import java.nio.file.attribute.PosixFilePermissions
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{ Files, Path, Paths }
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.configuration.PropertiesConfiguration

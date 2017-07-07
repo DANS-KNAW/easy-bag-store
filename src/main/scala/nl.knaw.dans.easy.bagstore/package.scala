@@ -80,16 +80,6 @@ package object bagstore {
     rec(List((f1, f2)))
   }
 
-  implicit class TryExtensions[T](val t: Try[T]) extends AnyVal {
-    // TODO candidate for dans-scala-lib, see also implementation/documentation in easy-split-multi-deposit
-    def onError[S >: T](handle: Throwable => S): S = {
-      t match {
-        case Success(value) => value
-        case Failure(throwable) => handle(throwable)
-      }
-    }
-  }
-
   // TODO: canditates for dans-scala-lib?
   def listDirs(dir: Path): Seq[Path] = {
     listFiles(dir).filter(Files.isDirectory(_))

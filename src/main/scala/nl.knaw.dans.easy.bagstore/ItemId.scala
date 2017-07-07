@@ -45,7 +45,7 @@ object ItemId {
 case class BagId(uuid: UUID) extends ItemId {
   override def toString: String = uuid.toString
 
-  override def getUuid = uuid
+  override def getUuid: UUID = uuid
 
   override def toBagId: Try[BagId] = Success(this)
 
@@ -59,7 +59,7 @@ case class FileId(bagId: BagId, path: Path) extends ItemId {
     s"$bagId/${path.asScala.map(_.toString).map(pathEscaper.escape).mkString("/")}"
   }
 
-  override def getUuid = bagId.uuid
+  override def getUuid: UUID = bagId.uuid
 
   override def toBagId: Try[BagId] = Failure(NoBagIdException(this))
 

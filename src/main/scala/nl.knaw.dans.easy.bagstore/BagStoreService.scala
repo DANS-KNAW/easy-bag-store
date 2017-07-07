@@ -21,6 +21,7 @@ import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import nl.knaw.dans.lib.error._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.ServletContextHandler
@@ -81,7 +82,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
     val (includeActive, includeInactive) = includedStates(params.get("state"))
     enumBags(includeActive, includeInactive)
       .map(bagIds => Ok(bagIds.mkString("\n")))
-      .onError(e => {
+      .getOrRecover(e => {
         logger.error("Unexpected type of failure", e)
         InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
       })
@@ -103,7 +104,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
       .flatMap(_.toBagId)
       .flatMap(enumFiles(_))
       .map(bagIds => Ok(bagIds.mkString("\n")))
-      .onError {
+      .getOrRecover {
         case _: NoSuchBagException => NotFound()
         case e =>
           logger.error("Unexpected type of failure", e)
@@ -118,7 +119,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
         val (includeActive, includeInactive) = includedStates(params.get("state"))
         enumBags(includeActive, includeInactive, base)
           .map(bagIds => Ok(bagIds.mkString("\n")))
-          .onError(e => {
+          .getOrRecover(e => {
             logger.error("Unexpected type of failure", e)
             InternalServerError(s"[${new DateTime()}] Unexpected type of failure. Please consult the logs")
           })
@@ -143,7 +144,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
             case id =>
               logger.error(s"Asked for a bag-id but got something else: $id")
               Try { InternalServerError() }
-          }.onError {
+          }.getOrRecover {
           case e: NoSuchBagException => NotFound(e.getMessage)
             case NonFatal(e) =>
               logger.error("Unexpected type of failure", e)
@@ -162,7 +163,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
           app.get(itemId, response.outputStream, base)
         })
         .map(_ => Ok())
-        .onError {
+        .getOrRecover {
           case e: NoSuchBagException => NotFound(e.getMessage)
           case e: NoSuchFileException => NotFound(e.getMessage)
           case NonFatal(e) =>
@@ -178,7 +179,7 @@ case class BagStoreServlet(app: BagStoreApp) extends ScalatraServlet with DebugE
     withBagStore(bagstore) { base =>
       putBag(request.getInputStream, base, uuid)
         .map(bagId => Created(headers = Map("Location" -> appendUriPathToExternalBaseUri(toUri(bagId), bagstore).toASCIIString)))
-        .onError {
+        .getOrRecover {
           case e: IllegalArgumentException if e.getMessage.contains("Invalid UUID string") => BadRequest(s"Invalid UUID: $uuid")
           case _: NumberFormatException => BadRequest(s"Invalid UUID: $uuid")
           case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage)
