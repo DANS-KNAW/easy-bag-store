@@ -78,7 +78,7 @@ object Command extends App with CommandWiring {
       cmd.referenceBags.toOption
         .map(refBags => refBags.map(ItemId.fromString).map(_.flatMap(_.toBagId))
           .collectResults
-          .flatMap(refBagIds => getStore(base).get.processor.prune(cmd.bagDir(), refBagIds: _*))
+          .flatMap(refBagIds => getStore(base).get.processor.prune(cmd.bagDir(), refBagIds))
           .map(_ => "Done pruning"))
         .getOrElse(Success("No reference Bags specified: nothing to do"))
     case Some(cmd @ commandLine.complete) =>
@@ -91,7 +91,6 @@ object Command extends App with CommandWiring {
       getStore(base).get.processor.complete(cmd.bagDir())
         .map(_ => s"Done completing ${cmd.bagDir()}")
     case Some(cmd @ commandLine.validate) =>
-      // TODO: apply this pattern throughout this file.
       val base = bagStoreBaseDir.getOrElse {
         bagStores.stores.toList match {
           case (_, store) :: Nil => store.fileSystem.baseDir

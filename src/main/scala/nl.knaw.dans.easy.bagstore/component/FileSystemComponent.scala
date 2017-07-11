@@ -4,18 +4,16 @@ import java.net.URI
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.{ FileVisitOption, Files, Path, Paths }
 import java.util.UUID
+import java.util.function.{ Function => JFunction, Predicate => JPredicate }
+import java.util.stream.{ Stream => JStream }
 
 import nl.knaw.dans.easy.bagstore._
-
-import scala.util.{ Failure, Success, Try }
-import java.util.stream.{ Stream => JStream }
-import java.util.function.{ Function => JFunction, Predicate => JPredicate }
-
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.lib.error._
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.lang.StringUtils
 
 import scala.collection.JavaConverters._
+import scala.util.{ Failure, Success, Try }
 
 // equivalent for BagStoreContext, but for one bag-store?
 // I view this as the lowest level, the one who talks with the file system itself
@@ -38,16 +36,11 @@ trait FileSystemComponent extends DebugEnhancedLogging {
      * @return Lazily populated JStream with bags in this base directory
      */
     def walkStore: JStream[BagPath] = {
-      // TODO can we simplify this expression?
       Files.walk(baseDir, uuidPathComponentSizes.size, FileVisitOption.FOLLOW_LINKS)
-        .map[Path](new JFunction[Path, Path] {
-          def apply(path: Path): Path = baseDir.relativize(path)
-        })
         .filter(new JPredicate[Path] {
-          def test(path: Path): Boolean = path.getNameCount == uuidPathComponentSizes.size
-        })
-        .map[Path](new JFunction[Path, Path] {
-          def apply(path: Path): Path = baseDir.resolve(path)
+          def test(path: Path): Boolean = {
+            baseDir.relativize(path).getNameCount == uuidPathComponentSizes.size
+          }
         })
     }
 
@@ -137,16 +130,17 @@ trait FileSystemComponent extends DebugEnhancedLogging {
      */
     def toContainer(id: ItemId): Try[Path] = Try {
       def uuidToPath(uuid: UUID): Path = {
-        // TODO what if this list is empty? pattern match will fail
+        // TODO what if this list is empty? pattern match will fail!
+        // this will only happen when uuidPathComponentSizes is empty
         val (head :: tail, _) = uuidPathComponentSizes.foldLeft((List.empty[String], uuid.toString.filterNot(_ == '-'))) {
           case ((acc, rest), size) =>
             val (next, newRest) = rest.splitAt(size)
             (acc :+ next, newRest)
-        } // TODO can we use foldRight here?
+        }
         Paths.get(head, tail: _*)
       }
 
-      baseDir.resolve(uuidToPath(id.getUuid))
+      baseDir.resolve(uuidToPath(id.uuid))
     }
 
     /**

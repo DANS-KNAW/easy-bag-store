@@ -214,9 +214,9 @@ class BagStoresSpec extends TestSupportFixture
 
   it should "return all FileIds in a virtually-valid Bag" in {
     val ais = bagStore1.add(TEST_BAG_UNPRUNED_A).get
-    processor.prune(TEST_BAG_UNPRUNED_B, ais) shouldBe a[Success[_]]
+    processor.prune(TEST_BAG_UNPRUNED_B, ais :: Nil) shouldBe a[Success[_]]
     val bis = bagStore1.add(TEST_BAG_UNPRUNED_B).get
-    processor.prune(TEST_BAG_UNPRUNED_C, bis) shouldBe a[Success[_]]
+    processor.prune(TEST_BAG_UNPRUNED_C, bis :: Nil) shouldBe a[Success[_]]
     val cis = bagStore1.add(TEST_BAG_UNPRUNED_C).get
 
     inside(bagStores.enumFiles(cis).map(_.toList)) {

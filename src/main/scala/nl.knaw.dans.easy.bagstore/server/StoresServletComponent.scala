@@ -1,15 +1,14 @@
 package nl.knaw.dans.easy.bagstore.server
 
-import java.io.InputStream
 import java.net.URI
 import java.nio.file.Paths
 
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.BagStoresComponent
-import org.joda.time.DateTime
-import org.scalatra._
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.joda.time.DateTime
+import org.scalatra._
 
 import scala.util.Try
 import scala.util.control.NonFatal

@@ -26,8 +26,6 @@ class FileSystemSpec extends TestSupportFixture
     override val localBaseUri: URI = new URI("http://example-archive.org")
   }
 
-  // TODO test walkStore
-
   "fromLocation" should "return a Failure for an empty path" in {
     fs.fromLocation(Paths.get("")) shouldBe a[Failure[_]]
   }

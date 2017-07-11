@@ -58,7 +58,7 @@ trait BagStoreComponent {
       trace(itemId)
 
       for {
-        _ <- fileSystem.checkBagExists(BagId(itemId.getUuid))
+        _ <- fileSystem.checkBagExists(BagId(itemId.uuid))
         _ <- itemId match {
           case bagId: BagId =>
             for {
@@ -83,7 +83,7 @@ trait BagStoreComponent {
 
     def get(itemId: ItemId, output: Path): Try[Path] = {
       trace(itemId, output)
-      fileSystem.checkBagExists(BagId(itemId.getUuid)).flatMap { _ =>
+      fileSystem.checkBagExists(BagId(itemId.uuid)).flatMap { _ =>
         itemId match {
           case bagId: BagId =>
             fileSystem.toLocation(bagId)
@@ -151,7 +151,7 @@ trait BagStoreComponent {
       trace(bagDir, refbags)
       for {
         refs <- Try { Files.readAllLines(refbags).asScala.map(UUID.fromString _ andThen BagId) }
-        _ <- processor.prune(bagDir, refs:_*)
+        _ <- processor.prune(bagDir, refs)
         _ <- Try { Files.delete(refbags) }
       } yield ()
     }

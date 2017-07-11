@@ -24,10 +24,7 @@ import com.google.common.net.UrlEscapers
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
-abstract class ItemId() {
-  // TODO why not use val uuid as constructor parameter?
-  def getUuid: UUID
-
+abstract class ItemId(val uuid: UUID) {
   def toBagId: Try[BagId]
 
   def toFileId: Try[FileId]
@@ -43,24 +40,20 @@ object ItemId {
   }
 }
 
-case class BagId(uuid: UUID) extends ItemId {
+case class BagId(override val uuid: UUID) extends ItemId(uuid) {
   override def toString: String = uuid.toString
-
-  override def getUuid: UUID = uuid
 
   override def toBagId: Try[BagId] = Success(this)
 
   override def toFileId: Try[FileId] = Failure(NoFileIdException(this))
 }
 
-case class FileId(bagId: BagId, path: Path) extends ItemId {
+case class FileId(bagId: BagId, path: Path) extends ItemId(bagId.uuid) {
   private val pathEscaper = UrlEscapers.urlPathSegmentEscaper()
 
   override def toString: String = {
     s"$bagId/${path.asScala.map(_.toString).map(pathEscaper.escape).mkString("/")}"
   }
-
-  override def getUuid: UUID = bagId.uuid
 
   // TODO why is this not Success(bagId)?
   override def toBagId: Try[BagId] = Failure(NoBagIdException(this))

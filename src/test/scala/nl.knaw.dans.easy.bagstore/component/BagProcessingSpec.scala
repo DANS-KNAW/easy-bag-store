@@ -98,7 +98,7 @@ class BagProcessingSpec extends TestSupportFixture
   "prune" should "change files present in ref-bags to fetch.txt entries" in {
     val tryA = bagStore.add(TEST_BAG_UNPRUNED_A)
     tryA shouldBe a[Success[_]]
-    processor.prune(TEST_BAG_UNPRUNED_B, tryA.get) shouldBe a[Success[_]]
+    processor.prune(TEST_BAG_UNPRUNED_B, tryA.get :: Nil) shouldBe a[Success[_]]
 
     /*
      * Now follow checks on the content of of the ingested bags. Each file should be EITHER actually present in the
@@ -154,7 +154,7 @@ class BagProcessingSpec extends TestSupportFixture
     val tryB = bagStore.add(TEST_BAG_UNPRUNED_B)
     tryB shouldBe a[Success[_]]
 
-    processor.prune(TEST_BAG_UNPRUNED_C, tryA.get, tryB.get)
+    processor.prune(TEST_BAG_UNPRUNED_C, tryA.get :: tryB.get :: Nil)
 
     /*
      * Check bag C

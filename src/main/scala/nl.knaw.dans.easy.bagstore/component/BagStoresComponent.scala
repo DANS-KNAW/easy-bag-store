@@ -31,7 +31,7 @@ trait BagStoresComponent {
           stores.values.toStream
             .map(_.get(itemId, output))
             .find(_.isSuccess)
-            .getOrElse(Failure(NoSuchBagException(BagId(itemId.getUuid))))
+            .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
         }
     }
 

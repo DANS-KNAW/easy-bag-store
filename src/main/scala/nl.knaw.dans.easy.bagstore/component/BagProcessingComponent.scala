@@ -175,8 +175,7 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
      * @param refBag the reference Bags to search
      * @return
      */
-    // TODO why varargs here? the input is converted from a list and internally it converts back to a list
-    def prune(bagDir: Path, refBag: BagId*): Try[Unit] = {
+    def prune(bagDir: Path, refBag: Seq[BagId]): Try[Unit] = {
       replaceRedundantFilesWithFetchReferences(bagDir, refBag.toList)
     }
 
