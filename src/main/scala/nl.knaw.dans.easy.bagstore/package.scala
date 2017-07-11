@@ -34,7 +34,7 @@ package object bagstore {
   case class NoSuchBagException(bagId: BagId) extends Exception(s"Bag $bagId does not exist in BagStore")
   case class NoSuchFileException(fileId: FileId) extends Exception(s"File $fileId does not exist in bag ${fileId.bagId}")
   case class BagIdAlreadyAssignedException(bagId: BagId, store: String) extends Exception(s"$bagId already exists in BagStore $store (bag-ids must be globally unique)")
-  case class CannotIngestHiddenBagDirectory(bagDir: Path) extends Exception(s"Cannot ingest hidden directory $bagDir")
+  case class CannotIngestHiddenBagDirectoryException(bagDir: Path) extends Exception(s"Cannot ingest hidden directory $bagDir")
   case class IncorrectNumberOfFilesInBagZipRootException(n: Int) extends Exception(s"There must be exactly one file in the root directory of the zipped bag, found $n")
   case class BagBaseNotFoundException() extends Exception(s"The zipped bag contains no bag base directory")
   case class NoBagIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a bag-id")

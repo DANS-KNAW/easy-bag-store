@@ -20,8 +20,11 @@ import java.nio.file.{Files, Path, Paths}
 import org.apache.commons.io.FileUtils
 import org.scalatest._
 
-trait TestSupportFixture extends FlatSpec with Matchers with OneInstancePerTest with BeforeAndAfter with Inside {
-  val testDir: Path = Paths.get(s"target/test/${getClass.getSimpleName}").toAbsolutePath
-  FileUtils.deleteQuietly(testDir.toFile)
-  Files.createDirectories(testDir)
+trait TestSupportFixture extends FlatSpec with Matchers with Inside {
+  lazy val testDir: Path = {
+    val path = Paths.get(s"target/test/${ getClass.getSimpleName }").toAbsolutePath
+    FileUtils.deleteQuietly(path.toFile)
+    Files.createDirectories(path)
+    path
+  }
 }

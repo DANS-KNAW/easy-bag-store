@@ -22,7 +22,7 @@ import org.scalatest.{FlatSpec, Inside, Matchers, OneInstancePerTest}
 
 import scala.util.{Failure, Success}
 
-class ItemIdSpec extends FlatSpec with Matchers with OneInstancePerTest with Inside {
+class ItemIdSpec extends TestSupportFixture {
   val uuid: UUID = UUID.randomUUID()
   import ItemId._
 

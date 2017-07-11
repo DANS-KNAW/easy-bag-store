@@ -25,6 +25,7 @@ import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 abstract class ItemId() {
+  // TODO why not use val uuid as constructor parameter?
   def getUuid: UUID
 
   def toBagId: Try[BagId]
@@ -61,6 +62,7 @@ case class FileId(bagId: BagId, path: Path) extends ItemId {
 
   override def getUuid: UUID = bagId.uuid
 
+  // TODO why is this not Success(bagId)?
   override def toBagId: Try[BagId] = Failure(NoBagIdException(this))
 
   override def toFileId: Try[FileId] = Success(this)

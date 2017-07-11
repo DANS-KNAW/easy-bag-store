@@ -1,51 +1,23 @@
-/**
- * Copyright (C) 2016 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package nl.knaw.dans.easy.bagstore
 
-import java.net.URI
-import java.nio.file.{Files, Path}
+import java.nio.file.{ Files, Path }
 
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.apache.commons.io.FileUtils
+import org.scalatest.BeforeAndAfterEach
 
-/**
- * Common base class for tests that need to set up a test bag store. This class should only do the set-up that is
- * common to all these tests, nothing more!
- */
-trait BagStoreFixture extends TestSupportFixture with BagStoreContext with Bagit4FacadeComponent with DebugEnhancedLogging {
+trait BagStoreFixture extends BeforeAndAfterEach {
+  this: TestSupportFixture with BagFacadeComponent =>
 
   val store1: Path = testDir.resolve("bag-store-1")
   val store2: Path = testDir.resolve("bag-store-2")
 
+  override def beforeEach(): Unit = {
+    super.beforeEach()
 
-//  implicit val baseDir: Path = store1// TODO: REMOVE THIS
+    FileUtils.deleteDirectory(store1.toFile)
+    FileUtils.deleteDirectory(store2.toFile)
 
-  override val stores: Map[String, Path] = Map("store1" -> store1, "store2" -> store2)
-  override val localBaseUri: URI = new URI("http://example-archive.org")
-  override val stagingBaseDir: Path = testDir
-  override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
-  override val bagFacade = new Bagit4Facade()
-
-  /*
-   * In a production environment you will set bag file permissions also to read-only for the owner.
-   * However, for testing this is not handy, as it would require sudo to do a simple mvn clean install.
-   */
-  val bagPermissions: String = "rwxr-xr-x"
-  //baseDir.toFile.mkdirs()
-
-  Files.createDirectories(store1)
-  Files.createDirectories(store2)
+    Files.createDirectories(store1)
+    Files.createDirectories(store2)
+  }
 }
-
