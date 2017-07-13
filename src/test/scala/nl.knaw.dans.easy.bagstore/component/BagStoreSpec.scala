@@ -44,14 +44,14 @@ class BagStoreSpec extends TestSupportFixture
     Paths.get("src/test/resources/bags/basic-sequence-unpruned-with-refbags").toFile,
     testDir.resolve("basic-sequence-unpruned-with-refbags").toFile)
 
-  private val TEST_BAG_MINIMAL = testDir.resolve("minimal-bag")
-  private val TEST_BAG_INCOMPLETE = testDir.resolve("incomplete-bag")
-  private val TEST_BAG_PRUNED_A = testDir.resolve("basic-sequence-pruned/a")
-  private val TEST_BAG_PRUNED_B = testDir.resolve("basic-sequence-pruned/b")
-  private val TEST_BAG_PRUNED_C = testDir.resolve("basic-sequence-pruned/c")
-  private val TEST_BAG_WITH_REFS_A = testDir.resolve("basic-sequence-unpruned-with-refbags/a")
-  private val TEST_BAG_WITH_REFS_B = testDir.resolve("basic-sequence-unpruned-with-refbags/b")
-  private val TEST_BAG_WITH_REFS_C = testDir.resolve("basic-sequence-unpruned-with-refbags/c")
+  private val testBagMinimal = testDir.resolve("minimal-bag")
+  private val testBagIncomplete = testDir.resolve("incomplete-bag")
+  private val testBagPrunedA = testDir.resolve("basic-sequence-pruned/a")
+  private val testBagPrunedB = testDir.resolve("basic-sequence-pruned/b")
+  private val testBagPrunedC = testDir.resolve("basic-sequence-pruned/c")
+  private val testBagWithRefsA = testDir.resolve("basic-sequence-unpruned-with-refbags/a")
+  private val testBagWithRefsB = testDir.resolve("basic-sequence-unpruned-with-refbags/b")
+  private val testBagWithRefsC = testDir.resolve("basic-sequence-unpruned-with-refbags/c")
 
   override val fileSystem = new FileSystem {
     override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
@@ -77,14 +77,14 @@ class BagStoreSpec extends TestSupportFixture
   }
 
   "add" should "result in exact copy (except for bag-info.txt) of bag in archive when bag is valid" in {
-    val tryBagId = bagStore.add(TEST_BAG_MINIMAL)
+    val tryBagId = bagStore.add(testBagMinimal)
     tryBagId shouldBe a[Success[_]]
     val bagDirInStore = tryBagId.flatMap(fileSystem.toLocation).get
-    pathsEqual(TEST_BAG_MINIMAL, bagDirInStore, excludeFiles = "bag-info.txt") shouldBe true
+    pathsEqual(testBagMinimal, bagDirInStore, excludeFiles = "bag-info.txt") shouldBe true
   }
 
   it should "result in a Failure if bag is incomplete" in {
-    bagStore.add(TEST_BAG_INCOMPLETE) shouldBe a[Failure[_]]
+    bagStore.add(testBagIncomplete) shouldBe a[Failure[_]]
   }
 
   it should "accept virtually-valid bags" in {
@@ -92,18 +92,18 @@ class BagStoreSpec extends TestSupportFixture
     val uuid2 = UUID.fromString("00000000-0000-0000-0000-000000000002")
     val uuid3 = UUID.fromString("00000000-0000-0000-0000-000000000003")
 
-    testSuccessfulAdd(TEST_BAG_PRUNED_A, uuid1)
+    testSuccessfulAdd(testBagPrunedA, uuid1)
 
     /*
      * B and C are virtually-valid.
      */
-    testSuccessfulAdd(TEST_BAG_PRUNED_B, uuid2)
-    testSuccessfulAdd(TEST_BAG_PRUNED_C, uuid3)
+    testSuccessfulAdd(testBagPrunedB, uuid2)
+    testSuccessfulAdd(testBagPrunedC, uuid3)
   }
 
   it should "refuse to ingest hidden bag directories" in {
     val HIDDEN_BAGDIR = testDir.resolve(".some-hidden-bag")
-    FileUtils.copyDirectory(TEST_BAG_MINIMAL.toFile, HIDDEN_BAGDIR.toFile)
+    FileUtils.copyDirectory(testBagMinimal.toFile, HIDDEN_BAGDIR.toFile)
     val result = bagStore.add(HIDDEN_BAGDIR)
     inside(result) {
       case Failure(e) => e shouldBe a[CannotIngestHiddenBagDirectoryException]
@@ -115,12 +115,12 @@ class BagStoreSpec extends TestSupportFixture
     val uuid2 = UUID.fromString("11111111-1111-1111-1111-111111111112")
     val uuid3 = UUID.fromString("11111111-1111-1111-1111-111111111113")
 
-    testSuccessfulAdd(TEST_BAG_WITH_REFS_A, uuid1)
+    testSuccessfulAdd(testBagWithRefsA, uuid1)
 
     /*
      * B and C are pruned before they are added.
      */
-    testSuccessfulAdd(TEST_BAG_WITH_REFS_B, uuid2)
-    testSuccessfulAdd(TEST_BAG_WITH_REFS_C, uuid3)
+    testSuccessfulAdd(testBagWithRefsB, uuid2)
+    testSuccessfulAdd(testBagWithRefsC, uuid3)
   }
 }

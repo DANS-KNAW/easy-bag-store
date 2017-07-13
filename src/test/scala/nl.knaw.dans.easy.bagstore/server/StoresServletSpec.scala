@@ -43,23 +43,23 @@ class StoresServletSpec extends TestSupportFixture
     val externalBaseUri: URI = new URI("http://example-archive.org/")
   }
 
-  private val TEST_BAGS_UNPRUNED = testDir.resolve("basic-sequence-unpruned-with-refbags")
+  private val testBagsUnpruned = testDir.resolve("basic-sequence-unpruned-with-refbags")
   FileUtils.copyDirectory(
     Paths.get("src/test/resources/bags/basic-sequence-unpruned-with-refbags").toFile,
-    TEST_BAGS_UNPRUNED.toFile)
+    testBagsUnpruned.toFile)
   private val bagInput = Files.createDirectory(testDir.resolve("bag-input"))
-  private val TEST_BAG_UNPRUNED_A = bagInput.resolve("unpruned-with-refbags-a.zip")
-  private val TEST_BAG_UNPRUNED_B = bagInput.resolve("unpruned-with-refbags-b.zip")
-  private val TEST_BAG_UNPRUNED_C = bagInput.resolve("unpruned-with-refbags-c.zip")
+  private val testBagUnprunedA = bagInput.resolve("unpruned-with-refbags-a.zip")
+  private val testBagUnprunedB = bagInput.resolve("unpruned-with-refbags-b.zip")
+  private val testBagUnprunedC = bagInput.resolve("unpruned-with-refbags-c.zip")
 
-  new ZipFile(TEST_BAG_UNPRUNED_A.toFile) {
-    addFolder(TEST_BAGS_UNPRUNED.resolve("a").toFile, new ZipParameters)
+  new ZipFile(testBagUnprunedA.toFile) {
+    addFolder(testBagsUnpruned.resolve("a").toFile, new ZipParameters)
   }
-  new ZipFile(TEST_BAG_UNPRUNED_B.toFile) {
-    addFolder(TEST_BAGS_UNPRUNED.resolve("b").toFile, new ZipParameters)
+  new ZipFile(testBagUnprunedB.toFile) {
+    addFolder(testBagsUnpruned.resolve("b").toFile, new ZipParameters)
   }
-  new ZipFile(TEST_BAG_UNPRUNED_C.toFile) {
-    addFolder(TEST_BAGS_UNPRUNED.resolve("c").toFile, new ZipParameters)
+  new ZipFile(testBagUnprunedC.toFile) {
+    addFolder(testBagsUnpruned.resolve("c").toFile, new ZipParameters)
   }
 
   override def beforeAll(): Unit = {
@@ -329,7 +329,7 @@ class StoresServletSpec extends TestSupportFixture
 
   "put /:bagstore/bags/:uuid" should "store a bag in the given bag-store" in {
     val uuid = "11111111-1111-1111-1111-111111111111"
-    putBag(uuid, TEST_BAG_UNPRUNED_A)
+    putBag(uuid, testBagUnprunedA)
   }
 
   it should "store and prune multiple revisions of a bagsequence" in {
@@ -337,9 +337,9 @@ class StoresServletSpec extends TestSupportFixture
     val uuid2 = "11111111-1111-1111-1111-111111111112"
     val uuid3 = "11111111-1111-1111-1111-111111111113"
 
-    putBag(uuid1, TEST_BAG_UNPRUNED_A)
-    putBag(uuid2, TEST_BAG_UNPRUNED_B)
-    putBag(uuid3, TEST_BAG_UNPRUNED_C)
+    putBag(uuid1, testBagUnprunedA)
+    putBag(uuid2, testBagUnprunedB)
+    putBag(uuid3, testBagUnprunedC)
 
     val pruned = Paths.get("src/test/resources/bags/basic-sequence-pruned")
     pathsEqual(pruned.resolve("a"), store1.resolve("11/111111111111111111111111111111/a")) shouldBe true
@@ -363,7 +363,7 @@ class StoresServletSpec extends TestSupportFixture
         }.extractAll(unzip.toAbsolutePath.toString)
         unzip.toFile should exist
 
-        pathsEqual(unzip.resolve(bagName), TEST_BAGS_UNPRUNED.resolve(bagName), "refbags.txt") shouldBe true
+        pathsEqual(unzip.resolve(bagName), testBagsUnpruned.resolve(bagName), "refbags.txt") shouldBe true
       }
     }
 
@@ -371,9 +371,9 @@ class StoresServletSpec extends TestSupportFixture
     val uuid2 = "11111111-1111-1111-1111-111111111112"
     val uuid3 = "11111111-1111-1111-1111-111111111113"
 
-    putBag(uuid1, TEST_BAG_UNPRUNED_A)
-    putBag(uuid2, TEST_BAG_UNPRUNED_B)
-    putBag(uuid3, TEST_BAG_UNPRUNED_C)
+    putBag(uuid1, testBagUnprunedA)
+    putBag(uuid2, testBagUnprunedB)
+    putBag(uuid3, testBagUnprunedC)
 
     retrieveBag(uuid1, "a")
     retrieveBag(uuid2, "b")
@@ -381,7 +381,7 @@ class StoresServletSpec extends TestSupportFixture
   }
 
   it should "fail when the store is unknown" in {
-    put("/unknown-store/bags/11111111-1111-1111-1111-111111111111", body = Files.readAllBytes(TEST_BAG_UNPRUNED_A)) {
+    put("/unknown-store/bags/11111111-1111-1111-1111-111111111111", body = Files.readAllBytes(testBagUnprunedA)) {
       status shouldBe 404
       body shouldBe "No such bag-store: unknown-store"
     }
@@ -389,7 +389,7 @@ class StoresServletSpec extends TestSupportFixture
 
   it should "fail when the given uuid is not a uuid" in {
     val uuid = "11111111111111111111111111111111"
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(TEST_BAG_UNPRUNED_A)) {
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA)) {
       status shouldBe 400
       body shouldBe s"invalid UUID string: $uuid"
     }
@@ -405,7 +405,7 @@ class StoresServletSpec extends TestSupportFixture
 
   it should "fail when the input stream is empty" in {
     val uuid = "11111111-1111-1111-1111-111111111111"
-    put("/store1/bags/11111111-1111-1111-1111-111111111111") {
+    put(s"/store1/bags/$uuid") {
       status shouldBe 400
       body shouldBe "The provided input did not contain a bag"
     }
@@ -422,7 +422,7 @@ class StoresServletSpec extends TestSupportFixture
   it should "fail when the input stream contains a zip-file that doesn't represent a bag" in {
     val zip = Files.createDirectory(testDir.resolve("failing-input")).resolve("failing.zip")
     new ZipFile(zip.toFile) {
-      addFolder(TEST_BAGS_UNPRUNED.resolve("a/data").toFile, new ZipParameters)
+      addFolder(testBagsUnpruned.resolve("a/data").toFile, new ZipParameters)
     }
 
     val uuid = "66666666-6666-6666-6666-666666666666"

@@ -43,59 +43,59 @@ class BagStoresSpec extends TestSupportFixture
     Paths.get("src/test/resources/bags/valid-bag-complementary-manifests").toFile,
     testDir.resolve("valid-bag-complementary-manifests").toFile)
 
-  private val TEST_BAG_MINIMAL = testDir.resolve("minimal-bag")
-  private val TEST_BAG_UNPRUNED_A = testDir.resolve("basic-sequence-unpruned/a")
-  private val TEST_BAG_UNPRUNED_B = testDir.resolve("basic-sequence-unpruned/b")
-  private val TEST_BAG_UNPRUNED_C = testDir.resolve("basic-sequence-unpruned/c")
-  private val TEST_BAG_COMPLEMENTARY = testDir.resolve("valid-bag-complementary-manifests")
-  private val TEST_BAG_PRUNED_A = testDir.resolve("basic-sequence-pruned/a")
+  private val testBagMinimal = testDir.resolve("minimal-bag")
+  private val testBagUnprunedA = testDir.resolve("basic-sequence-unpruned/a")
+  private val testBagUnprunedB = testDir.resolve("basic-sequence-unpruned/b")
+  private val testBagUnprunedC = testDir.resolve("basic-sequence-unpruned/c")
+  private val testBagComplementary = testDir.resolve("valid-bag-complementary-manifests")
+  private val testBagPrunedA = testDir.resolve("basic-sequence-pruned/a")
 
   "get" should "return exactly the same Bag as was added" in {
     val output = testDir.resolve("pruned-output")
-    val result = bagStore1.add(TEST_BAG_PRUNED_A).get
+    val result = bagStore1.add(testBagPrunedA).get
 
     bagStores.get(result, output) shouldBe a[Success[_]]
-    pathsEqual(TEST_BAG_PRUNED_A, output) shouldBe true
+    pathsEqual(testBagPrunedA, output) shouldBe true
   }
 
   it should "create Bag base directory with the name of parameter 'output' if 'output' does not point to existing directory" in {
     val output = testDir.resolve("non-existent-directory-that-will-become-base-dir-of-exported-Bag")
-    val result = bagStore1.add(TEST_BAG_PRUNED_A).get
+    val result = bagStore1.add(testBagPrunedA).get
 
     bagStores.get(result, output) shouldBe a[Success[_]]
-    pathsEqual(TEST_BAG_PRUNED_A, output) shouldBe true
+    pathsEqual(testBagPrunedA, output) shouldBe true
   }
 
   it should "return a File in the Bag that was added" in {
-    val bagId = bagStore1.add(TEST_BAG_PRUNED_A).get
+    val bagId = bagStore1.add(testBagPrunedA).get
     val fileId = FileId(bagId, Paths.get("data/x"))
     val output = Files.createDirectory(testDir.resolve("single-file-x"))
 
     bagStores.get(fileId, output) shouldBe a[Success[_]]
-    pathsEqual(TEST_BAG_PRUNED_A.resolve("data/x"), output.resolve("x")) shouldBe true
+    pathsEqual(testBagPrunedA.resolve("data/x"), output.resolve("x")) shouldBe true
   }
 
   it should "rename a File to name specified in 'output' if 'output' does not point to an existing directory" in {
-    val bagId = bagStore1.add(TEST_BAG_PRUNED_A).get
+    val bagId = bagStore1.add(testBagPrunedA).get
     val fileId = FileId(bagId, Paths.get("data/x"))
     val output = Files.createDirectory(testDir.resolve("single-file-x-renamed"))
 
     bagStores.get(fileId, output.resolve("x-renamed")) shouldBe a[Success[_]]
     // Attention: pathsEqual cannot be used, as it also compares file names
-    FileUtils.contentEquals(TEST_BAG_PRUNED_A.resolve("data/x").toFile, output.resolve("x-renamed").toFile) shouldBe true
+    FileUtils.contentEquals(testBagPrunedA.resolve("data/x").toFile, output.resolve("x-renamed").toFile) shouldBe true
   }
 
   it should "find a Bag in any BagStore if no specific BagStore is specified" in {
-    val bagId1 = bagStore1.add(TEST_BAG_PRUNED_A).get
-    val bagId2 = bagStore2.add(TEST_BAG_PRUNED_A).get
+    val bagId1 = bagStore1.add(testBagPrunedA).get
+    val bagId2 = bagStore2.add(testBagPrunedA).get
 
     bagStores.get(bagId1, testDir.resolve("bag-from-store1")) should matchPattern { case Success(`store1`) => }
     bagStores.get(bagId2, testDir.resolve("bag-from-store2")) should matchPattern { case Success(`store2`) => }
   }
 
   it should "result in failure if Bag is specifically looked for in the wrong BagStore" in {
-    val bagId1 = bagStore1.add(TEST_BAG_PRUNED_A).get
-    val bagId2 = bagStore2.add(TEST_BAG_PRUNED_A).get
+    val bagId1 = bagStore1.add(testBagPrunedA).get
+    val bagId2 = bagStore2.add(testBagPrunedA).get
 
     val result2 = bagStores.get(bagId2, testDir.resolve("bag-from-store1-wrong"), Some(store1))
     result2 shouldBe a[Failure[_]]
@@ -115,9 +115,9 @@ class BagStoresSpec extends TestSupportFixture
   // TODO: add tests for file permissions
 
   "enumBags" should "return all BagIds" in {
-    val ais = bagStore1.add(TEST_BAG_UNPRUNED_A).get
-    val bis = bagStore1.add(TEST_BAG_UNPRUNED_B).get
-    val cis = bagStore1.add(TEST_BAG_UNPRUNED_C).get
+    val ais = bagStore1.add(testBagUnprunedA).get
+    val bis = bagStore1.add(testBagUnprunedB).get
+    val cis = bagStore1.add(testBagUnprunedC).get
 
     inside(bagStores.enumBags().map(_.toList)) {
       case Success(bagIds) => bagIds should (have size 3 and contain only (ais, bis, cis))
@@ -131,9 +131,9 @@ class BagStoresSpec extends TestSupportFixture
   }
 
   it should "skip hidden Bags by default" in {
-    val ais = bagStore1.add(TEST_BAG_UNPRUNED_A).get
-    val bis = bagStore1.add(TEST_BAG_UNPRUNED_B).get
-    val cis = bagStore1.add(TEST_BAG_UNPRUNED_C).get
+    val ais = bagStore1.add(testBagUnprunedA).get
+    val bis = bagStore1.add(testBagUnprunedB).get
+    val cis = bagStore1.add(testBagUnprunedC).get
 
     bagStores.deactivate(bis) shouldBe a[Success[_]]
 
@@ -143,9 +143,9 @@ class BagStoresSpec extends TestSupportFixture
   }
 
   it should "include hidden Bags if requested" in {
-    val ais = bagStore1.add(TEST_BAG_UNPRUNED_A).get
-    val bis = bagStore1.add(TEST_BAG_UNPRUNED_B).get
-    val cis = bagStore1.add(TEST_BAG_UNPRUNED_C).get
+    val ais = bagStore1.add(testBagUnprunedA).get
+    val bis = bagStore1.add(testBagUnprunedB).get
+    val cis = bagStore1.add(testBagUnprunedC).get
 
     bagStores.deactivate(bis) shouldBe a[Success[_]]
 
@@ -155,9 +155,9 @@ class BagStoresSpec extends TestSupportFixture
   }
 
   it should "skip visible Bags if requested" in {
-    bagStore1.add(TEST_BAG_UNPRUNED_A).get
-    val bis = bagStore1.add(TEST_BAG_UNPRUNED_B).get
-    bagStore1.add(TEST_BAG_UNPRUNED_C).get
+    bagStore1.add(testBagUnprunedA).get
+    val bis = bagStore1.add(testBagUnprunedB).get
+    bagStore1.add(testBagUnprunedC).get
 
     bagStores.deactivate(bis) shouldBe a[Success[_]]
 
@@ -167,9 +167,9 @@ class BagStoresSpec extends TestSupportFixture
   }
 
   it should "skip all Bags if requested" in {
-    bagStore1.add(TEST_BAG_UNPRUNED_A).get
-    val bis = bagStore1.add(TEST_BAG_UNPRUNED_B).get
-    bagStore1.add(TEST_BAG_UNPRUNED_C).get
+    bagStore1.add(testBagUnprunedA).get
+    val bis = bagStore1.add(testBagUnprunedB).get
+    bagStore1.add(testBagUnprunedC).get
 
     bagStores.deactivate(bis) shouldBe a[Success[_]]
 
@@ -179,7 +179,7 @@ class BagStoresSpec extends TestSupportFixture
   }
 
   "enumFiles" should "return all FileIds in a valid Bag" in {
-    val ais = bagStore1.add(TEST_BAG_UNPRUNED_A).get
+    val ais = bagStore1.add(testBagUnprunedA).get
 
     inside(bagStores.enumFiles(ais).map(_.toList)) {
       case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 10 and
@@ -189,11 +189,11 @@ class BagStoresSpec extends TestSupportFixture
 
   it should "return all FileIds in a virtually-valid Bag" in {
     implicit val baseDir: BaseDir = bagStore1.baseDir
-    val ais = bagStore1.add(TEST_BAG_UNPRUNED_A).get
-    processor.prune(TEST_BAG_UNPRUNED_B, ais :: Nil) shouldBe a[Success[_]]
-    val bis = bagStore1.add(TEST_BAG_UNPRUNED_B).get
-    processor.prune(TEST_BAG_UNPRUNED_C, bis :: Nil) shouldBe a[Success[_]]
-    val cis = bagStore1.add(TEST_BAG_UNPRUNED_C).get
+    val ais = bagStore1.add(testBagUnprunedA).get
+    processor.prune(testBagUnprunedB, ais :: Nil) shouldBe a[Success[_]]
+    val bis = bagStore1.add(testBagUnprunedB).get
+    processor.prune(testBagUnprunedC, bis :: Nil) shouldBe a[Success[_]]
+    val cis = bagStore1.add(testBagUnprunedC).get
 
     inside(bagStores.enumFiles(cis).map(_.toList)) {
       case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 13 and
@@ -209,7 +209,7 @@ class BagStoresSpec extends TestSupportFixture
    * See: <https://tools.ietf.org/html/draft-kunze-bagit#section-3> point 4.
    */
   it should "return all FileIds even if they are distributed over several payload manifests" in {
-    val complementary = bagStore1.add(TEST_BAG_COMPLEMENTARY).get
+    val complementary = bagStore1.add(testBagComplementary).get
     inside(bagStores.enumFiles(complementary).map(_.toList)) {
       case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 11 and
         contain only ("u", "v", "w", "x", "y", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "manifest-sha1.txt", "tagmanifest-md5.txt"))
@@ -218,7 +218,7 @@ class BagStoresSpec extends TestSupportFixture
 
   "deactivate" should "be able to inactivate a Bag that is not yet inactive" in {
     implicit val baseDir: BaseDir = bagStore1.baseDir
-    val tryBagId = bagStore1.add(TEST_BAG_MINIMAL)
+    val tryBagId = bagStore1.add(testBagMinimal)
     tryBagId shouldBe a[Success[_]]
 
     val tryInactiveBagId = bagStores.deactivate(tryBagId.get)
@@ -227,7 +227,7 @@ class BagStoresSpec extends TestSupportFixture
   }
 
   it should "result in a Failure if Bag is already inactive" in {
-    val tryBagId = bagStore1.add(TEST_BAG_MINIMAL)
+    val tryBagId = bagStore1.add(testBagMinimal)
     bagStores.deactivate(tryBagId.get) shouldBe a[Success[_]]
 
     bagStores.deactivate(tryBagId.get) should matchPattern {
@@ -237,7 +237,7 @@ class BagStoresSpec extends TestSupportFixture
 
   "reactivate" should "be able to reactivate an inactive Bag" in {
     implicit val baseDir: BaseDir = store1
-    val tryBagId = bagStore1.add(TEST_BAG_MINIMAL)
+    val tryBagId = bagStore1.add(testBagMinimal)
     bagStores.deactivate(tryBagId.get) shouldBe a[Success[_]]
     Files.isHidden(fileSystem.toLocation(tryBagId.get).get) shouldBe true
 
@@ -246,7 +246,7 @@ class BagStoresSpec extends TestSupportFixture
   }
 
   it should "result in a Failure if Bag is not marked as inactive" in {
-    val tryBagId = bagStore1.add(TEST_BAG_MINIMAL)
+    val tryBagId = bagStore1.add(testBagMinimal)
 
     bagStores.reactivate(tryBagId.get) should matchPattern {
       case Failure(NotInactiveException(_)) =>

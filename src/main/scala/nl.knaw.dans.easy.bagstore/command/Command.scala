@@ -122,7 +122,7 @@ object Command extends App with CommandWiring {
   }
 
   private def getStoreName(p: Path): String = {
-    bagStores.stores.find { case (_, base) => base == p }.map(_._1).getOrElse(p.toString)
+    bagStores.stores.collectFirst { case (name, base) if base == p => name }.getOrElse(p.toString)
   }
 
   private def getStore(p: Path): Option[BagStore] = {

@@ -167,6 +167,11 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       if (files.size != 1) throw IncorrectNumberOfFilesInBagZipRootException(files.size)
       else if(!Files.isDirectory(files.head)) throw BagBaseNotFoundException()
       else files.head
+      files match {
+        case Seq(file) if Files.isDirectory(file) => file
+        case Seq(_) => throw BagBaseNotFoundException()
+        case _ => throw IncorrectNumberOfFilesInBagZipRootException(files.size)
+      }
     }
 
     def getReferenceBags(bagDir: Path): Try[Option[Path]] = Try {
