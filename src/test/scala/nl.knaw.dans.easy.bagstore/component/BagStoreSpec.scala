@@ -38,23 +38,22 @@ class BagStoreSpec extends TestSupportFixture
   private val TEST_BAG_WITH_REFS_B = testDir.resolve("basic-sequence-unpruned-with-refbags/b")
   private val TEST_BAG_WITH_REFS_C = testDir.resolve("basic-sequence-unpruned-with-refbags/c")
 
-  private val fs = new FileSystem {
-    override val baseDir: BagPath = store1
+  override val fileSystem = new FileSystem {
     override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
     override val bagPermissions: String = "rwxr-xr-x"
     override val localBaseUri: URI = new URI("http://example-archive.org")
   }
 
-  private val processor = new BagProcessing {
-    override val fileSystem: FileSystem = fs
+  override val processor = new BagProcessing {
     override val stagingBaseDir: BagPath = testDir
     override val outputBagPermissions: String = "rwxr-xr-x"
   }
 
   private val bagStore = new BagStore {
-    override val fileSystem: FileSystem = fs
-    override val processor: BagProcessing = test.processor
+    override implicit val baseDir: BaseDir = store1
   }
+
+  implicit val baseDir: BaseDir = bagStore.baseDir
 
   def testSuccessfulAdd(path: Path, uuid: UUID): Unit = {
     inside(bagStore.add(path, Some(uuid))) {
@@ -65,7 +64,7 @@ class BagStoreSpec extends TestSupportFixture
   "add" should "result in exact copy (except for bag-info.txt) of bag in archive when bag is valid" in {
     val tryBagId = bagStore.add(TEST_BAG_MINIMAL)
     tryBagId shouldBe a[Success[_]]
-    val bagDirInStore = tryBagId.flatMap(fs.toLocation).get
+    val bagDirInStore = tryBagId.flatMap(fileSystem.toLocation).get
     pathsEqual(TEST_BAG_MINIMAL, bagDirInStore, excludeFiles = "bag-info.txt") shouldBe true
   }
 

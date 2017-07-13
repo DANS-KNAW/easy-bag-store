@@ -15,11 +15,10 @@ import org.apache.commons.lang.StringUtils
 import scala.collection.JavaConverters._
 import scala.util.{ Failure, Success, Try }
 
-// equivalent for BagStoreContext, but for one bag-store?
-// I view this as the lowest level, the one who talks with the file system itself
-// comparable to a DatabaseComponent
 trait FileSystemComponent extends DebugEnhancedLogging {
   this: BagFacadeComponent =>
+
+  val fileSystem: FileSystem
 
   /**
    * A path to a bag in a store
@@ -27,7 +26,6 @@ trait FileSystemComponent extends DebugEnhancedLogging {
   type BagPath = Path
 
   trait FileSystem {
-    val baseDir: Path // maybe migrate this to somewhere else? it's kind of like the database's connection...
     val localBaseUri: URI
     val uuidPathComponentSizes: Seq[Int]
     val bagPermissions: String
@@ -35,7 +33,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
     /**
      * @return Lazily populated JStream with bags in this base directory
      */
-    def walkStore: JStream[BagPath] = {
+    def walkStore(implicit baseDir: BaseDir): JStream[BagPath] = {
       Files.walk(baseDir, uuidPathComponentSizes.size, FileVisitOption.FOLLOW_LINKS)
         .filter(new JPredicate[Path] {
           def test(path: Path): Boolean = {
@@ -44,7 +42,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
         })
     }
 
-    def fromLocation(path: Path): Try[ItemId] = {
+    def fromLocation(path: Path)(implicit baseDir: BaseDir): Try[ItemId] = {
       Try {
         val p = baseDir.relativize(path.toAbsolutePath)
         val nameCount = p.getNameCount
@@ -65,6 +63,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
       assert(uuidPath.asScala.map(_.toString.length) == uuidPathComponentSizes, "UUID-part slashed incorrectly")
     }
 
+    // TODO can this one be private?
     def formatUuidStrCanonically(s: String): String = {
       List(s.slice(0, 8), s.slice(8, 12), s.slice(12, 16), s.slice(16, 20), s.slice(20, 32)).mkString("-")
     }
@@ -87,6 +86,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
      * @param uri the item-uri
      * @return the item-id
      */
+    // TODO doesn't depend directly on filesystem/baseDir, move to somewhere else?
     def fromUri(uri: URI): Try[ItemId] = {
       object UriComponents {
         def unapply(uri: URI): Option[(String, String, String, Int, Path, String, String)] = Some((
@@ -128,7 +128,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
      * @param id the item-id
      * @return
      */
-    def toContainer(id: ItemId): Try[Path] = Try {
+    def toContainer(id: ItemId)(implicit baseDir: BaseDir): Try[Path] = Try {
       def uuidToPath(uuid: UUID): Path = {
         // TODO what if this list is empty? pattern match will fail!
         // this will only happen when uuidPathComponentSizes is empty
@@ -154,7 +154,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
      * @param id the item-id
      * @return the item-location
      */
-    def toLocation(id: ItemId): Try[Path] = {
+    def toLocation(id: ItemId)(implicit baseDir: BaseDir): Try[Path] = {
       for {
         container <- toContainer(id)
         path <- Try {
@@ -176,7 +176,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
      *
      * @param fileId id of the file to look for
      */
-    def toRealLocation(fileId: FileId): Try[Path] = {
+    def toRealLocation(fileId: FileId)(implicit baseDir: BaseDir): Try[Path] = {
       for {
         path <- toLocation(fileId)
         realPath <- if (Files.exists(path)) Success(path)
@@ -186,7 +186,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
       } yield realPath
     }
 
-    private def getFetchUri(fileId: FileId): Try[Option[URI]] = {
+    private def getFetchUri(fileId: FileId)(implicit baseDir: BaseDir): Try[Option[URI]] = {
       for {
         bagDir <- toLocation(fileId.bagId)
         items <- bagFacade.getFetchItems(bagDir)
@@ -201,7 +201,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
      */
     def toUri(id: ItemId): URI = localBaseUri.resolve("/" + id.toString)
 
-    def projectedToRealLocation(bagDir: Path): Try[Seq[(Path, Path)]] = {
+    def projectedToRealLocation(bagDir: Path)(implicit baseDir: BaseDir): Try[Seq[(Path, Path)]] = {
       for {
         items <- bagFacade.getFetchItems(bagDir)
         mapping <- items.map(item => {
@@ -214,7 +214,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
       } yield mapping
     }
 
-    def isVirtuallyValid(bagDir: Path): Try[Boolean] =  {
+    def isVirtuallyValid(bagDir: Path)(implicit baseDir: BaseDir): Try[Boolean] =  {
       def getExtraDirectories(links: Seq[Path]): Try[Seq[Path]] = Try {
         val dirs = for {
           link <- links
@@ -288,7 +288,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
         bagFacade.isValid(bagDir)
     }
 
-    def checkBagExists(bagId: BagId): Try[Unit] = {
+    def checkBagExists(bagId: BagId)(implicit baseDir: BaseDir): Try[Unit] = {
       trace(bagId)
       toContainer(bagId)
         .flatMap {
@@ -304,14 +304,14 @@ trait FileSystemComponent extends DebugEnhancedLogging {
         }
     }
 
-    def makePathAndParentsInBagStoreGroupWritable(path: Path): Try[Unit] = {
+    def makePathAndParentsInBagStoreGroupWritable(path: Path)(implicit baseDir: BaseDir): Try[Unit] = {
       for {
         seq <- getPathsInBagStore(path)
         _ <- seq.map(makeGroupWritable).collectResults
       } yield ()
     }
 
-    private def getPathsInBagStore(path: Path): Try[Seq[Path]] = Try {
+    private def getPathsInBagStore(path: Path)(implicit baseDir: BaseDir): Try[Seq[Path]] = Try {
       val pathComponents = baseDir.relativize(path).asScala.toSeq
       pathComponents.indices.map(i => baseDir.resolve(pathComponents.slice(0, i + 1).mkString("/")))
     }
@@ -321,7 +321,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
       Files.setPosixFilePermissions(path, permissions.union(Set(PosixFilePermission.GROUP_WRITE)).asJava)
     }
 
-    def removeEmptyParentDirectoriesInBagStore(container: Path): Try[Unit] = {
+    def removeEmptyParentDirectoriesInBagStore(container: Path)(implicit baseDir: BaseDir): Try[Unit] = {
       for {
         paths <- getPathsInBagStore(container)
         _ <- paths.reverse

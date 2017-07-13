@@ -20,14 +20,15 @@ import nl.knaw.dans.lib.error._
 trait BagProcessingComponent extends DebugEnhancedLogging {
   this: FileSystemComponent with BagFacadeComponent =>
 
+  val processor: BagProcessing
+
   trait BagProcessing {
 
-    val fileSystem: FileSystem
     val stagingBaseDir: Path
     val outputBagPermissions: String
 
     // TODO: This function looks a lot like BagStoreContext.isVirtuallyValid.createLinks, refactor?
-    def complete(bagDir: Path): Try[Unit] = {
+    def complete(bagDir: Path)(implicit baseDir: BaseDir): Try[Unit] = {
       trace(bagDir)
       def copyFiles(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
         debug(s"copying ${mappings.size} files to projected locations")
@@ -56,8 +57,8 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       } yield ()
     }
 
-    def setFilePermissions(permissions: String = outputBagPermissions)(file: Path): Try[Path] = Try {
-      Files.setPosixFilePermissions(file, PosixFilePermissions.fromString(permissions))
+    def setFilePermissions(permissions: String = outputBagPermissions)(path: Path): Try[Path] = Try {
+      Files.setPosixFilePermissions(path, PosixFilePermissions.fromString(permissions))
     }
 
     def setPermissions(permissions: String = outputBagPermissions)(bagDir: Path): Try[Path] = Try {
@@ -128,20 +129,22 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       staging
     }
 
-    def unzipBag(is: InputStream): Try[Path] = Try {
-      trace(is)
-      val extractDir = Files.createTempFile(stagingBaseDir, "bagzip-staging-", "")
-      Files.deleteIfExists(extractDir)
-      Files.createDirectory(extractDir)
-      val zip = extractDir.resolve("bag.zip")
-      FileUtils.copyInputStreamToFile(is, zip.toFile)
-      new ZipFile(zip.toFile) {
-        setFileNameCharset(StandardCharsets.UTF_8.name)
-      }.extractAll(extractDir.toAbsolutePath.toString)
-      Files.delete(zip)
-      extractDir
-    }.recoverWith {
-      case e: ZipException => Failure(NoBagException(e))
+    def unzipBag(is: InputStream): Try[Path] = {
+      Try {
+        trace(is)
+        val extractDir = Files.createTempFile(stagingBaseDir, "bagzip-staging-", "")
+        Files.deleteIfExists(extractDir)
+        Files.createDirectory(extractDir)
+        val zip = extractDir.resolve("bag.zip")
+        FileUtils.copyInputStreamToFile(is, zip.toFile)
+        new ZipFile(zip.toFile) {
+          setFileNameCharset(StandardCharsets.UTF_8.name)
+        }.extractAll(extractDir.toAbsolutePath.toString)
+        Files.delete(zip)
+        extractDir
+      }.recoverWith {
+        case e: ZipException => Failure(NoBagException(e))
+      }
     }
 
     def findBagDir(extractDir: Path): Try[Path] = Try {
@@ -178,11 +181,11 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
      * @param refBag the reference Bags to search
      * @return
      */
-    def prune(bagDir: Path, refBag: Seq[BagId]): Try[Unit] = {
+    def prune(bagDir: Path, refBag: Seq[BagId])(implicit baseDir: BaseDir): Try[Unit] = {
       replaceRedundantFilesWithFetchReferences(bagDir, refBag.toList)
     }
 
-    private def replaceRedundantFilesWithFetchReferences(bagDir: Path, refBags: List[BagId]): Try[Unit] = {
+    private def replaceRedundantFilesWithFetchReferences(bagDir: Path, refBags: List[BagId])(implicit baseDir: BaseDir): Try[Unit] = {
       trace(bagDir, refBags)
       val result = for {
         refBagLocations <- refBags.map(fileSystem.toLocation).collectResults
@@ -212,11 +215,11 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       result
     }
 
-    private def getChecksumToUriMap(refBags: Seq[BagId], algorithm: Algorithm): Try[Map[String, URI]] = {
+    private def getChecksumToUriMap(refBags: Seq[BagId], algorithm: Algorithm)(implicit baseDir: BaseDir): Try[Map[String, URI]] = {
       refBags.map(getChecksumToUriMap(_, algorithm)).collectResults.map(_.reduce(_ ++ _))
     }
 
-    private def getChecksumToUriMap(refBag: BagId, algorithm: Algorithm): Try[Map[String, URI]] = {
+    private def getChecksumToUriMap(refBag: BagId, algorithm: Algorithm)(implicit baseDir: BaseDir): Try[Map[String, URI]] = {
       trace(refBag, algorithm)
       for {
         refBagDir <- fileSystem.toLocation(refBag)

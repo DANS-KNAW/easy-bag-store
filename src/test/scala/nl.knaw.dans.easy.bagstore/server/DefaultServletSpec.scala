@@ -17,6 +17,8 @@ class DefaultServletSpec extends TestSupportFixture
   with BagProcessingComponent
   with FileSystemComponent {
 
+  override val fileSystem: FileSystem = mock[FileSystem]
+  override val processor: BagProcessing = mock[BagProcessing]
   override val bagStores: BagStores = mock[BagStores]
   override val defaultServlet: DefaultServlet = new DefaultServlet {
     override val externalBaseUri: URI = new URI("http://example-archive.org/")

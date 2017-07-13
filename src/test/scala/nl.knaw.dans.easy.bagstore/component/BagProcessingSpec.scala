@@ -32,26 +32,24 @@ class BagProcessingSpec extends TestSupportFixture
   private val TEST_BAG_UNPRUNED_B = testDir.resolve("basic-sequence-unpruned/b")
   private val TEST_BAG_UNPRUNED_C = testDir.resolve("basic-sequence-unpruned/c")
 
-  private val fs = new FileSystem {
-    override val baseDir: BagPath = store1
+  override val fileSystem = new FileSystem {
     override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
     override val bagPermissions: String = "rwxr-xr-x"
     override val localBaseUri: URI = new URI("http://example-archive.org")
   }
 
-  private val processor = new BagProcessing {
-    override val fileSystem: FileSystem = fs
+  override val processor = new BagProcessing {
     override val stagingBaseDir: BagPath = testDir
     override val outputBagPermissions: String = "rwxr-xr-x"
   }
 
   private val bagStore = new BagStore {
-    override val fileSystem: FileSystem = fs
-    override val processor: BagProcessing = test.processor
+    implicit val baseDir: BaseDir = store1
   }
 
   private val stagingBaseDir = processor.stagingBaseDir
-  private val localBaseUri: URI = fs.localBaseUri
+  private val localBaseUri: URI = fileSystem.localBaseUri
+  implicit val baseDir: BaseDir = bagStore.baseDir
 
   "complete" should "make pruned Bag whole again" in {
     bagStore.add(TEST_BAG_PRUNED_A, Some(UUID.fromString("00000000-0000-0000-0000-000000000001"))) shouldBe a[Success[_]]

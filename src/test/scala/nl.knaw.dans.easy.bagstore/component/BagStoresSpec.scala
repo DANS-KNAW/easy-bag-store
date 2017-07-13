@@ -173,6 +173,7 @@ class BagStoresSpec extends TestSupportFixture
   }
 
   it should "return all FileIds in a virtually-valid Bag" in {
+    implicit val baseDir: BaseDir = bagStore1.baseDir
     val ais = bagStore1.add(TEST_BAG_UNPRUNED_A).get
     processor.prune(TEST_BAG_UNPRUNED_B, ais :: Nil) shouldBe a[Success[_]]
     val bis = bagStore1.add(TEST_BAG_UNPRUNED_B).get
@@ -201,12 +202,13 @@ class BagStoresSpec extends TestSupportFixture
   }
 
   "deactivate" should "be able to inactivate a Bag that is not yet inactive" in {
+    implicit val baseDir: BaseDir = bagStore1.baseDir
     val tryBagId = bagStore1.add(TEST_BAG_MINIMAL)
     tryBagId shouldBe a[Success[_]]
 
     val tryInactiveBagId = bagStores.deactivate(tryBagId.get)
     tryInactiveBagId shouldBe a[Success[_]]
-    Files.isHidden(fs.toLocation(tryBagId.get).get) shouldBe true
+    Files.isHidden(fileSystem.toLocation(tryBagId.get).get) shouldBe true
   }
 
   it should "result in a Failure if Bag is already inactive" in {
@@ -219,12 +221,13 @@ class BagStoresSpec extends TestSupportFixture
   }
 
   "reactivate" should "be able to reactivate an inactive Bag" in {
+    implicit val baseDir: BaseDir = store1
     val tryBagId = bagStore1.add(TEST_BAG_MINIMAL)
     bagStores.deactivate(tryBagId.get) shouldBe a[Success[_]]
-    Files.isHidden(fs.toLocation(tryBagId.get).get) shouldBe true
+    Files.isHidden(fileSystem.toLocation(tryBagId.get).get) shouldBe true
 
     bagStores.reactivate(tryBagId.get) shouldBe a[Success[_]]
-    Files.isHidden(fs.toLocation(tryBagId.get).get) shouldBe false
+    Files.isHidden(fileSystem.toLocation(tryBagId.get).get) shouldBe false
   }
 
   it should "result in a Failure if Bag is not marked as inactive" in {

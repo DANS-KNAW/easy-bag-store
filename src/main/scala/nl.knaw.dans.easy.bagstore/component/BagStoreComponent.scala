@@ -14,11 +14,11 @@ import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
 
 trait BagStoreComponent {
-  this: FileSystemComponent with BagFacadeComponent with BagProcessingComponent =>
+  this: FileSystemComponent with BagProcessingComponent with BagFacadeComponent =>
 
   trait BagStore {
-    val fileSystem: FileSystem
-    val processor: BagProcessing
+
+    implicit val baseDir: BaseDir
 
     def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false): Try[Seq[BagId]] = Try {
       trace(includeActive, includeInactive)
@@ -100,7 +100,7 @@ trait BagStoreComponent {
                   debug(s"Copying bag from $path to $target")
                   FileUtils.copyDirectory(path.toFile, target.toFile)
                   Files.walk(output).iterator().asScala.foreach(processor.setPermissions())
-                  fileSystem.baseDir
+                  baseDir
                 }
               })
           case fileId: FileId =>
@@ -110,7 +110,7 @@ trait BagStoreComponent {
                              else output
                 Files.copy(path, target)
                 processor.setFilePermissions()(target)
-                fileSystem.baseDir
+                baseDir
               })
         }
       }

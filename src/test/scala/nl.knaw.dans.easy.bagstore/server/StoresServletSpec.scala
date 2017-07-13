@@ -1,15 +1,14 @@
 package nl.knaw.dans.easy.bagstore.server
 
-import java.io.{ FileOutputStream, InputStream }
 import java.net.URI
 import java.nio.charset.StandardCharsets
-import java.nio.file.{ Files, Path, Paths }
+import java.nio.file.{ Files, Paths }
 import java.util.UUID
 
 import net.lingala.zip4j.core.ZipFile
 import net.lingala.zip4j.model.ZipParameters
-import nl.knaw.dans.easy.bagstore.{ BagStoresFixture, Bagit4Fixture, TestSupportFixture, pathsEqual }
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
+import nl.knaw.dans.easy.bagstore.{ BagStoresFixture, Bagit4Fixture, TestSupportFixture, pathsEqual }
 import org.apache.commons.io.FileUtils
 import org.scalatra.test.scalatest.ScalatraSuite
 

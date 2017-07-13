@@ -1,20 +1,19 @@
 package nl.knaw.dans.easy.bagstore.server
 
 import java.net.URI
-import java.nio.file.Paths
 
 import nl.knaw.dans.easy.bagstore._
-import nl.knaw.dans.easy.bagstore.component.BagStoresComponent
+import nl.knaw.dans.easy.bagstore.component.{ BagStoresComponent, FileSystemComponent }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 import org.scalatra._
 
-import scala.util.{ Failure, Try }
 import scala.util.control.NonFatal
+import scala.util.{ Failure, Try }
 
 trait StoresServletComponent extends DebugEnhancedLogging {
-  this: BagStoresComponent =>
+  this: BagStoresComponent with FileSystemComponent =>
 
   val storesServlet: StoresServlet
 
@@ -97,10 +96,11 @@ trait StoresServletComponent extends DebugEnhancedLogging {
       val bagstore = params("bagstore")
       val uuid = params("uuid")
       bagStores.getStore(bagstore)
-        .map(base =>
+        .map(base => {
+          implicit val baseDir: BaseDir = base.baseDir
           bagStores.putBag(request.getInputStream, base, uuid)
             .map(bagId => Created(headers = Map(
-              "Location" -> externalBaseUri.resolve(s"stores/$bagstore/bags/${base.fileSystem.toUri(bagId).getPath}").toASCIIString
+              "Location" -> externalBaseUri.resolve(s"stores/$bagstore/bags/${ fileSystem.toUri(bagId).getPath }").toASCIIString
             )))
             .getOrRecover {
               case e: IllegalArgumentException => BadRequest(e.getMessage)
@@ -111,7 +111,8 @@ trait StoresServletComponent extends DebugEnhancedLogging {
                 e.printStackTrace()
                 logger.error("Unexpected type of failure", e)
                 InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
-            })
+            }
+        })
         .getOrElse(NotFound(s"No such bag-store: $bagstore"))
     }
   }

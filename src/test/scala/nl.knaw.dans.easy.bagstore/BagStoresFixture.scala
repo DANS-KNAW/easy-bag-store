@@ -12,36 +12,23 @@ trait BagStoresFixture extends BagStoreFixture {
     with BagProcessingComponent
     with FileSystemComponent =>
 
-  val fs = new FileSystem {
-    override val baseDir: BagPath = store1
+  override val fileSystem = new FileSystem {
     override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
     override val bagPermissions: String = "rwxr-xr-x"
     override val localBaseUri: URI = new URI("http://example-archive.org")
   }
 
-  val processor = new BagProcessing {
-    override val fileSystem: FileSystem = fs
+  override val processor = new BagProcessing {
     override val stagingBaseDir: BagPath = testDir
     override val outputBagPermissions: String = "rwxr-xr-x"
   }
 
   val bagStore1 = new BagStore {
-    override val fileSystem: FileSystem = fs
-    override val processor: BagProcessing = test.processor
+    implicit val baseDir: BaseDir = store1
   }
 
-  val bagStore2 = new BagStore { bs2 =>
-    override val fileSystem: FileSystem = new FileSystem {
-      override val baseDir: BagPath = store2
-      override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
-      override val bagPermissions: String = "rwxr-xr-x"
-      override val localBaseUri: URI = new URI("http://example-archive.org")
-    }
-    override val processor: BagProcessing = new BagProcessing {
-      override val fileSystem: FileSystem = bs2.fileSystem
-      override val stagingBaseDir: BagPath = testDir
-      override val outputBagPermissions: String = "rwxr-xr-x"
-    }
+  val bagStore2 = new BagStore {
+    implicit val baseDir: BaseDir = store2
   }
 
   override val bagStores = new BagStores {

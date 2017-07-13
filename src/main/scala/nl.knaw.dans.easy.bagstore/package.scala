@@ -44,6 +44,8 @@ package object bagstore {
   case class NoBagException(cause: Throwable) extends Exception("The provided input did not contain a bag", cause)
   case class InvalidBagException(bagId: BagId) extends Exception(s"Bag $bagId is not a valid bag")
 
+  type BaseDir = Path
+
   def pathsEqual(f1: Path, f2: Path, excludeFiles: String*): Boolean = {
 
     @tailrec

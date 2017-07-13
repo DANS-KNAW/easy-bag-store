@@ -12,7 +12,7 @@ import scala.language.postfixOps
 import scala.util.{ Failure, Success, Try }
 
 trait BagStoresComponent {
-  this: BagStoreComponent =>
+  this: FileSystemComponent with BagProcessingComponent with BagStoreComponent =>
 
   val bagStores: BagStores
 
@@ -25,7 +25,7 @@ trait BagStoresComponent {
     def get(itemId: ItemId, output: Path, fromStore: Option[Path] = None): Try[Path] = {
       fromStore
         .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.fileSystem.baseDir == baseDir => store.get(itemId, output)
+          case (_, store) if store.baseDir == baseDir => store.get(itemId, output)
         })
         .getOrElse {
           stores.values.toStream
@@ -38,7 +38,7 @@ trait BagStoresComponent {
     def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false, fromStore: Option[Path] = None): Try[Seq[BagId]] = {
       fromStore
         .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.fileSystem.baseDir == baseDir => store.enumBags(includeActive, includeInactive)
+          case (_, store) if store.baseDir == baseDir => store.enumBags(includeActive, includeInactive)
         })
         .getOrElse {
           stores.values
@@ -51,7 +51,7 @@ trait BagStoresComponent {
     def enumFiles(bagId: BagId, fromStore: Option[Path] = None): Try[Seq[FileId]] = {
       fromStore
         .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.fileSystem.baseDir == baseDir => store.enumFiles(bagId)
+          case (_, store) if store.baseDir == baseDir => store.enumFiles(bagId)
         })
         .getOrElse {
           def recurse(storesToSearch: List[BagStore]): Try[Seq[FileId]] = {
@@ -71,13 +71,14 @@ trait BagStoresComponent {
 
     def putBag(inputStream: InputStream, bagStore: BagStore, uuidString: String): Try[BagId] = {
       for {
-        uuid <- Try { UUID.fromString(bagStore.fileSystem.formatUuidStrCanonically(uuidString.filterNot('-' ==))) }
+        // TODO is this formatting needed here?
+        uuid <- Try { UUID.fromString(fileSystem.formatUuidStrCanonically(uuidString.filterNot('-' ==))) }
           .recoverWith {
             case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidString"))
           }
         _ <- checkBagDoesNotExist(BagId(uuid))
-        staging <- bagStore.processor.unzipBag(inputStream)
-        staged <- bagStore.processor.findBagDir(staging)
+        staging <- processor.unzipBag(inputStream)
+        staged <- processor.findBagDir(staging)
         bagId <- bagStore.add(staged, Some(uuid), skipStage = true)
         _ = FileUtils.deleteDirectory(staging.toFile)
       } yield bagId
@@ -85,7 +86,8 @@ trait BagStoresComponent {
 
     private def checkBagDoesNotExist(bagId: BagId): Try[Unit] = {
       stores.map { case (name, store) =>
-        store.fileSystem.toContainer(bagId)
+        implicit val baseDir = store.baseDir
+        fileSystem.toContainer(bagId)
           .flatMap {
             case file if Files.exists(file) && Files.isDirectory(file) => Failure(BagIdAlreadyAssignedException(bagId, name))
             case file if Files.exists(file) => Failure(CorruptBagStoreException("Regular file in the place of a container: $f"))
@@ -97,7 +99,7 @@ trait BagStoresComponent {
     def deactivate(bagId: BagId, fromStore: Option[Path] = None): Try[Unit] = {
       fromStore
         .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.fileSystem.baseDir == baseDir => store.deactivate(bagId)
+          case (_, store) if store.baseDir == baseDir => store.deactivate(bagId)
         })
         .getOrElse {
           stores.values.toStream
@@ -113,7 +115,7 @@ trait BagStoresComponent {
     def reactivate(bagId: BagId, fromStore: Option[Path] = None): Try[Unit] = {
       fromStore
         .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.fileSystem.baseDir == baseDir => store.reactivate(bagId)
+          case (_, store) if store.baseDir == baseDir => store.reactivate(bagId)
         })
         .getOrElse {
           stores.values.toStream

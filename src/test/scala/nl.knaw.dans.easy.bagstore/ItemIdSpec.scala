@@ -18,8 +18,6 @@ package nl.knaw.dans.easy.bagstore
 import java.nio.file.Paths
 import java.util.UUID
 
-import org.scalatest.{FlatSpec, Inside, Matchers, OneInstancePerTest}
-
 import scala.util.{Failure, Success}
 
 class ItemIdSpec extends TestSupportFixture {
