@@ -7,6 +7,7 @@ import java.nio.file.attribute.{ BasicFileAttributes, PosixFilePermissions }
 import java.nio.file.{ FileVisitResult, FileVisitor, Files, Path }
 
 import net.lingala.zip4j.core.ZipFile
+import net.lingala.zip4j.exception.ZipException
 import net.lingala.zip4j.model.ZipParameters
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
@@ -139,6 +140,8 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       }.extractAll(extractDir.toAbsolutePath.toString)
       Files.delete(zip)
       extractDir
+    }.recoverWith {
+      case e: ZipException => Failure(NoBagException(e))
     }
 
     def findBagDir(extractDir: Path): Try[Path] = Try {
@@ -197,6 +200,7 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
             fileSystem.fromUri(uri).flatMap(fileSystem.toLocation) match {
               case Success(file) if FileUtils.contentEquals(fileInNewBag.toFile, file.toFile) =>
                 Files.delete(fileInNewBag)
+                if (!Files.list(fileInNewBag.getParent).findAny().isPresent) Files.delete(fileInNewBag.getParent)
                 acc += FetchItem(uri, Files.size(file), path)
               case Success(_) => acc // do nothing
               case Failure(e) => throw e

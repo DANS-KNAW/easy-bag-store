@@ -1,6 +1,5 @@
 package nl.knaw.dans.easy.bagstore.component
 
-import java.net.URI
 import java.nio.file.{ Files, Paths }
 
 import nl.knaw.dans.easy.bagstore._
@@ -9,7 +8,7 @@ import org.apache.commons.io.FileUtils
 import scala.util.{ Failure, Success }
 
 class BagStoresSpec extends TestSupportFixture
-  with BagStoreFixture
+  with BagStoresFixture
   with Bagit4Fixture
   with BagStoresComponent
   with BagStoreComponent
@@ -35,45 +34,6 @@ class BagStoresSpec extends TestSupportFixture
   private val TEST_BAG_UNPRUNED_C = testDir.resolve("basic-sequence-unpruned/c")
   private val TEST_BAG_COMPLEMENTARY = testDir.resolve("valid-bag-complementary-manifests")
   private val TEST_BAG_PRUNED_A = testDir.resolve("basic-sequence-pruned/a")
-
-  private val fs = new FileSystem {
-    override val baseDir: BagPath = store1
-    override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
-    override val bagPermissions: String = "rwxr-xr-x"
-    override val localBaseUri: URI = new URI("http://example-archive.org")
-  }
-
-  private val processor = new BagProcessing {
-    override val fileSystem: FileSystem = fs
-    override val stagingBaseDir: BagPath = testDir
-    override val outputBagPermissions: String = "rwxr-xr-x"
-  }
-
-  private val bagStore1 = new BagStore {
-    override val fileSystem: FileSystem = fs
-    override val processor: BagProcessing = test.processor
-  }
-
-  private val bagStore2 = new BagStore { bs2 =>
-    override val fileSystem: FileSystem = new FileSystem {
-      override val baseDir: BagPath = store2
-      override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
-      override val bagPermissions: String = "rwxr-xr-x"
-      override val localBaseUri: URI = new URI("http://example-archive.org")
-    }
-    override val processor: BagProcessing = new BagProcessing {
-      override val fileSystem: FileSystem = bs2.fileSystem
-      override val stagingBaseDir: BagPath = testDir
-      override val outputBagPermissions: String = "rwxr-xr-x"
-    }
-  }
-
-  override val bagStores = new BagStores {
-    override val stores: Map[String, BagStore] = Map(
-      "store1" -> bagStore1,
-      "store2" -> bagStore2
-    )
-  }
 
   "get" should "return exactly the same Bag as was added" in {
     val output = testDir.resolve("pruned-output")

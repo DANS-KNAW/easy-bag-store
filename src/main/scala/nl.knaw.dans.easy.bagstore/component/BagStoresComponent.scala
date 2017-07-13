@@ -18,7 +18,7 @@ trait BagStoresComponent {
 
   trait BagStores {
 
-    val stores: Map[String, BagStore]
+    def stores: Map[String, BagStore]
 
     def getStore(name: String): Option[BagStore] = stores.get(name)
 
@@ -72,6 +72,9 @@ trait BagStoresComponent {
     def putBag(inputStream: InputStream, bagStore: BagStore, uuidString: String): Try[BagId] = {
       for {
         uuid <- Try { UUID.fromString(bagStore.fileSystem.formatUuidStrCanonically(uuidString.filterNot('-' ==))) }
+          .recoverWith {
+            case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidString"))
+          }
         _ <- checkBagDoesNotExist(BagId(uuid))
         staging <- bagStore.processor.unzipBag(inputStream)
         staged <- bagStore.processor.findBagDir(staging)

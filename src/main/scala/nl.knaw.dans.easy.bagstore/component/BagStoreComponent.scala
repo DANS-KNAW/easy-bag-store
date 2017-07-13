@@ -134,7 +134,7 @@ trait BagStoreComponent {
           maybeRefbags <- processor.getReferenceBags(path)
           _ = debug(s"refbags tempfile: $maybeRefbags")
           valid <- fileSystem.isVirtuallyValid(path)
-          if valid
+          _ <- if (valid) Success(()) else Failure(InvalidBagException(bagId))
           _ <- maybeRefbags.map(pruneWithReferenceBags(path)).getOrElse(Success(()))
           _ = debug("bag succesfully pruned")
           container <- fileSystem.toContainer(bagId)

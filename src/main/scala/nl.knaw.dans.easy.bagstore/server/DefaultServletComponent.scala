@@ -12,11 +12,11 @@ trait DefaultServletComponent {
 
   trait DefaultServlet extends ScalatraServlet {
 
-    val externalBaseUri: URI // = new URI(properties.getString("daemon.external-base-uri"))
+    val externalBaseUri: URI
 
     get("/") {
       contentType = "text/plain"
-      Ok(s"EASY Bag Store is running ...\nAvaiable stores at <${externalBaseUri.resolve("stores")}>")
+      Ok(s"EASY Bag Store is running.\nAvailable stores at <${externalBaseUri.resolve("stores")}>")
     }
 
     get("/stores") {

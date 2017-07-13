@@ -10,7 +10,7 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 import org.scalatra._
 
-import scala.util.Try
+import scala.util.{ Failure, Try }
 import scala.util.control.NonFatal
 
 trait StoresServletComponent extends DebugEnhancedLogging {
@@ -39,10 +39,13 @@ trait StoresServletComponent extends DebugEnhancedLogging {
 
     get("/:bagstore/bags/:uuid") {
       val bagstore = params("bagstore")
-      val uuid = params("uuid")
+      val uuidStr = params("uuid")
       bagStores.getStore(bagstore)
         .map(base => {
-          ItemId.fromString(uuid)
+          ItemId.fromString(uuidStr)
+            .recoverWith {
+              case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
+            }
             .flatMap {
               case bagId: BagId =>
                 debug(s"Retrieving item $bagId")
@@ -56,33 +59,38 @@ trait StoresServletComponent extends DebugEnhancedLogging {
                 Try { InternalServerError() }
             }
             .getOrRecover {
+              case e: IllegalArgumentException => BadRequest(e.getMessage)
               case e: NoSuchBagException => NotFound(e.getMessage)
               case NonFatal(e) =>
                 logger.error("Unexpected type of failure", e)
                 InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
             }
         })
-        .getOrElse(NotFound(s"No such bag-store $bagstore"))
+        .getOrElse(NotFound(s"No such bag-store: $bagstore"))
     }
 
     get("/:bagstore/bags/:uuid/*") {
       val bagstore = params("bagstore")
-      val uuid = params("uuid")
+      val uuidStr = params("uuid")
       bagStores.getStore(bagstore)
-        .map(base => ItemId.fromString(s"""$uuid/${ multiParams("splat").head }""")
+        .map(base => ItemId.fromString(s"""$uuidStr/${ multiParams("splat").head }""")
+          .recoverWith {
+            case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
+          }
           .flatMap(itemId => {
             debug(s"Retrieving item $itemId")
             base.get(itemId, response.outputStream)
           })
           .map(_ => Ok())
           .getOrRecover {
+            case e: IllegalArgumentException => BadRequest(e.getMessage)
             case e: NoSuchBagException => NotFound(e.getMessage)
             case e: NoSuchFileException => NotFound(e.getMessage)
             case NonFatal(e) =>
               logger.error("Error retrieving bag", e)
               InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
           })
-        .getOrElse(NotFound(s"No such bag-store $bagstore"))
+        .getOrElse(NotFound(s"No such bag-store: $bagstore"))
     }
 
     put("/:bagstore/bags/:uuid") {
@@ -91,26 +99,20 @@ trait StoresServletComponent extends DebugEnhancedLogging {
       bagStores.getStore(bagstore)
         .map(base =>
           bagStores.putBag(request.getInputStream, base, uuid)
-            .map(bagId => Created(headers = Map("Location" -> appendUriPathToExternalBaseUri(base.fileSystem.toUri(bagId), bagstore).toASCIIString)))
+            .map(bagId => Created(headers = Map(
+              "Location" -> externalBaseUri.resolve(s"stores/$bagstore/bags/${base.fileSystem.toUri(bagId).getPath}").toASCIIString
+            )))
             .getOrRecover {
-              case e: IllegalArgumentException if e.getMessage.contains("Invalid UUID string") => BadRequest(s"Invalid UUID: $uuid")
-              case _: NumberFormatException => BadRequest(s"Invalid UUID: $uuid")
+              case e: IllegalArgumentException => BadRequest(e.getMessage)
               case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage)
+              case e: NoBagException => BadRequest(e.getMessage)
+              case e: InvalidBagException => BadRequest(e.getMessage)
               case e =>
+                e.printStackTrace()
                 logger.error("Unexpected type of failure", e)
                 InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
             })
         .getOrElse(NotFound(s"No such bag-store: $bagstore"))
-    }
-
-    private def appendUriPathToExternalBaseUri(uri: URI, store: String): URI = {
-      new URI(
-        externalBaseUri.getScheme,
-        externalBaseUri.getAuthority,
-        Paths.get(externalBaseUri.getPath, "stores", store, "bags", uri.getPath).toString,
-//        externalBaseUri.resolve("stores").resolve(store).resolve("bags").resolve(uri.getPath).toString, // TODO is this the same as above?
-        null,
-        null)
     }
   }
 }
