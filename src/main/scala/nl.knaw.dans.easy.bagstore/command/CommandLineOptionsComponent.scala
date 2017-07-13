@@ -2,7 +2,7 @@ package nl.knaw.dans.easy.bagstore.command
 
 import java.nio.file.{ Path, Paths }
 
-import nl.knaw.dans.easy.bagstore.{ ConfigurationComponent, Version }
+import nl.knaw.dans.easy.bagstore.ConfigurationComponent
 import org.rogach.scallop.{ ScallopConf, ScallopOption, Subcommand, singleArgConverter }
 
 trait CommandLineOptionsComponent {
@@ -17,7 +17,7 @@ trait CommandLineOptionsComponent {
     printedName = "easy-bag-store"
     private val _________ = " " * printedName.length
     private val SUBCOMMAND_SEPARATOR = "---\n"
-    version(s"$printedName v${Version()}")
+    version(s"$printedName v${ configuration.version }")
     banner(s"""
               |Manage a BagStore
               |

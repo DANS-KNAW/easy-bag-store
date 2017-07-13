@@ -44,16 +44,6 @@ package object bagstore {
   case class NoBagException(cause: Throwable) extends Exception("The provided input did not contain a bag", cause)
   case class InvalidBagException(bagId: BagId) extends Exception(s"Bag $bagId is not a valid bag")
 
-  val CONTEXT_ATTRIBUTE_KEY_BAGSTORE_APP = "nl.knaw.dans.easy.bagstore.BagStoreApp"
-
-  object Version {
-    def apply(): String = {
-      val props = new Properties()
-      props.load(getClass.getResourceAsStream("/Version.properties"))
-      props.getProperty("application.version")
-    }
-  }
-
   def pathsEqual(f1: Path, f2: Path, excludeFiles: String*): Boolean = {
 
     @tailrec
