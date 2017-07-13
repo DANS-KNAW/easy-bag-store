@@ -15,13 +15,11 @@
 # limitations under the License.
 #
 
+DATADIR=data
 
-ARGS=$@
-APPHOME=home
-
-
-mvn exec:java -Dapp.home=$APPHOME \
-              -Dconfig.file=$APPHOME/cfg/application.conf \
-              -Dlogback.configurationFile=$APPHOME/cfg/logback.xml \
-              -Dexec.args="$ARGS"
-
+echo -n "Copying test bag stores to $DATADIR..."
+mkdir -p $DATADIR/bag-store1
+cp -r src/test/resources/bag-store/00 $DATADIR/bag-store1/01
+mkdir -p $DATADIR/bag-store2
+cp -r src/test/resources/bag-store/00 $DATADIR/bag-store2/02
+echo "OK"

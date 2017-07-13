@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright (C) 2016 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
 #
@@ -16,14 +15,7 @@
 #
 
 
-ARGS=$@
-APPHOME=home
-
-MAVEN_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n" \
-mvn exec:java -Pservice \
-              -Dapp.home=$APPHOME \
-              -Dexec.args="$ARGS" \
-              -Dlogback.configurationFile=$APPHOME/cfg/logback-service.xml \
-#              -Dlogback.statusListenerClass=ch.qos.logback.core.status.OnConsoleStatusListener
-
-# Uncomment the last line if you need to examine the logback initialization process.
+- hosts: "test"
+  become: yes
+  roles:
+    - yum-repo
