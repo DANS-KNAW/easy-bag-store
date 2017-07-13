@@ -63,8 +63,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
       assert(uuidPath.asScala.map(_.toString.length) == uuidPathComponentSizes, "UUID-part slashed incorrectly")
     }
 
-    // TODO can this one be private?
-    def formatUuidStrCanonically(s: String): String = {
+    private def formatUuidStrCanonically(s: String): String = {
       List(s.slice(0, 8), s.slice(8, 12), s.slice(12, 16), s.slice(16, 20), s.slice(20, 32)).mkString("-")
     }
 
@@ -86,7 +85,6 @@ trait FileSystemComponent extends DebugEnhancedLogging {
      * @param uri the item-uri
      * @return the item-id
      */
-    // TODO doesn't depend directly on filesystem/baseDir, move to somewhere else?
     def fromUri(uri: URI): Try[ItemId] = {
       object UriComponents {
         def unapply(uri: URI): Option[(String, String, String, Int, Path, String, String)] = Some((

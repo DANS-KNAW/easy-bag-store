@@ -132,18 +132,19 @@ class BagsServletSpec extends TestSupportFixture
   "get uuid" should "enumerate the files of a given bag" in {
     get("/00000000-0000-0000-0000-000000000001") {
       status shouldBe 200
-      // TODO why aren't the metadata files included in here?
-      body.lines.toList should contain only (
-        "00000000-0000-0000-0000-000000000001/bagit.txt",
-        "00000000-0000-0000-0000-000000000001/data/y",
-        "00000000-0000-0000-0000-000000000001/manifest-sha1.txt",
+      body.lines.toList should contain only(
         "00000000-0000-0000-0000-000000000001/data/x",
-        "00000000-0000-0000-0000-000000000001/data/sub/w",
+        "00000000-0000-0000-0000-000000000001/data/y",
         "00000000-0000-0000-0000-000000000001/data/z",
         "00000000-0000-0000-0000-000000000001/data/sub/u",
-        "00000000-0000-0000-0000-000000000001/tagmanifest-sha1.txt",
         "00000000-0000-0000-0000-000000000001/data/sub/v",
-        "00000000-0000-0000-0000-000000000001/bag-info.txt"
+        "00000000-0000-0000-0000-000000000001/data/sub/w",
+        "00000000-0000-0000-0000-000000000001/metadata/dataset.xml",
+        "00000000-0000-0000-0000-000000000001/metadata/files.xml",
+        "00000000-0000-0000-0000-000000000001/bagit.txt",
+        "00000000-0000-0000-0000-000000000001/bag-info.txt",
+        "00000000-0000-0000-0000-000000000001/manifest-sha1.txt",
+        "00000000-0000-0000-0000-000000000001/tagmanifest-sha1.txt"
       )
     }
   }

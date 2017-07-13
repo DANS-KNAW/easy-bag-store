@@ -1,6 +1,7 @@
 package nl.knaw.dans.easy.bagstore.server
 
 import java.net.URI
+import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.{ BagStoresComponent, FileSystemComponent }
@@ -94,11 +95,17 @@ trait StoresServletComponent extends DebugEnhancedLogging {
 
     put("/:bagstore/bags/:uuid") {
       val bagstore = params("bagstore")
-      val uuid = params("uuid")
+      val uuidStr = params("uuid")
       bagStores.getStore(bagstore)
         .map(base => {
-          implicit val baseDir: BaseDir = base.baseDir
-          bagStores.putBag(request.getInputStream, base, uuid)
+          Try { UUID.fromString(uuidStr) }
+            .recoverWith {
+              case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
+            }
+            .flatMap(uuid => {
+              implicit val baseDir: BaseDir = base.baseDir
+              bagStores.putBag(request.getInputStream, base, uuid)
+            })
             .map(bagId => Created(headers = Map(
               "Location" -> externalBaseUri.resolve(s"stores/$bagstore/bags/${ fileSystem.toUri(bagId).getPath }").toASCIIString
             )))

@@ -96,9 +96,7 @@ object Command extends App with CommandWiring {
         }
       }
       fileSystem.isVirtuallyValid(cmd.bagDir()).map(valid => s"Done validating. Result: virtually-valid = $valid")
-    case _ => throw new IllegalArgumentException(s"Unknown command: ${commandLine.subcommand}")
-      Try { "Unknown command" }
-      // TODO what is this ???
+    case _ => Try { s"Unknown command: ${commandLine.subcommand}" }
   }
 
   result.doIfSuccess(msg => println(s"OK: $msg"))

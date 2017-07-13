@@ -45,8 +45,9 @@ trait BagStoreComponent {
         path <- fileSystem.toLocation(bagId)
         payloadPaths <- bagFacade.getPayloadFilePaths(path)
         _ = debug(s"Payload files: $payloadPaths")
-      } yield listFiles(path)
+      } yield walkFiles(path)
         .withFilter(Files.isRegularFile(_))
+        .withFilter(p => path.resolve("data").relativize(p).toString startsWith "..")
         .map(path.relativize)
         .toSet
         .union(payloadPaths)

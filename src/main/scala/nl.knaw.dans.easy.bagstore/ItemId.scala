@@ -55,7 +55,6 @@ case class FileId(bagId: BagId, path: Path) extends ItemId(bagId.uuid) {
     s"$bagId/${path.asScala.map(_.toString).map(pathEscaper.escape).mkString("/")}"
   }
 
-  // TODO why is this not Success(bagId)?
   override def toBagId: Try[BagId] = Failure(NoBagIdException(this))
 
   override def toFileId: Try[FileId] = Success(this)

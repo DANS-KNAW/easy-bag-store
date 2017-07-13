@@ -2,7 +2,7 @@ package nl.knaw.dans.easy.bagstore.server
 
 import java.net.URI
 import java.nio.charset.StandardCharsets
-import java.nio.file.{ Files, Paths }
+import java.nio.file.{ Files, Path, Paths }
 import java.util.UUID
 
 import net.lingala.zip4j.core.ZipFile
@@ -167,16 +167,18 @@ class StoresServletSpec extends TestSupportFixture
     get("/store1/bags/00000000-0000-0000-0000-000000000001") {
       status shouldBe 200
       body.lines.toList should contain only(
-        "00000000-0000-0000-0000-000000000001/bagit.txt",
-        "00000000-0000-0000-0000-000000000001/data/y",
-        "00000000-0000-0000-0000-000000000001/manifest-sha1.txt",
         "00000000-0000-0000-0000-000000000001/data/x",
-        "00000000-0000-0000-0000-000000000001/data/sub/w",
+        "00000000-0000-0000-0000-000000000001/data/y",
         "00000000-0000-0000-0000-000000000001/data/z",
         "00000000-0000-0000-0000-000000000001/data/sub/u",
-        "00000000-0000-0000-0000-000000000001/tagmanifest-sha1.txt",
         "00000000-0000-0000-0000-000000000001/data/sub/v",
-        "00000000-0000-0000-0000-000000000001/bag-info.txt"
+        "00000000-0000-0000-0000-000000000001/data/sub/w",
+        "00000000-0000-0000-0000-000000000001/metadata/dataset.xml",
+        "00000000-0000-0000-0000-000000000001/metadata/files.xml",
+        "00000000-0000-0000-0000-000000000001/bagit.txt",
+        "00000000-0000-0000-0000-000000000001/bag-info.txt",
+        "00000000-0000-0000-0000-000000000001/manifest-sha1.txt",
+        "00000000-0000-0000-0000-000000000001/tagmanifest-sha1.txt"
       )
     }
   }
@@ -214,16 +216,18 @@ class StoresServletSpec extends TestSupportFixture
     get("/store1/bags/00000000-0000-0000-0000-000000000001", params = Map.empty, headers = Map("Accept" -> "text/plain")) {
       status shouldBe 200
       body.lines.toList should contain only(
-        "00000000-0000-0000-0000-000000000001/bagit.txt",
-        "00000000-0000-0000-0000-000000000001/data/y",
-        "00000000-0000-0000-0000-000000000001/manifest-sha1.txt",
         "00000000-0000-0000-0000-000000000001/data/x",
-        "00000000-0000-0000-0000-000000000001/data/sub/w",
+        "00000000-0000-0000-0000-000000000001/data/y",
         "00000000-0000-0000-0000-000000000001/data/z",
         "00000000-0000-0000-0000-000000000001/data/sub/u",
-        "00000000-0000-0000-0000-000000000001/tagmanifest-sha1.txt",
         "00000000-0000-0000-0000-000000000001/data/sub/v",
-        "00000000-0000-0000-0000-000000000001/bag-info.txt"
+        "00000000-0000-0000-0000-000000000001/data/sub/w",
+        "00000000-0000-0000-0000-000000000001/metadata/dataset.xml",
+        "00000000-0000-0000-0000-000000000001/metadata/files.xml",
+        "00000000-0000-0000-0000-000000000001/bagit.txt",
+        "00000000-0000-0000-0000-000000000001/bag-info.txt",
+        "00000000-0000-0000-0000-000000000001/manifest-sha1.txt",
+        "00000000-0000-0000-0000-000000000001/tagmanifest-sha1.txt"
       )
     }
   }
@@ -301,37 +305,64 @@ class StoresServletSpec extends TestSupportFixture
     }
   }
 
-  "put /:bagstore/bags/:uuid" should "store a bag in the given bag-store" in {
-    val uuid = "11111111-1111-1111-1111-111111111111"
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(TEST_BAG_UNPRUNED_A)) {
+  def putBag(uuid: String, bagZip: Path): Unit = {
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(bagZip)) {
       status shouldBe 201
       header should contain("Location" -> s"http://example-archive.org/stores/store1/bags/$uuid")
     }
   }
 
+  "put /:bagstore/bags/:uuid" should "store a bag in the given bag-store" in {
+    val uuid = "11111111-1111-1111-1111-111111111111"
+    putBag(uuid, TEST_BAG_UNPRUNED_A)
+  }
+
   it should "store and prune multiple revisions of a bagsequence" in {
     val uuid1 = "11111111-1111-1111-1111-111111111111"
-    put(s"/store1/bags/$uuid1", body = Files.readAllBytes(TEST_BAG_UNPRUNED_A)) {
-      status shouldBe 201
-      header should contain("Location" -> s"http://example-archive.org/stores/store1/bags/$uuid1")
-    }
-
     val uuid2 = "11111111-1111-1111-1111-111111111112"
-    put(s"/store1/bags/$uuid2", body = Files.readAllBytes(TEST_BAG_UNPRUNED_B)) {
-      status shouldBe 201
-      header should contain("Location" -> s"http://example-archive.org/stores/store1/bags/$uuid2")
-    }
-
     val uuid3 = "11111111-1111-1111-1111-111111111113"
-    put(s"/store1/bags/$uuid3", body = Files.readAllBytes(TEST_BAG_UNPRUNED_C)) {
-      status shouldBe 201
-      header should contain("Location" -> s"http://example-archive.org/stores/store1/bags/$uuid3")
-    }
+
+    putBag(uuid1, TEST_BAG_UNPRUNED_A)
+    putBag(uuid2, TEST_BAG_UNPRUNED_B)
+    putBag(uuid3, TEST_BAG_UNPRUNED_C)
 
     val pruned = Paths.get("src/test/resources/bags/basic-sequence-pruned")
     pathsEqual(pruned.resolve("a"), store1.resolve("11/111111111111111111111111111111/a")) shouldBe true
     pathsEqual(pruned.resolve("b"), store1.resolve("11/111111111111111111111111111112/b"), "fetch.txt") shouldBe true
     pathsEqual(pruned.resolve("c"), store1.resolve("11/111111111111111111111111111113/c"), "fetch.txt") shouldBe true
+  }
+
+  it should "make an identity with get/:bagstore/bags/:uuid" in {
+    def retrieveBag(uuid: String, bagName: String): Unit = {
+      get(s"/store1/bags/$uuid", params = Map.empty, headers = Map("Accept" -> "application/zip")) {
+        status shouldBe 200
+
+        val zip = testDir.resolve(s"bag-output/$uuid.zip")
+        val unzip = testDir.resolve(s"bag-output/$uuid")
+        Files.createDirectories(zip.getParent)
+        Files.copy(response.inputStream, zip)
+        zip.toFile should exist
+
+        new ZipFile(zip.toFile) {
+          setFileNameCharset(StandardCharsets.UTF_8.name)
+        }.extractAll(unzip.toAbsolutePath.toString)
+        unzip.toFile should exist
+
+        pathsEqual(unzip.resolve(bagName), TEST_BAGS_UNPRUNED.resolve(bagName), "refbags.txt") shouldBe true
+      }
+    }
+
+    val uuid1 = "11111111-1111-1111-1111-111111111111"
+    val uuid2 = "11111111-1111-1111-1111-111111111112"
+    val uuid3 = "11111111-1111-1111-1111-111111111113"
+
+    putBag(uuid1, TEST_BAG_UNPRUNED_A)
+    putBag(uuid2, TEST_BAG_UNPRUNED_B)
+    putBag(uuid3, TEST_BAG_UNPRUNED_C)
+
+    retrieveBag(uuid1, "a")
+    retrieveBag(uuid2, "b")
+    retrieveBag(uuid3, "c")
   }
 
   it should "fail when the store is unknown" in {
@@ -342,7 +373,7 @@ class StoresServletSpec extends TestSupportFixture
   }
 
   it should "fail when the given uuid is not a uuid" in {
-    val uuid = "abcde"
+    val uuid = "11111111111111111111111111111111"
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(TEST_BAG_UNPRUNED_A)) {
       status shouldBe 400
       body shouldBe s"invalid UUID string: $uuid"

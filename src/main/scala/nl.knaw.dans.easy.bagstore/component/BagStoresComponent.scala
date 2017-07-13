@@ -69,13 +69,8 @@ trait BagStoresComponent {
         }
     }
 
-    def putBag(inputStream: InputStream, bagStore: BagStore, uuidString: String): Try[BagId] = {
+    def putBag(inputStream: InputStream, bagStore: BagStore, uuid: UUID): Try[BagId] = {
       for {
-        // TODO is this formatting needed here?
-        uuid <- Try { UUID.fromString(fileSystem.formatUuidStrCanonically(uuidString.filterNot('-' ==))) }
-          .recoverWith {
-            case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidString"))
-          }
         _ <- checkBagDoesNotExist(BagId(uuid))
         staging <- processor.unzipBag(inputStream)
         staged <- processor.findBagDir(staging)

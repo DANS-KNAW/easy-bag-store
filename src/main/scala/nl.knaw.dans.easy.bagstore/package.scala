@@ -24,6 +24,7 @@ import org.apache.commons.io.FileUtils
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
+import resource._
 
 package object bagstore {
   case class NoItemUriException(uri: URI, baseUri: URI) extends Exception(s"Base of URI $uri is not an item-uri: does not match base-uri; base-uri is $baseUri")
@@ -54,10 +55,11 @@ package object bagstore {
         todo match {
           case Nil => acc
           case (file1, file2) :: tail if Files.isDirectory(file1) && Files.isDirectory(file2) =>
-            val files1 = listFiles(file1)
-            val files2 = listFiles(file2)
-            if (files1.size != files2.size)
+            val files1 = listFiles(file1).filterNot(excludeFiles contains _.getFileName.toString)
+            val files2 = listFiles(file2).filterNot(excludeFiles contains _.getFileName.toString)
+            if (files1.size != files2.size) {
               false
+            }
             else
               rec(tail ::: files1.sorted.zip(files2.sorted).toList, acc)
           case (file1, file2) :: tail if Files.isRegularFile(file1) && Files.isRegularFile(file2) =>
@@ -80,6 +82,10 @@ package object bagstore {
   }
 
   def listFiles(dir: Path): Seq[Path] = {
-    resource.managed(Files.list(dir)).acquireAndGet(_.iterator().asScala.toList)
+    managed(Files.list(dir)).acquireAndGet(_.iterator().asScala.toList)
+  }
+
+  def walkFiles(dir: Path): Seq[Path] = {
+    managed(Files.walk(dir)).acquireAndGet(_.iterator().asScala.toList)
   }
 }
