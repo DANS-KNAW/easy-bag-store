@@ -22,8 +22,7 @@ import nl.knaw.dans.easy.bagstore.{ BaseDir, ItemId }
 import nl.knaw.dans.lib.error._
 
 import scala.io.StdIn
-import scala.language.postfixOps
-import scala.language.reflectiveCalls
+import scala.language.{ postfixOps, reflectiveCalls }
 import scala.util.control.NonFatal
 import scala.util.{ Success, Try }
 

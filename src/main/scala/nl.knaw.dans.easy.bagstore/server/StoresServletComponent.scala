@@ -87,25 +87,28 @@ trait StoresServletComponent extends DebugEnhancedLogging {
     get("/:bagstore/bags/:uuid/*") {
       val bagstore = params("bagstore")
       val uuidStr = params("uuid")
-      bagStores.getStore(bagstore)
-        .map(base => ItemId.fromString(s"""$uuidStr/${ multiParams("splat").head }""")
-          .recoverWith {
-            case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
-          }
-          .flatMap(itemId => {
-            debug(s"Retrieving item $itemId")
-            base.get(itemId, response.outputStream)
-          })
-          .map(_ => Ok())
-          .getOrRecover {
-            case e: IllegalArgumentException => BadRequest(e.getMessage)
-            case e: NoSuchBagException => NotFound(e.getMessage)
-            case e: NoSuchFileException => NotFound(e.getMessage)
-            case NonFatal(e) =>
-              logger.error("Error retrieving bag", e)
-              InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
-          })
-        .getOrElse(NotFound(s"No such bag-store: $bagstore"))
+      multiParams("splat") match {
+        case Seq(path) =>
+          bagStores.getStore(bagstore)
+            .map(base => ItemId.fromString(s"""$uuidStr/${ path }""")
+              .recoverWith {
+                case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
+              }
+              .flatMap(itemId => {
+                debug(s"Retrieving item $itemId")
+                base.get(itemId, response.outputStream)
+              })
+              .map(_ => Ok())
+              .getOrRecover {
+                case e: IllegalArgumentException => BadRequest(e.getMessage)
+                case e: NoSuchBagException => NotFound(e.getMessage)
+                case e: NoSuchFileException => NotFound(e.getMessage)
+                case NonFatal(e) =>
+                  logger.error("Error retrieving bag", e)
+                  InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
+              })
+            .getOrElse(NotFound(s"No such bag-store: $bagstore"))
+      }
     }
 
     put("/:bagstore/bags/:uuid") {

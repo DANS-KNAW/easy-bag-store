@@ -100,11 +100,12 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
 
         override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = {
           trace(dir, exc)
-          if(exc != null) {
-            logger.error(s"Error when visiting directory: $dir", exc)
-            FileVisitResult.TERMINATE
-          }
-          else FileVisitResult.CONTINUE
+          Option(exc)
+            .map(exc => {
+              logger.error(s"Error when visiting directory: $dir", exc)
+              FileVisitResult.TERMINATE
+            })
+            .getOrElse(FileVisitResult.CONTINUE)
         }
 
         private def logAttributes(path: Path, attrs: BasicFileAttributes): Unit = {
@@ -163,14 +164,10 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
     }
 
     def findBagDir(extractDir: Path): Try[Path] = Try {
-      val files = listFiles(extractDir)
-      if (files.size != 1) throw IncorrectNumberOfFilesInBagZipRootException(files.size)
-      else if(!Files.isDirectory(files.head)) throw BagBaseNotFoundException()
-      else files.head
-      files match {
+      listFiles(extractDir) match {
         case Seq(file) if Files.isDirectory(file) => file
         case Seq(_) => throw BagBaseNotFoundException()
-        case _ => throw IncorrectNumberOfFilesInBagZipRootException(files.size)
+        case files => throw IncorrectNumberOfFilesInBagZipRootException(files.size)
       }
     }
 

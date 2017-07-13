@@ -77,10 +77,11 @@ class BagStoreSpec extends TestSupportFixture
   }
 
   "add" should "result in exact copy (except for bag-info.txt) of bag in archive when bag is valid" in {
-    val tryBagId = bagStore.add(testBagMinimal)
-    tryBagId shouldBe a[Success[_]]
-    val bagDirInStore = tryBagId.flatMap(fileSystem.toLocation).get
-    pathsEqual(testBagMinimal, bagDirInStore, excludeFiles = "bag-info.txt") shouldBe true
+    inside(bagStore.add(testBagMinimal)) { case Success(bagId) =>
+      inside(fileSystem.toLocation(bagId)) { case Success(bagDirInStore) =>
+        pathsEqual(testBagMinimal, bagDirInStore, excludeFiles = "bag-info.txt") shouldBe true
+      }
+    }
   }
 
   it should "result in a Failure if bag is incomplete" in {
