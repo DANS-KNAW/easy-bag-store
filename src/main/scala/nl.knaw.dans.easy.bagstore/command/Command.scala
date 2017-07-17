@@ -18,9 +18,10 @@ package nl.knaw.dans.easy.bagstore.command
 import java.nio.file.Path
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstore.{ BaseDir, ItemId }
+import nl.knaw.dans.easy.bagstore.ItemId
 import nl.knaw.dans.lib.error._
 
+import scala.annotation.tailrec
 import scala.io.StdIn
 import scala.language.{ postfixOps, reflectiveCalls }
 import scala.util.control.NonFatal
@@ -43,13 +44,13 @@ object Command extends App with CommandWiring {
     case Some(cmd @ commandLine.add) =>
       val bagUuid = cmd.uuid.toOption.map(UUID.fromString)
 
-      val base = bagStoreBaseDir.getOrElse {
+      val (name, store) = bagStoreBaseDir.flatMap(getStore).getOrElse {
         bagStores.stores.toList match {
-          case (_, store) :: Nil => store.baseDir
+          case nameAndStore :: Nil => nameAndStore
           case _ => promptForStore("Please, select which BagStore to add to.")
         }
       }
-      getStore(base).get.add(cmd.bag(), bagUuid).map(bagId => s"Added Bag with bag-id: $bagId to BagStore: ${getStoreName(base)}")
+      store.add(cmd.bag(), bagUuid).map(bagId => s"Added Bag with bag-id: $bagId to BagStore: $name")
     case Some(cmd @ commandLine.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
@@ -85,7 +86,9 @@ object Command extends App with CommandWiring {
       implicit val base = bagStoreBaseDir.getOrElse {
         bagStores.stores.toList match {
           case (_, store) :: Nil => store.baseDir
-          case _ => promptForStore("Please, select the BagStore containing the reference bags.")
+          case _ =>
+            val (_, store) = promptForStore("Please, select the BagStore containing the reference bags.")
+            store.baseDir
         }
       }
       cmd.referenceBags.toOption
@@ -98,7 +101,9 @@ object Command extends App with CommandWiring {
       implicit val base = bagStoreBaseDir.getOrElse {
         bagStores.stores.toList match {
           case (_, store) :: Nil => store.baseDir
-          case _ => promptForStore("Please, select the BagStore containing the reference bags.")
+          case _ =>
+            val (_, store) = promptForStore("Please, select the BagStore containing the reference bags.")
+            store.baseDir
         }
       }
       processor.complete(cmd.bagDir()).map(_ => s"Done completing ${cmd.bagDir()}")
@@ -106,7 +111,9 @@ object Command extends App with CommandWiring {
       implicit val base = bagStoreBaseDir.getOrElse {
         bagStores.stores.toList match {
           case (_, store) :: Nil => store.baseDir
-          case _ => promptForStore("Please, select the BagStore containing the reference bags.")
+          case _ =>
+            val (_, store) = promptForStore("Please, select the BagStore containing the reference bags.")
+            store.baseDir
         }
       }
       fileSystem.isVirtuallyValid(cmd.bagDir()).map(valid => s"Done validating. Result: virtually-valid = $valid")
@@ -124,16 +131,16 @@ object Command extends App with CommandWiring {
     bagStores.stores.collectFirst { case (name, base) if base == p => name }.getOrElse(p.toString)
   }
 
-  private def getStore(p: Path): Option[BagStore] = {
-    bagStores.stores.collectFirst { case (_, store) if store.baseDir == p => store }
+  private def getStore(p: Path): Option[(String, BagStore)] = {
+    bagStores.stores.find { case (_, store) => store.baseDir == p }
   }
 
-  private def promptForStore(msg: String): BaseDir = {
-    Stream.continually {
-      val name = StdIn.readLine(s"$msg\nAvailable BagStores:\n$listStores\nSelect a name: ")
-      val optStore = bagStores.getStore(name)
-      if (optStore.isEmpty) print("Not found. ")
-      optStore.map(_.baseDir)
-    }.find(_.isDefined).flatten.get
+  @tailrec
+  private def promptForStore(msg: String): (String, BagStore) = {
+    val name = StdIn.readLine(s"$msg\nAvailable BagStores:\n$listStores\nSelect a name: ")
+    bagStores.getStore(name) match {
+      case Some(store) => (name, store)
+      case None => promptForStore(msg)
+    }
   }
 }

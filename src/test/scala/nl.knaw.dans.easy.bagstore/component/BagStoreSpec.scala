@@ -103,9 +103,9 @@ class BagStoreSpec extends TestSupportFixture
   }
 
   it should "refuse to ingest hidden bag directories" in {
-    val HIDDEN_BAGDIR = testDir.resolve(".some-hidden-bag")
-    FileUtils.copyDirectory(testBagMinimal.toFile, HIDDEN_BAGDIR.toFile)
-    val result = bagStore.add(HIDDEN_BAGDIR)
+    val hiddenBagDir = testDir.resolve(".some-hidden-bag")
+    FileUtils.copyDirectory(testBagMinimal.toFile, hiddenBagDir.toFile)
+    val result = bagStore.add(hiddenBagDir)
     inside(result) {
       case Failure(e) => e shouldBe a[CannotIngestHiddenBagDirectoryException]
     }
