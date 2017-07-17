@@ -19,13 +19,14 @@ import java.nio.file.{ Files, Paths }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
-import nl.knaw.dans.easy.bagstore.{ BagStoresFixture, Bagit4Fixture, TestSupportFixture }
+import nl.knaw.dans.easy.bagstore.{ BagStoresFixture, Bagit4Fixture, ServletFixture, TestSupportFixture }
 import org.apache.commons.io.FileUtils
 import org.scalatra.test.scalatest.ScalatraSuite
 
 class BagsServletSpec extends TestSupportFixture
   with Bagit4Fixture
   with BagStoresFixture
+  with ServletFixture
   with ScalatraSuite
   with BagsServletComponent
   with BagStoresComponent

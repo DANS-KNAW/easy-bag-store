@@ -22,8 +22,8 @@ import java.util.UUID
 
 import net.lingala.zip4j.core.ZipFile
 import net.lingala.zip4j.model.ZipParameters
+import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
-import nl.knaw.dans.easy.bagstore.{ BagStoresFixture, Bagit4Fixture, TestSupportFixture, pathsEqual }
 import org.apache.commons.io.FileUtils
 import org.scalatra.test.scalatest.ScalatraSuite
 
@@ -32,6 +32,7 @@ import scala.io.Source
 class StoresServletSpec extends TestSupportFixture
   with Bagit4Fixture
   with BagStoresFixture
+  with ServletFixture
   with ScalatraSuite
   with StoresServletComponent
   with BagStoresComponent
