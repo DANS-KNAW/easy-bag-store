@@ -20,6 +20,7 @@ import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore.ItemId
 import nl.knaw.dans.lib.error._
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 import scala.annotation.tailrec
 import scala.io.StdIn
@@ -27,12 +28,13 @@ import scala.language.{ postfixOps, reflectiveCalls }
 import scala.util.control.NonFatal
 import scala.util.{ Success, Try }
 
-object Command extends App with CommandWiring {
+object Command extends App with CommandWiring with DebugEnhancedLogging {
 
   type FeedBackMessage = String
 
-  override val commandLine: CommandLineOptions = new CommandLineOptions(args)
-  commandLine.verify()
+  override val commandLine: CommandLineOptions = new CommandLineOptions(args) {
+    verify()
+  }
 
   val bagStoreBaseDir: Option[Path] = commandLine.bagStoreBaseDir.toOption
     .orElse(commandLine.storeName.toOption.flatMap(name => bagStores.getStore(name).map(_.baseDir)))
@@ -117,6 +119,7 @@ object Command extends App with CommandWiring {
         }
       }
       fileSystem.isVirtuallyValid(cmd.bagDir()).map(valid => s"Done validating. Result: virtually-valid = $valid")
+    case Some(_ @ commandLine.runService) => runAsService()
     case _ => Try { s"Unknown command: ${commandLine.subcommand}" }
   }
 
@@ -142,5 +145,22 @@ object Command extends App with CommandWiring {
       case Some(store) => (name, store)
       case None => promptForStore(msg)
     }
+  }
+
+  private def runAsService(): Try[FeedBackMessage] = Try {
+    Runtime.getRuntime.addShutdownHook(new Thread("service-shutdown") {
+      override def run(): Unit = {
+        logger.info("Stopping service ...")
+        server.stop()
+        logger.info("Cleaning up ...")
+        server.destroy()
+        logger.info("Service stopped.")
+      }
+    })
+
+    server.start()
+    logger.info("Service started ...")
+    Thread.currentThread.join()
+    "Service terminated normally."
   }
 }

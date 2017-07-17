@@ -17,10 +17,11 @@ package nl.knaw.dans.easy.bagstore.command
 
 import java.nio.file.Paths
 
-import nl.knaw.dans.easy.bagstore.{ Bagit4FacadeComponent, ConfigurationComponent }
 import nl.knaw.dans.easy.bagstore.component.BagStoreWiring
+import nl.knaw.dans.easy.bagstore.server.ServerWiring
+import nl.knaw.dans.easy.bagstore.{ Bagit4FacadeComponent, ConfigurationComponent }
 
-trait CommandWiring extends BagStoreWiring with Bagit4FacadeComponent with CommandLineOptionsComponent with ConfigurationComponent {
+trait CommandWiring extends CommandLineOptionsComponent with BagStoreWiring with ServerWiring with Bagit4FacadeComponent with ConfigurationComponent {
   override val bagFacade: BagFacade = new Bagit4Facade()
   override lazy val configuration: Configuration = Configuration(Paths.get(System.getProperty("app.home")))
 }

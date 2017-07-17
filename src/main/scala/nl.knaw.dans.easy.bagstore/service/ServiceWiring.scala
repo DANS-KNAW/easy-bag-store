@@ -23,6 +23,6 @@ import nl.knaw.dans.easy.bagstore.{ Bagit4FacadeComponent, ConfigurationComponen
 
 trait ServiceWiring extends ServerWiring with BagStoreWiring with Bagit4FacadeComponent with ConfigurationComponent {
 
-  val bagFacade: BagFacade = new Bagit4Facade()
-  lazy val configuration: Configuration = Configuration(Paths.get(System.getProperty("app.home")))
+  override val bagFacade: BagFacade = new Bagit4Facade()
+  override lazy val configuration: Configuration = Configuration(Paths.get(System.getProperty("app.home")))
 }
