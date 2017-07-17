@@ -115,7 +115,7 @@ trait BagStoreComponent {
                   Files.createDirectory(target)
                   debug(s"Copying bag from $path to $target")
                   FileUtils.copyDirectory(path.toFile, target.toFile)
-                  Files.walk(output).iterator().asScala.foreach(processor.setPermissions())
+                  Files.walk(output).iterator().asScala.foreach(processor.setPermissions(_))
                   baseDir
                 }
               })
@@ -175,7 +175,7 @@ trait BagStoreComponent {
     private def ingest(bagName: Path, staging: Path, container: Path): Try[Unit] = {
       trace(bagName, staging, container)
       val moved = container.resolve(bagName)
-      processor.setPermissions()(staging.resolve(bagName))
+      processor.setPermissions(staging.resolve(bagName))
         .map(Files.move(_, moved))
         .map(_ => ())
         .recoverWith {

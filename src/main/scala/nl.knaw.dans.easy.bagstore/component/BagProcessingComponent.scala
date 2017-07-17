@@ -54,7 +54,7 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
           }
           debug(s"copy $from -> $to")
           Files.copy(from, to)
-          setPermissions()(to).get
+          setPermissions(to).get
         }
       }
 
@@ -76,7 +76,7 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       Files.setPosixFilePermissions(path, PosixFilePermissions.fromString(permissions))
     }
 
-    def setPermissions(permissions: String = outputBagPermissions)(bagDir: Path): Try[Path] = Try {
+    def setPermissions(bagDir: BaseDir, permissions: String = outputBagPermissions) = Try {
       logger.info(s"Setting bag permissions to: $permissions, bag directory: $bagDir")
       val posixFilePermissions = PosixFilePermissions.fromString(permissions)
       object SetPermissionsFileVisitor extends FileVisitor[Path] {
