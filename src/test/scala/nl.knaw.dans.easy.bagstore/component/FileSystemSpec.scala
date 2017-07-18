@@ -26,7 +26,7 @@ import scala.util.{ Failure, Success }
 
 class FileSystemSpec extends TestSupportFixture
   with BagStoreFixture
-  with Bagit4Fixture
+  with Bagit5Fixture
   with FileSystemComponent {
 
   override def beforeEach(): Unit = {

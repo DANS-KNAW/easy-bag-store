@@ -133,7 +133,6 @@ trait StoresServletComponent extends DebugEnhancedLogging {
               case e: NoBagException => BadRequest(e.getMessage)
               case e: InvalidBagException => BadRequest(e.getMessage)
               case e =>
-                e.printStackTrace()
                 logger.error("Unexpected type of failure", e)
                 InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
             }

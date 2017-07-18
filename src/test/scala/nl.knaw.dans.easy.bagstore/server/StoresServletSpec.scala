@@ -30,7 +30,7 @@ import org.scalatra.test.scalatest.ScalatraSuite
 import scala.io.Source
 
 class StoresServletSpec extends TestSupportFixture
-  with Bagit4Fixture
+  with Bagit5Fixture
   with BagStoresFixture
   with ServletFixture
   with ScalatraSuite
@@ -263,7 +263,10 @@ class StoresServletSpec extends TestSupportFixture
       }.extractAll(unzip.toAbsolutePath.toString)
       unzip.toFile should exist
 
-      pathsEqual(unzip, store1.resolve("00/000000000000000000000000000001")) shouldBe true
+      pathsEqual(unzip, store1.resolve("00/000000000000000000000000000001"), "tagmanifest-sha1.txt") shouldBe true
+      // BagProcessing.complete causes the order in tagmanifest-sha1.txt to change...
+      Source.fromFile(unzip.resolve("bag-revision-1/tagmanifest-sha1.txt").toFile).getLines().toList should
+        contain theSameElementsAs Source.fromFile(store1.resolve("00/000000000000000000000000000001/bag-revision-1/tagmanifest-sha1.txt").toFile).getLines().toList
     }
   }
 
@@ -343,9 +346,18 @@ class StoresServletSpec extends TestSupportFixture
     putBag(uuid3, testBagUnprunedC)
 
     val pruned = Paths.get("src/test/resources/bags/basic-sequence-pruned")
+
     pathsEqual(pruned.resolve("a"), store1.resolve("11/111111111111111111111111111111/a")) shouldBe true
-    pathsEqual(pruned.resolve("b"), store1.resolve("11/111111111111111111111111111112/b"), "fetch.txt") shouldBe true
-    pathsEqual(pruned.resolve("c"), store1.resolve("11/111111111111111111111111111113/c"), "fetch.txt") shouldBe true
+
+    pathsEqual(pruned.resolve("b"), store1.resolve("11/111111111111111111111111111112/b"), "fetch.txt", "tagmanifest-md5.txt") shouldBe true
+    // BagProcessing.complete causes the order in b/tagmanifest-md5.txt to change...
+    Source.fromFile(pruned.resolve("b/tagmanifest-md5.txt").toFile).getLines().toList should
+      contain theSameElementsAs Source.fromFile(store1.resolve("11/111111111111111111111111111112/b/tagmanifest-md5.txt").toFile).getLines().toList
+
+    pathsEqual(pruned.resolve("c"), store1.resolve("11/111111111111111111111111111113/c"), "fetch.txt", "tagmanifest-md5.txt") shouldBe true
+    // BagProcessing.complete causes the order in c/tagmanifest-md5.txt to change...
+    Source.fromFile(pruned.resolve("c/tagmanifest-md5.txt").toFile).getLines().toList should
+      contain theSameElementsAs Source.fromFile(store1.resolve("11/111111111111111111111111111113/c/tagmanifest-md5.txt").toFile).getLines().toList
   }
 
   it should "make an identity with get/:bagstore/bags/:uuid" in {
@@ -364,7 +376,10 @@ class StoresServletSpec extends TestSupportFixture
         }.extractAll(unzip.toAbsolutePath.toString)
         unzip.toFile should exist
 
-        pathsEqual(unzip.resolve(bagName), testBagsUnpruned.resolve(bagName), "refbags.txt") shouldBe true
+        pathsEqual(unzip.resolve(bagName), testBagsUnpruned.resolve(bagName), "refbags.txt", "tagmanifest-md5.txt") shouldBe true
+        // BagProcessing.complete causes the order in b/tagmanifest-md5.txt to change...
+        Source.fromFile(unzip.resolve(s"$bagName/tagmanifest-md5.txt").toFile).getLines().toList should
+          contain theSameElementsAs Source.fromFile(testBagsUnpruned.resolve(s"$bagName/tagmanifest-md5.txt").toFile).getLines().toList
       }
     }
 

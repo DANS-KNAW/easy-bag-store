@@ -40,6 +40,6 @@ trait BagFacadeComponentSpec extends TestSupportFixture with BagFacadeComponent 
   }
 }
 
-class Bagit4FacadeComponentSpec extends BagFacadeComponentSpec with Bagit4FacadeComponent {
-  val bagFacade: BagFacade = new Bagit4Facade()
+class Bagit5FacadeComponentSpec extends BagFacadeComponentSpec with Bagit5FacadeComponent {
+  val bagFacade: BagFacade = new Bagit5Facade()
 }

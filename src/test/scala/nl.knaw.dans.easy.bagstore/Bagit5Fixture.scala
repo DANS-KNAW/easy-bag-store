@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-trait Bagit4Fixture extends Bagit4FacadeComponent {
+trait Bagit5Fixture extends Bagit5FacadeComponent {
 
-  override val bagFacade = new Bagit4Facade()
+  override val bagFacade = new Bagit5Facade()
 }

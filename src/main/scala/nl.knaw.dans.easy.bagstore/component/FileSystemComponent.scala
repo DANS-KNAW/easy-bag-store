@@ -162,7 +162,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
      * than one directory, the function fails indicating a corrupt BagStore.
      *
      * When the item is a file it may not actually be located there, but only virtually, meaning that it is projected
-     * at this location via a `fetch.txt` file. Use BagStoreContext#getFetchPath to get the actual location.
+     * at this location via a `fetch.txt` file. Use FileSystemComponent#getFetchUri to get the actual location.
      *
      * @param id the item-id
      * @return the item-location
@@ -203,7 +203,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
       for {
         bagDir <- toLocation(fileId.bagId)
         items <- bagFacade.getFetchItems(bagDir)
-      } yield items.find(_.path == fileId.path).map(_.uri)
+      } yield items.find(item => bagDir.relativize(item.path) == fileId.path).map(_.uri)
     }
 
     /**

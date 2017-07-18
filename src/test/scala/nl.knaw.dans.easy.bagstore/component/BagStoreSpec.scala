@@ -26,7 +26,7 @@ import scala.util.{ Failure, Success }
 
 class BagStoreSpec extends TestSupportFixture
   with BagStoreFixture
-  with Bagit4Fixture
+  with Bagit5Fixture
   with BagStoreComponent
   with BagProcessingComponent
   with FileSystemComponent { test =>
