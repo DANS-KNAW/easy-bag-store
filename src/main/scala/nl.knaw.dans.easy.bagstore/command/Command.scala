@@ -19,6 +19,7 @@ import java.nio.file.Path
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore.ItemId
+import nl.knaw.dans.easy.bagstore.service.ServiceWiring
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
@@ -28,7 +29,7 @@ import scala.language.{ postfixOps, reflectiveCalls }
 import scala.util.control.NonFatal
 import scala.util.{ Success, Try }
 
-object Command extends App with CommandWiring with DebugEnhancedLogging {
+object Command extends App with CommandLineOptionsComponent with ServiceWiring with DebugEnhancedLogging {
 
   type FeedBackMessage = String
 
