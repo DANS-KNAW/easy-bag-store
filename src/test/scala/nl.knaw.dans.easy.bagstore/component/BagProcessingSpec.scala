@@ -68,14 +68,17 @@ class BagProcessingSpec extends TestSupportFixture
 
   "complete" should "make pruned Bag whole again" in {
     bagStore.add(testBagPrunedA, Some(UUID.fromString("00000000-0000-0000-0000-000000000001"))) shouldBe a[Success[_]]
-    bagStore.add(testBagPrunedB, Some(UUID.fromString("00000000-0000-0000-0000-000000000002"))).recoverWith { case e => e.printStackTrace(); Failure(e) } shouldBe a[Success[_]]
+    bagStore.add(testBagPrunedB, Some(UUID.fromString("00000000-0000-0000-0000-000000000002"))) shouldBe a[Success[_]]
 
     val testDirBagC = testDir.resolve("c")
     FileUtils.copyDirectory(testBagPrunedC.toFile, testDirBagC.toFile)
 
     processor.complete(testDirBagC) shouldBe a[Success[_]]
 
-    pathsEqual(testBagUnprunedC, testDirBagC) shouldBe true
+    pathsEqual(testBagUnprunedC, testDirBagC, "tagmanifest-md5.txt") shouldBe true
+    // BagProcessing.complete causes the order in c/tagmanifest-md5.txt to change...
+    Source.fromFile(testBagUnprunedC.resolve("tagmanifest-md5.txt").toFile).getLines().toList should
+      contain theSameElementsAs Source.fromFile(testDirBagC.resolve("tagmanifest-md5.txt").toFile).getLines().toList
   }
 
   "unzipBag" should "unzip zipped file and return the staging directory containing as a child the bag base directory" in {

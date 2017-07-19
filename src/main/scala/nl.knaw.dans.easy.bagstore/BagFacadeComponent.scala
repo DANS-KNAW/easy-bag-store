@@ -65,7 +65,7 @@ trait BagFacadeComponent {
     def getWeakestCommonAlgorithm(algorithmSets: Set[Set[Algorithm]]): Option[Algorithm]
 
     def writeFetchFile(bagDir: Path, fetchList: List[FetchItem]): Try[Unit] =
-      Using.fileWriter()(bagDir.resolve("fetch.txt").toFile)
+      Using.fileWriter()(bagDir.resolve(FETCH_TXT_FILENAME).toFile)
         .map(writer => fetchList.foreach {
           case FetchItem(uri, size, path) => writer.write(s"${ uri.toASCIIString }  $size  $path\n")
         })
