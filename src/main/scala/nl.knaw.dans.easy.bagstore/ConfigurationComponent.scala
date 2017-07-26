@@ -37,7 +37,7 @@ trait ConfigurationComponent {
       override val version: String = managed(Source.fromFile(home.resolve("bin/version").toFile)).acquireAndGet(_.mkString)
 
       private val cfgPath = Seq(
-        Paths.get(s"/etc/opt/dans.knaw.nl/easy-bag-index/"),
+        Paths.get(s"/etc/opt/dans.knaw.nl/easy-bag-store/"),
         home.resolve("cfg"))
         .find(Files.exists(_))
         .getOrElse { throw new IllegalStateException("No configuration directory found") }
