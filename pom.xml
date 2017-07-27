@@ -32,7 +32,7 @@
     <description>Manage one or more BagStores</description>
     <inceptionYear>2016</inceptionYear>
     <properties>
-        <main-class>nl.knaw.dans.easy.bagstore.Command</main-class>
+        <main-class>nl.knaw.dans.easy.bagstore.command.Command</main-class>
     </properties>
     <scm>
         <developerConnection>scm:git:https://github.com/DANS-KNAW/easy-bag-store</developerConnection>
@@ -51,6 +51,12 @@
         <dependency>
             <groupId>org.scalamock</groupId>
             <artifactId>scalamock-scalatest-support_2.11</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatra</groupId>
+            <artifactId>scalatra-scalatest_2.11</artifactId>
+            <version>2.3.0</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.rogach</groupId>
@@ -80,6 +86,7 @@
         <dependency>
             <groupId>nl.knaw.dans.lib</groupId>
             <artifactId>dans-scala-lib</artifactId>
+            <version>1.2</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -93,10 +100,6 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-ajp</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>

@@ -13,8 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagstore
+package nl.knaw.dans.easy.bagstore.service
 
-trait BagStoreOutputContext {
-  val outputBagPermissions: String
+import java.nio.file.Paths
+
+import nl.knaw.dans.easy.bagstore.component.BagStoreWiring
+import nl.knaw.dans.easy.bagstore.server.ServerWiring
+import nl.knaw.dans.easy.bagstore.{ Bagit4FacadeComponent, ConfigurationComponent }
+
+trait ServiceWiring extends ServerWiring with BagStoreWiring with Bagit4FacadeComponent with ConfigurationComponent {
+
+  override val bagFacade: BagFacade = new Bagit4Facade()
+  override lazy val configuration: Configuration = Configuration(Paths.get(System.getProperty("app.home")))
 }

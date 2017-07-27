@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagstore
+package nl.knaw.dans.easy.bagstore.server
 
-import scala.util.Try
+trait ServletUtils {
 
-trait BagStoreVerify { this: BagStoreContext =>
-  type Message = String
+  type IncludeActive = Boolean
+  type IncludeInactive = Boolean
 
-  def verify(bagId: Option[BagId] = None): Try[Message] = {
-    // Verify UUID-path components
-    // - Directory name lengths correct at each level
-    // - No stray files
-
-    // Check every bag is virtually-valid
-
-    ???
+  def includedStates(state: Option[String]): (IncludeActive, IncludeInactive) = {
+    state match {
+      case Some("all") => (true, true)
+      case Some("inactive") => (false, true)
+      case _ => (true, false)
+    }
   }
 }

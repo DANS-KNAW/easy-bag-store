@@ -24,6 +24,7 @@ import org.apache.commons.io.FileUtils
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
+import resource._
 
 package object bagstore {
   case class NoItemUriException(uri: URI, baseUri: URI) extends Exception(s"Base of URI $uri is not an item-uri: does not match base-uri; base-uri is $baseUri")
@@ -34,23 +35,17 @@ package object bagstore {
   case class NoSuchBagException(bagId: BagId) extends Exception(s"Bag $bagId does not exist in BagStore")
   case class NoSuchFileException(fileId: FileId) extends Exception(s"File $fileId does not exist in bag ${fileId.bagId}")
   case class BagIdAlreadyAssignedException(bagId: BagId, store: String) extends Exception(s"$bagId already exists in BagStore $store (bag-ids must be globally unique)")
-  case class CannotIngestHiddenBagDirectory(bagDir: Path) extends Exception(s"Cannot ingest hidden directory $bagDir")
+  case class CannotIngestHiddenBagDirectoryException(bagDir: Path) extends Exception(s"Cannot ingest hidden directory $bagDir")
   case class IncorrectNumberOfFilesInBagZipRootException(n: Int) extends Exception(s"There must be exactly one file in the root directory of the zipped bag, found $n")
   case class BagBaseNotFoundException() extends Exception(s"The zipped bag contains no bag base directory")
   case class NoBagIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a bag-id")
   case class NoFileIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a file-id")
   case class CorruptBagStoreException(reason: String) extends Exception(s"BagStore seems to be corrupt: $reason")
   case class OutputAlreadyExists(path: Path) extends Exception(s"Output path already exists; not overwriting $path")
+  case class NoBagException(cause: Throwable) extends Exception("The provided input did not contain a bag", cause)
+  case class InvalidBagException(bagId: BagId) extends Exception(s"Bag $bagId is not a valid bag")
 
-  val CONTEXT_ATTRIBUTE_KEY_BAGSTORE_APP = "nl.knaw.dans.easy.bagstore.BagStoreApp"
-
-  object Version {
-    def apply(): String = {
-      val props = new Properties()
-      props.load(getClass.getResourceAsStream("/Version.properties"))
-      props.getProperty("application.version")
-    }
-  }
+  type BaseDir = Path
 
   def pathsEqual(f1: Path, f2: Path, excludeFiles: String*): Boolean = {
 
@@ -60,10 +55,11 @@ package object bagstore {
         todo match {
           case Nil => acc
           case (file1, file2) :: tail if Files.isDirectory(file1) && Files.isDirectory(file2) =>
-            val files1 = listFiles(file1)
-            val files2 = listFiles(file2)
-            if (files1.size != files2.size)
+            val files1 = listFiles(file1).filterNot(excludeFiles contains _.getFileName.toString)
+            val files2 = listFiles(file2).filterNot(excludeFiles contains _.getFileName.toString)
+            if (files1.size != files2.size) {
               false
+            }
             else
               rec(tail ::: files1.sorted.zip(files2.sorted).toList, acc)
           case (file1, file2) :: tail if Files.isRegularFile(file1) && Files.isRegularFile(file2) =>
@@ -80,22 +76,16 @@ package object bagstore {
     rec(List((f1, f2)))
   }
 
-  implicit class TryExtensions[T](val t: Try[T]) extends AnyVal {
-    // TODO candidate for dans-scala-lib, see also implementation/documentation in easy-split-multi-deposit
-    def onError[S >: T](handle: Throwable => S): S = {
-      t match {
-        case Success(value) => value
-        case Failure(throwable) => handle(throwable)
-      }
-    }
-  }
-
   // TODO: canditates for dans-scala-lib?
   def listDirs(dir: Path): Seq[Path] = {
     listFiles(dir).filter(Files.isDirectory(_))
   }
 
   def listFiles(dir: Path): Seq[Path] = {
-    resource.managed(Files.list(dir)).acquireAndGet(_.iterator().asScala.toList)
+    managed(Files.list(dir)).acquireAndGet(_.iterator().asScala.toList)
+  }
+
+  def walkFiles(dir: Path): Seq[Path] = {
+    managed(Files.walk(dir)).acquireAndGet(_.iterator().asScala.toList)
   }
 }

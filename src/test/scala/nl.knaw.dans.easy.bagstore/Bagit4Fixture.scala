@@ -13,17 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import javax.servlet.ServletContext
+package nl.knaw.dans.easy.bagstore
 
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.scalatra.LifeCycle
+trait Bagit4Fixture extends Bagit4FacadeComponent {
 
-class ScalatraBootstrap extends LifeCycle with DebugEnhancedLogging {
-  override def init(context: ServletContext) {
-    import nl.knaw.dans.easy.bagstore._
-    context.getAttribute(CONTEXT_ATTRIBUTE_KEY_BAGSTORE_APP) match {
-      case app: BagStoreApp => context.mount(BagStoreServlet(app), "/")
-      case _ => throw new IllegalStateException("Service not configured: no BagStore application found")
-    }
-  }
+  override val bagFacade = new Bagit4Facade()
 }
