@@ -61,11 +61,11 @@ trait BagStoreComponent {
         payloadPaths <- bagFacade.getPayloadFilePaths(path)
         _ = debug(s"Payload files: $payloadPaths")
       } yield walkFiles(path)
-        .withFilter(Files.isRegularFile(_))
-        .withFilter(p => path.resolve("data").relativize(p).toString startsWith "..")
-        .map(path.relativize)
+        .filter(p => Files.isRegularFile(p) &&
+          (path.resolve("data").relativize(p).toString startsWith ".."))
         .toSet
         .union(payloadPaths)
+        .map(path.relativize)
         .map(FileId(bagId, _))
         .toSeq
     }
@@ -149,7 +149,7 @@ trait BagStoreComponent {
           path = staging.resolve(bagDir.getFileName)
           maybeRefbags <- processor.getReferenceBags(path)
           _ = debug(s"refbags tempfile: $maybeRefbags")
-          valid <- fileSystem.isVirtuallyValid(path)
+          valid <- fileSystem.isVirtuallyValid(path).recover { case _: BagReaderException => false }
           _ <- if (valid) Success(()) else Failure(InvalidBagException(bagId))
           _ <- maybeRefbags.map(pruneWithReferenceBags(path)).getOrElse(Success(()))
           _ = debug("bag succesfully pruned")

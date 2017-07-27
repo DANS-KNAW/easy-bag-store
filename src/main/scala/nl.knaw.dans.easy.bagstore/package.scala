@@ -16,15 +16,14 @@
 package nl.knaw.dans.easy
 
 import java.net.URI
-import java.nio.file.{Files, Path}
-import java.util.Properties
+import java.nio.file.{ Files, Path }
 
 import org.apache.commons.io.FileUtils
+import resource._
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
-import scala.util.{Failure, Success, Try}
-import resource._
+import scala.util.{ Failure, Success, Try }
 
 package object bagstore {
   case class NoItemUriException(uri: URI, baseUri: URI) extends Exception(s"Base of URI $uri is not an item-uri: does not match base-uri; base-uri is $baseUri")
@@ -33,6 +32,8 @@ package object bagstore {
   case class AlreadyInactiveException(bagId: BagId) extends Exception(s"$bagId is already hidden")
   case class NotInactiveException(bagId: BagId) extends Exception(s"$bagId is already visible")
   case class NoSuchBagException(bagId: BagId) extends Exception(s"Bag $bagId does not exist in BagStore")
+  case class BagReaderException(bagDir: Path, cause: Throwable) extends Exception(s"The bag at '$bagDir' could not be read: ${ cause.getMessage }", cause)
+  case class NoSuchPayloadManifestException(bagDir: Path, algorithm: Algorithm) extends Exception(s"The bag at '$bagDir' did not contain a payload manifest for algorithm $algorithm")
   case class NoSuchFileException(fileId: FileId) extends Exception(s"File $fileId does not exist in bag ${fileId.bagId}")
   case class BagIdAlreadyAssignedException(bagId: BagId, store: String) extends Exception(s"$bagId already exists in BagStore $store (bag-ids must be globally unique)")
   case class CannotIngestHiddenBagDirectoryException(bagDir: Path) extends Exception(s"Cannot ingest hidden directory $bagDir")
@@ -74,6 +75,16 @@ package object bagstore {
         false
     }
     rec(List((f1, f2)))
+  }
+
+  implicit class TryExtensions2[T](val t: Try[T]) extends AnyVal {
+    // TODO candidate for dans-scala-lib
+    def unsafeGetOrThrow: T = {
+      t match {
+        case Success(value) => value
+        case Failure(throwable) => throw throwable
+      }
+    }
   }
 
   // TODO: canditates for dans-scala-lib?

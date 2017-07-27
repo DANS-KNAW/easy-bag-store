@@ -213,7 +213,7 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
         fileCoolUriMap = for {
           (path, checksum) <- fileChecksumMap
           uri <- checksumToUri.get(checksum)
-        } yield path -> uri
+        } yield bagDir.relativize(path) -> uri
         fetchList <- Try(fileCoolUriMap.foldLeft(mutable.ListBuffer.empty[FetchItem]) {
           case (acc, (path, uri)) =>
             val fileInNewBag = bagDir.resolve(path)

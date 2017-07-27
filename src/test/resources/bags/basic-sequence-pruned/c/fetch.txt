@@ -4,4 +4,3 @@ http://example-archive.org/00000000-0000-0000-0000-000000000001/data/y  12  data
 http://example-archive.org/00000000-0000-0000-0000-000000000002/data/x  12  data/x
 http://example-archive.org/00000000-0000-0000-0000-000000000001/data/sub/u  12  data/sub-copy/u
 http://example-archive.org/00000000-0000-0000-0000-000000000002/data/y  24  data/y
-
