@@ -17,17 +17,19 @@ package nl.knaw.dans.easy.bagstore.server
 
 import java.net.URI
 
-import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
 import nl.knaw.dans.easy.bagstore.{ Bagit5Fixture, ServletFixture, TestSupportFixture }
+import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
 import org.scalamock.scalatest.MockFactory
 import org.scalatra.test.scalatest.ScalatraSuite
 
-class DefaultServletSpec extends TestSupportFixture
+// NOTE: this functionality is part of the StoresServlet, but because we need to have control
+// over the stores using mocking, we have to test this in a separate class
+class ListStoresServletSpec extends TestSupportFixture
   with Bagit5Fixture
   with ServletFixture
   with ScalatraSuite
   with MockFactory
-  with DefaultServletComponent
+  with StoresServletComponent
   with BagStoresComponent
   with BagStoreComponent
   with BagProcessingComponent
@@ -36,19 +38,38 @@ class DefaultServletSpec extends TestSupportFixture
   override val fileSystem: FileSystem = mock[FileSystem]
   override val processor: BagProcessing = mock[BagProcessing]
   override val bagStores: BagStores = mock[BagStores]
-  override val defaultServlet: DefaultServlet = new DefaultServlet {
-    override val externalBaseUri: URI = new URI("http://example-archive.org/")
+  override val storesServlet: StoresServlet = new StoresServlet {
+    val externalBaseUri: URI = new URI("http://example-archive.org/")
   }
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    addServlet(defaultServlet, "/*")
+    addServlet(storesServlet, "/*")
   }
 
-  "get" should "signal that the service is running" in {
+  "get /" should "list all stores as urls to be called" in {
+    val mockStore1 = mock[BagStore]
+    val mockStore2 = mock[BagStore]
+
+    val storeMap: Map[String, BagStore] = Map(
+      "store1" -> mockStore1,
+      "store2" -> mockStore2
+    )
+
+    bagStores.stores _ expects() once() returning storeMap
+
     get("/") {
       status shouldBe 200
-      body should (include("EASY Bag Store is running") and include("Available stores at <http://example-archive.org/stores>"))
+      body shouldBe "<http://example-archive.org/stores/store1>\n<http://example-archive.org/stores/store2>"
+    }
+  }
+
+  it should "return an empty message when there are no bagstores" in {
+    bagStores.stores _ expects() once() returning Map.empty
+
+    get("/") {
+      status shouldBe 200
+      body shouldBe empty
     }
   }
 }

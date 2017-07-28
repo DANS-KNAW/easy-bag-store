@@ -128,7 +128,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     .doIfFailure { case NonFatal(e) => println(s"FAILED: ${ e.getMessage }") }
 
   private def listStores: String = {
-    bagStores.stores.map { case (name, base) => s"- $name -> $base" }.mkString("\n")
+    bagStores.stores.map { case (name, base) => s"- $name -> ${ base.baseDir }" }.mkString("\n")
   }
 
   private def getStoreName(p: Path): String = {

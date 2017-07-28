@@ -33,13 +33,5 @@ trait DefaultServletComponent {
       contentType = "text/plain"
       Ok(s"EASY Bag Store is running.\nAvailable stores at <${ externalBaseUri.resolve("stores") }>")
     }
-
-    get("/stores") {
-      contentType = "text/plain"
-      bagStores.stores
-        .keys
-        .map(store => s"<${ externalBaseUri.resolve(s"stores/$store") }>")
-        .mkString("\n")
-    }
   }
 }

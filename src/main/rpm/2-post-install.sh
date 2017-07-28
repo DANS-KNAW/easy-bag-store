@@ -37,13 +37,13 @@ echo "POST-INSTALL: START (Number of current installations: $NUMBER_OF_INSTALLAT
 if [ ! -d ${DEFAULT_BAG_STORE} ]; then
     echo -n "Creating default bag store..."
     mkdir -p ${DEFAULT_BAG_STORE}
-    chown ${MODULE_NAME} ${DEFAULT_BAG_STORE}
+    chmod 777 ${DEFAULT_BAG_STORE}
     echo "OK"
 fi
 
 if [ ! -d ${BAG_STAGING_DIR} ]; then
     echo -n "Creating bag staging directory..."
-    mkdir ${BAG_STAGING_DIR}
-    chown ${MODULE_NAME} ${BAG_STAGING_DIR}
+    mkdir -p ${BAG_STAGING_DIR}
+    chmod 777 ${BAG_STAGING_DIR}
     echo "OK"
 fi
