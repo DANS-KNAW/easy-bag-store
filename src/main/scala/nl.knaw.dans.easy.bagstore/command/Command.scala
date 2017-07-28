@@ -125,6 +125,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
   }
 
   result.doIfSuccess(msg => println(s"OK: $msg"))
+    .doIfFailure { case e => logger.error(e.getMessage, e) }
     .doIfFailure { case NonFatal(e) => println(s"FAILED: ${ e.getMessage }") }
 
   private def listStores: String = {

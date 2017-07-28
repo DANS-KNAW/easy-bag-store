@@ -17,17 +17,20 @@ package nl.knaw.dans.easy.bagstore
 
 import java.io.IOException
 import java.net.URI
-import java.nio.file.Path
-import java.util.concurrent.{ CountDownLatch, ExecutorService }
+import java.nio.file.{ DirectoryStream, Files, Path }
+import java.util
+import java.util.concurrent.{ ConcurrentSkipListSet, CountDownLatch, ExecutorService }
 import java.util.{ ArrayList => JArrayList, Set => JSet }
 
 import gov.loc.repository.bagit.domain.{ Bag, Manifest => BagitManifest }
 import gov.loc.repository.bagit.exceptions._
-import gov.loc.repository.bagit.hash.{ StandardSupportedAlgorithms, SupportedAlgorithm }
-import gov.loc.repository.bagit.reader.BagReader
-import gov.loc.repository.bagit.verify.{ BagVerifier, CheckManifestHashesTask }
+import gov.loc.repository.bagit.hash.{ StandardBagitAlgorithmNameToSupportedAlgorithmMapping, StandardSupportedAlgorithms, SupportedAlgorithm }
+import gov.loc.repository.bagit.reader.{ BagReader, ManifestReader }
+import gov.loc.repository.bagit.util.PathUtils
+import gov.loc.repository.bagit.verify._
 import gov.loc.repository.bagit.writer.ManifestWriter
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.slf4j.helpers.MessageFormatter
 import resource.Using
 
 import scala.collection.JavaConverters._
@@ -64,12 +67,13 @@ trait BagFacadeComponent {
 
     def getWeakestCommonAlgorithm(algorithmSets: Set[Set[Algorithm]]): Option[Algorithm]
 
-    def writeFetchFile(bagDir: Path, fetchList: List[FetchItem]): Try[Unit] =
+    def writeFetchFile(bagDir: Path, fetchList: List[FetchItem]): Try[Unit] = {
       Using.fileWriter()(bagDir.resolve(FETCH_TXT_FILENAME).toFile)
         .map(writer => fetchList.foreach {
           case FetchItem(uri, size, path) => writer.write(s"${ uri.toASCIIString }  $size  $path\n")
         })
         .tried
+    }
 
     def removeFromTagManifests(bagDir: Path, filename: String): Try[Unit]
 
@@ -89,16 +93,56 @@ trait Bagit5FacadeComponent extends BagFacadeComponent with DebugEnhancedLogging
       SHA512 -> StandardSupportedAlgorithms.SHA512)
     private val algorithmReverseMap = algorithmMap.map(_.swap)
 
+    private lazy val verifier = new BagVerifier
+
     override def isValid(bagDir: Path): Try[Boolean] = {
       for {
         bag <- getBag(bagDir)
-        verifier = new BagVerifier
+//        valid = Try { doWork(bag) }.map(_ => true).getOrElse(false)
         valid = Try { verifier.isValid(bag, false) }.map(_ => true).getOrElse(false)
       } yield valid
     }
 
+//    private def doWork(bag: Bag) = {
+//      val verifier = new PayloadVerifier(new StandardBagitAlgorithmNameToSupportedAlgorithmMapping())
+////      verifier.verifyPayload(bag, false)
+//      val files = getAllFilesListedInManifests(bag, verifier)
+//      checkAllFilesListedInManifestExist(files, verifier)
+//    }
+//
+//    private def getAllFilesListedInManifests(bag: Bag, verifier: PayloadVerifier): util.Set[Path] = {
+//      val filesListedInManifests: util.Set[Path] = new util.HashSet[Path]
+//      try {
+//        val directoryStream: DirectoryStream[Path] = Files.newDirectoryStream(PathUtils.getBagitDir(bag.getVersion, bag.getRootDir))
+//        try {
+//          for (path <- directoryStream.iterator().asScala.toList) {
+//            val filename: String = PathUtils.getFilename(path)
+//            if (filename.startsWith("tagmanifest-") || filename.startsWith("manifest-")) {
+//              val manifest: BagitManifest = ManifestReader.readManifest(verifier.getNameMapping, path, bag.getRootDir, bag.getFileEncoding)
+//              filesListedInManifests.addAll(manifest.getFileToChecksumMap.keySet)
+//            }
+//          }
+//        } finally if (directoryStream != null) directoryStream.close()
+//      }
+//      filesListedInManifests
+//    }
+//
+//    private def checkAllFilesListedInManifestExist(files: util.Set[Path], verifier: PayloadVerifier) = {
+//      val latch = new CountDownLatch(files.size)
+//      val missingFiles = new ConcurrentSkipListSet[Path]
+//      import scala.collection.JavaConversions._
+//      for (file <- files) {
+//        verifier.getExecutor.execute(new CheckIfFileExistsTask(file, missingFiles, latch))
+//      }
+//      latch.await()
+//      if (!missingFiles.isEmpty) {
+//        logger.error("missing payload files error")
+//        throw new FileNotInPayloadDirectoryException(missingFiles.toString)
+//      }
+//    }
+
     override def hasValidTagManifests(bagDir: Path): Try[Boolean] = {
-      val verifier = new BagVerifier
+//      val verifier = new BagVerifier
 
       def runTasks(tagManifest: BagitManifest)(executor: ExecutorService): Try[Boolean] = {
         val values = tagManifest.getFileToChecksumMap
