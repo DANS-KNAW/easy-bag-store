@@ -22,7 +22,4 @@
         <appender-ref ref="STDOUT"/>
     </root>
     <logger name="nl.knaw.dans.easy" level="trace"/>
-
-    <!-- Shut up the bagit lib 4 about there not being a "fetch status" code in fetch.txt, which is not in the standard -->
-    <!--<logger name="gov.loc.repository.bagit.impl.FetchTxtReaderImpl" level="off"/>-->
 </configuration>
