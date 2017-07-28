@@ -145,12 +145,14 @@ trait BagStoreComponent {
         })
 
         for {
-          staging <- if (skipStage) Try { bagDir.getParent } else processor.stageBagDir(bagDir)
+          staging <- if (skipStage) Try { bagDir.getParent }
+                     else processor.stageBagDir(bagDir)
           path = staging.resolve(bagDir.getFileName)
           maybeRefbags <- processor.getReferenceBags(path)
           _ = debug(s"refbags tempfile: $maybeRefbags")
           valid <- fileSystem.isVirtuallyValid(path).recover { case _: BagReaderException => false }
-          _ <- if (valid) Success(()) else Failure(InvalidBagException(bagId))
+          _ <- if (valid) Success(())
+               else Failure(InvalidBagException(bagId))
           _ <- maybeRefbags.map(pruneWithReferenceBags(path)).getOrElse(Success(()))
           _ = debug("bag succesfully pruned")
           container <- fileSystem.toContainer(bagId)
@@ -180,7 +182,7 @@ trait BagStoreComponent {
         .map(_ => ())
         .recoverWith {
           case NonFatal(e) =>
-            logger.error(s"Failed to move staged directory into container: ${staging.resolve(bagName)} -> $moved", e)
+            logger.error(s"Failed to move staged directory into container: ${ staging.resolve(bagName) } -> $moved", e)
             fileSystem.removeEmptyParentDirectoriesInBagStore(container)
             Failure(MoveToStoreFailedException(staging.resolve(bagName), container))
         }
@@ -190,7 +192,8 @@ trait BagStoreComponent {
       for {
         _ <- fileSystem.checkBagExists(bagId)
         path <- fileSystem.toLocation(bagId)
-        _ <- if (Files.isHidden(path)) Failure(AlreadyInactiveException(bagId)) else Success(())
+        _ <- if (Files.isHidden(path)) Failure(AlreadyInactiveException(bagId))
+             else Success(())
       } yield {
         val newPath = path.getParent.resolve(s".${ path.getFileName }")
         Files.move(path, newPath)
@@ -201,9 +204,10 @@ trait BagStoreComponent {
       for {
         _ <- fileSystem.checkBagExists(bagId)
         path <- fileSystem.toLocation(bagId)
-        _ <- if (!Files.isHidden(path)) Failure(NotInactiveException(bagId)) else Success(())
+        _ <- if (!Files.isHidden(path)) Failure(NotInactiveException(bagId))
+             else Success(())
       } yield {
-        val newPath = path.getParent.resolve(s"${path.getFileName.toString.substring(1)}")
+        val newPath = path.getParent.resolve(s"${ path.getFileName.toString.substring(1) }")
         Files.move(path, newPath)
       }
     }

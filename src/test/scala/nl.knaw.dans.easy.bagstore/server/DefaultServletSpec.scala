@@ -48,7 +48,7 @@ class DefaultServletSpec extends TestSupportFixture
   "get" should "signal that the service is running" in {
     get("/") {
       status shouldBe 200
-      body should (include ("EASY Bag Store is running") and include ("Available stores at <http://example-archive.org/stores>"))
+      body should (include("EASY Bag Store is running") and include("Available stores at <http://example-archive.org/stores>"))
     }
   }
 

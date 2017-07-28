@@ -28,7 +28,7 @@ class BagStoresSpec extends TestSupportFixture
   with BagStoresComponent
   with BagStoreComponent
   with BagProcessingComponent
-  with FileSystemComponent { test =>
+  with FileSystemComponent {
 
   FileUtils.copyDirectory(
     Paths.get("src/test/resources/bags/minimal-bag").toFile,
@@ -119,7 +119,7 @@ class BagStoresSpec extends TestSupportFixture
       inside(bagStore1.add(testBagUnprunedB)) { case Success(bis) =>
         inside(bagStore1.add(testBagUnprunedC)) { case Success(cis) =>
           inside(bagStores.enumBags().map(_.toList)) {
-            case Success(bagIds) => bagIds should (have size 3 and contain only (ais, bis, cis))
+            case Success(bagIds) => bagIds should (have size 3 and contain only(ais, bis, cis))
           }
         }
       }
@@ -139,7 +139,7 @@ class BagStoresSpec extends TestSupportFixture
           bagStores.deactivate(bis) shouldBe a[Success[_]]
 
           inside(bagStores.enumBags().map(_.toList)) {
-            case Success(bagIds) => bagIds should (have size 2 and contain only (ais, cis))
+            case Success(bagIds) => bagIds should (have size 2 and contain only(ais, cis))
           }
         }
       }
@@ -153,7 +153,7 @@ class BagStoresSpec extends TestSupportFixture
           bagStores.deactivate(bis) shouldBe a[Success[_]]
 
           inside(bagStores.enumBags(includeInactive = true).map(_.toList)) {
-            case Success(bagIds) => bagIds should (have size 3 and contain only (ais, bis, cis))
+            case Success(bagIds) => bagIds should (have size 3 and contain only(ais, bis, cis))
           }
         }
       }
@@ -208,7 +208,7 @@ class BagStoresSpec extends TestSupportFixture
         inside(bagStore1.add(testBagUnprunedC)) { case Success(cis) =>
           inside(bagStores.enumFiles(cis).map(_.toList)) {
             case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 13 and
-              contain only ("q", "w", "u", "p", "x", "y", "y-old", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "tagmanifest-md5.txt", "fetch.txt"))
+              contain only("q", "w", "u", "p", "x", "y", "y-old", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "tagmanifest-md5.txt", "fetch.txt"))
           }
         }
       }
@@ -226,7 +226,7 @@ class BagStoresSpec extends TestSupportFixture
     inside(bagStore1.add(testBagComplementary)) { case Success(complementary) =>
       inside(bagStores.enumFiles(complementary).map(_.toList)) {
         case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 11 and
-          contain only ("u", "v", "w", "x", "y", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "manifest-sha1.txt", "tagmanifest-md5.txt"))
+          contain only("u", "v", "w", "x", "y", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "manifest-sha1.txt", "tagmanifest-md5.txt"))
       }
     }
   }

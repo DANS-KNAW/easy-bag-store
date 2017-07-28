@@ -25,12 +25,12 @@ import net.lingala.zip4j.core.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import net.lingala.zip4j.model.ZipParameters
 import nl.knaw.dans.easy.bagstore._
+import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
 
 import scala.collection.mutable
 import scala.util.{ Failure, Success, Try }
-import nl.knaw.dans.lib.error._
 
 trait BagProcessingComponent extends DebugEnhancedLogging {
   this: FileSystemComponent with BagFacadeComponent =>
@@ -45,11 +45,12 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
     // TODO: This function looks a lot like BagStoreContext.isVirtuallyValid.createLinks, refactor?
     def complete(bagDir: Path)(implicit baseDir: BaseDir): Try[Unit] = {
       trace(bagDir)
+
       def copyFiles(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
-        debug(s"copying ${mappings.size} files to projected locations")
+        debug(s"copying ${ mappings.size } files to projected locations")
         mappings.foreach { case (to, from) =>
           if (!Files.exists(to.getParent)) {
-            debug(s"creating missing parent directory: ${to.getParent}")
+            debug(s"creating missing parent directory: ${ to.getParent }")
             Files.createDirectories(to.getParent)
           }
           debug(s"copy $from -> $to")
@@ -110,15 +111,15 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
 
         private def logAttributes(path: Path, attrs: BasicFileAttributes): Unit = {
           debug(s"FILE:             $path")
-          debug(s"creationTime:     ${attrs.creationTime}")
-          debug(s"fileKey:          ${attrs.fileKey}")
-          debug(s"isDirectory:      ${attrs.isDirectory}")
-          debug(s"isOther:          ${attrs.isOther}")
-          debug(s"isRegularFile:    ${attrs.isRegularFile}")
-          debug(s"isSymbolicLink:   ${attrs.isSymbolicLink}")
-          debug(s"lastAccessTime:   ${attrs.lastAccessTime}")
-          debug(s"lastModifiedTime: ${attrs.lastModifiedTime}")
-          debug(s"size:             ${attrs.size}")
+          debug(s"creationTime:     ${ attrs.creationTime }")
+          debug(s"fileKey:          ${ attrs.fileKey }")
+          debug(s"isDirectory:      ${ attrs.isDirectory }")
+          debug(s"isOther:          ${ attrs.isOther }")
+          debug(s"isRegularFile:    ${ attrs.isRegularFile }")
+          debug(s"isSymbolicLink:   ${ attrs.isSymbolicLink }")
+          debug(s"lastAccessTime:   ${ attrs.lastAccessTime }")
+          debug(s"lastModifiedTime: ${ attrs.lastModifiedTime }")
+          debug(s"size:             ${ attrs.size }")
         }
       }
 
@@ -207,7 +208,8 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       val result = for {
         refBagLocations <- refBags.map(fileSystem.toLocation).collectResults
         algorithm <- getWeakestCommonSupportedAlgorithm(bagDir :: refBagLocations)
-        _ <- if (algorithm.isDefined) Success(()) else Failure(new IllegalStateException("Bag and reference Bags have no common payload manifest algorithm"))
+        _ <- if (algorithm.isDefined) Success(())
+             else Failure(new IllegalStateException("Bag and reference Bags have no common payload manifest algorithm"))
         checksumToUri <- getChecksumToUriMap(refBags, algorithm.get)
         fileChecksumMap <- bagFacade.getPayloadManifest(bagDir, algorithm.get)
         fileCoolUriMap = for {
@@ -226,7 +228,8 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
               case Failure(e) => throw e
             }
         }.toList)
-        _ <- if(fetchList.nonEmpty) bagFacade.writeFetchFile(bagDir, fetchList) else Success(())
+        _ <- if (fetchList.nonEmpty) bagFacade.writeFetchFile(bagDir, fetchList)
+             else Success(())
       } yield ()
       debug(s"returning $result")
       result

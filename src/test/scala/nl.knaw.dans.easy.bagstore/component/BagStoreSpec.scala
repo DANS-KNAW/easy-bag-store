@@ -29,7 +29,7 @@ class BagStoreSpec extends TestSupportFixture
   with Bagit5Fixture
   with BagStoreComponent
   with BagProcessingComponent
-  with FileSystemComponent { test =>
+  with FileSystemComponent {
 
   FileUtils.copyDirectory(
     Paths.get("src/test/resources/bags/minimal-bag").toFile,

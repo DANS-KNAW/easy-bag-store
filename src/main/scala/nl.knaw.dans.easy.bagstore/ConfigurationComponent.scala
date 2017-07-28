@@ -28,7 +28,9 @@ trait ConfigurationComponent {
 
   trait Configuration {
     def version: String
+
     def properties: PropertiesConfiguration
+
     def stores: PropertiesConfiguration
   }
 

@@ -74,7 +74,7 @@ trait BagStoresComponent {
               case Nil => Failure(NoSuchBagException(bagId))
               case store :: remainingStores =>
                 store.enumFiles(bagId) match {
-                  case s@Success(_) => s
+                  case s @ Success(_) => s
                   case Failure(_) => recurse(remainingStores)
                 }
             }
