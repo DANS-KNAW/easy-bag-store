@@ -22,5 +22,5 @@ MODULE_NAME=easy-bag-store
 PHASE="POST-TRANS"
 
 echo "$PHASE: START"
-service_restart $MODULE_NAME
+service_restart ${MODULE_NAME}
 echo "$PHASE: DONE"

@@ -15,7 +15,7 @@ NAME="easy-bag-store"
 EXEC="/usr/bin/jsvc"
 APPHOME="/opt/dans.knaw.nl/easy-bag-store"
 JAVA_HOME="/usr/lib/jvm/jre"
-CLASSPATH="$APPHOME/bin/$NAME.jar:`echo $APPHOME/lib/*.jar | sed 's/ /:/g'`"
+CLASSPATH="$APPHOME/bin/$NAME.jar:`echo ${APPHOME}/lib/*.jar | sed 's/ /:/g'`"
 CLASS="nl.knaw.dans.easy.bagstore.service.ServiceStarter"
 ARGS=""
 USER="easy-bag-store"
@@ -27,16 +27,16 @@ WAIT_TIME=60
 jsvc_exec()
 {
     cd ${APPHOME}
-    LOGBACK_CFG=/etc/opt/dans.knaw.nl/$NAME/logback-service.xml
-    if [ ! -f $LOGBACK_CFG ]; then
-        LOGBACK_CFG=$APPHOME/cfg/logback-service.xml
+    LOGBACK_CFG=/etc/opt/dans.knaw.nl/${NAME}/logback-service.xml
+    if [ ! -f ${LOGBACK_CFG} ]; then
+        LOGBACK_CFG=${APPHOME}/cfg/logback-service.xml
     fi
 
     # Set LC_ALL to a locale with UTF-8 to make sure non-ASCII file names are written correctly to the file system (see: EASY-1254).
     LC_ALL=en_US.UTF-8 \
     ${EXEC} -home ${JAVA_HOME} -cp ${CLASSPATH} -user ${USER} -outfile ${OUTFILE} -errfile ${ERRFILE} -pidfile ${PID} -wait ${WAIT_TIME} \
           -Dapp.home=${APPHOME} \
-          -Dlogback.configurationFile=$LOGBACK_CFG $1 ${CLASS} ${ARGS}
+          -Dlogback.configurationFile=${LOGBACK_CFG} $1 ${CLASS} ${ARGS}
 }
 
 start_jsvc_exec()
