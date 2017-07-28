@@ -3,7 +3,7 @@
     <appender name="FILE"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/opt/dans.knaw.nl/log/easy-bag-store/easy-bag-store.log</file>
-        <rollingPolicy class="/var/log/easy-bag-store/ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>/var/opt/dans.knaw.nl/log/easy-bag-store/easy-bag-store.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
