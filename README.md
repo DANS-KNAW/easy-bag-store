@@ -36,8 +36,8 @@ for a quasi-formal description and see the [tutorial] page for a more informal, 
 command line tool and HTTP-service facilitate the management of one or more bag stores, but use of these tools is optional; 
 it should be fairly easy to implement your own tools.
 
-[bag-store]: bag-store.md
-[tutorial]: tutorial.md
+[bag-store]: doc/bag-store.md
+[tutorial]: doc/tutorial.md
 
 ### Command line tool
 By using the `easy-bag-store` command you can manage a BagStore from the command line. The sub-commands in above 
