@@ -91,13 +91,11 @@ trait Bagit5FacadeComponent extends BagFacadeComponent with DebugEnhancedLogging
     private val algorithmReverseMap = algorithmMap.map(_.swap)
 
     override def isValid(bagDir: Path): Try[Boolean] = {
-      for {
-        bag <- getBag(bagDir)
-        verifier = new BagVerifier
-        valid = Try { verifier.isValid(bag, false) }.map(_ => true).getOrElse(false)
-        _ = verifier.getExecutor.shutdown()
-        _ = verifier.getManifestVerifier.getExecutor.shutdown()
-      } yield valid
+      managed(new BagVerifier)
+        .acquireAndGet(verifier => getBag(bagDir)
+          .map(bag => Try { verifier.isValid(bag, false) }
+            .map(_ => true)
+            .getOrElse(false)))
     }
 
     override def hasValidTagManifests(bagDir: Path): Try[Boolean] = {
