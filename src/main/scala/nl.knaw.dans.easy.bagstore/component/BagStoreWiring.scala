@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagstore.component
 
 import java.net.URI
 import java.nio.file.attribute.PosixFilePermissions
-import java.nio.file.{ Files, Path, Paths }
+import java.nio.file.{ Files, Paths }
 
 import nl.knaw.dans.easy.bagstore.{ BagFacadeComponent, BaseDir, ConfigurationComponent }
 
@@ -34,7 +34,7 @@ trait BagStoreWiring extends BagStoresComponent with BagStoreComponent with BagP
     override val bagPermissions: String = properties.getString("bag-store.bag-file-permissions")
     override val localBaseUri: URI = new URI(properties.getString("bag-store.base-uri"))
 
-    require(uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${uuidPathComponentSizes.sum}")
+    require(uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${ uuidPathComponentSizes.sum }")
     require(Try(PosixFilePermissions.fromString(bagPermissions)).isSuccess, s"Bag file permissions are invalid: '$bagPermissions'")
   }
   val processor: BagProcessing = new BagProcessing {
@@ -45,7 +45,8 @@ trait BagStoreWiring extends BagStoresComponent with BagStoreComponent with BagP
     require(Files.isWritable(stagingBaseDir), s"Non-existent or non-writable staging base-dir: $stagingBaseDir")
   }
 
-  override val bagStores: BagStores = new BagStores { bagStores =>
+  override val bagStores: BagStores = new BagStores {
+    bagStores =>
     override val stores: Map[String, BagStore] = {
       val stores = configuration.stores
       stores.getKeys.asScala

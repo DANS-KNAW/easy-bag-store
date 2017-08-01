@@ -23,3 +23,8 @@ cp -r src/test/resources/bag-store/00 $DATADIR/bag-store1/01
 mkdir -p $DATADIR/bag-store2
 cp -r src/test/resources/bag-store/00 $DATADIR/bag-store2/02
 echo "OK"
+
+echo -n "Copying test bag-sequence to $DATADIR..."
+mkdir -p $DATADIR/bags
+cp -r src/test/resources/bags/basic-sequence-unpruned-with-refbags $DATADIR/bags/basic-sequence-unpruned-with-refbags
+echo "OK"

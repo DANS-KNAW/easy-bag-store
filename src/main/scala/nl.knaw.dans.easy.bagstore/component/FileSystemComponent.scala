@@ -117,7 +117,8 @@ trait FileSystemComponent extends DebugEnhancedLogging {
 
       if (scheme == baseUriScheme && host == baseUriHost && port == baseUriPort && (baseUriPath.toString == "" || path.startsWith(baseUriPath))) {
         // The path part after the base-uri is basically the item-id, but in a Path object.
-        val itemIdPath = if (baseUriPath.toString.nonEmpty) baseUriPath.relativize(path) else path
+        val itemIdPath = if (baseUriPath.toString.nonEmpty) baseUriPath.relativize(path)
+                         else path
         if (StringUtils.isBlank(itemIdPath.toString))
           Failure(IncompleteItemUriException("base-uri by itself is not an item-uri"))
         else {
@@ -127,7 +128,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
           if (itemIdPath.getNameCount > 1)
             Try(FileId(bagId, itemIdPath.subpath(1, itemIdPath.getNameCount)))
           else if (uri.toString.endsWith("/"))
-            Try(FileId(bagId, Paths.get("")))
+                 Try(FileId(bagId, Paths.get("")))
           else
             Try(bagId)
         }
@@ -195,7 +196,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
         realPath <- if (Files.exists(path)) Success(path)
                     else getFetchUri(fileId)
                       .flatMap(_.map(fromUri).getOrElse(Failure(NoSuchFileException(fileId))))
-                      .flatMap { case fileId: FileId => toRealLocation(fileId)}
+                      .flatMap { case fileId: FileId => toRealLocation(fileId) }
       } yield realPath
     }
 
@@ -227,7 +228,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
       } yield mapping
     }
 
-    def isVirtuallyValid(bagDir: Path)(implicit baseDir: BaseDir): Try[Boolean] =  {
+    def isVirtuallyValid(bagDir: Path)(implicit baseDir: BaseDir): Try[Boolean] = {
       val fetchTxt = bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)
       if (Files.exists(fetchTxt))
         for {
@@ -263,7 +264,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
     private def moveFetchTxtAndTagmanifestsToTempdir(bagDir: Path): Try[Path] = Try {
       val tempDir = Files.createTempDirectory("fetch-temp-")
       debug(s"created temporary directory: $tempDir")
-      debug(s"moving ${bagFacade.FETCH_TXT_FILENAME}")
+      debug(s"moving ${ bagFacade.FETCH_TXT_FILENAME }")
       Files.move(bagDir.resolve(bagFacade.FETCH_TXT_FILENAME), tempDir.resolve(bagFacade.FETCH_TXT_FILENAME))
       // Attention the `toString` after `getFileName` is necessary because Path.startsWith only matches complete path components!
       val tagmanifests = listFiles(bagDir).withFilter(_.getFileName.toString.startsWith("tagmanifest-"))
@@ -274,7 +275,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
 
     private def moveFetchTxtAndTagmanifestsBack(bagDir: Path, path: Path): Try[Unit] = Try {
       listFiles(path).foreach(f => {
-        debug(s"Moving $f -> ${bagDir.resolve(f.getFileName)}")
+        debug(s"Moving $f -> ${ bagDir.resolve(f.getFileName) }")
         Files.move(f, bagDir.resolve(f.getFileName))
       })
       Files.delete(path)

@@ -6,27 +6,24 @@
 /release.properties
 /dependency-reduced-pom.xml
 /buildNumber.properties
+/init-project.sh
 *.class
 *~
 *.swp
-*.iml
+/*.iml
 *.sc
 /.idea/
 .DS_Store
 /apphome.sh
-/apphome/
 /home/
 /data/
-/data-*
-/.yum-repo/
+/data-*/
+/.vagrant/
+/.yum-repo
+*.retry
 
 # Eclipse
 /.project
 /.settings
 /.classpath
 /.cache
-/NOTES.txt
-
-# Vagrant/Ansible
-*.retry
-.vagrant/

@@ -15,11 +15,11 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.{ Path, Paths }
 
 import org.apache.commons.io.FileUtils
 
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 trait BagFacadeComponentSpec extends TestSupportFixture with BagFacadeComponent {
 

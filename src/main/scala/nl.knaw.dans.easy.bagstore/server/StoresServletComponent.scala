@@ -37,6 +37,14 @@ trait StoresServletComponent extends DebugEnhancedLogging {
 
     val externalBaseUri: URI
 
+    get("/") {
+      contentType = "text/plain"
+      bagStores.stores
+        .keys
+        .map(store => s"<${ externalBaseUri.resolve(s"stores/$store") }>")
+        .mkString("\n")
+    }
+
     get("/:bagstore/bags") {
       val bagstore = params("bagstore")
       bagStores.getStore(bagstore)

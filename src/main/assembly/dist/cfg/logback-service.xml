@@ -1,22 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <configuration scan="true" scanPeriod="1 minute">
-	<property name="LOGDIR" value="/var/log/easy-bag-store" />
-	<appender name="FILE"
-		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${LOGDIR}/easy-bag-store.log</file>
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${LOGDIR}/easy-bag-store.%d{yyyy-MM-dd}.log</fileNamePattern>
-			<maxHistory>30</maxHistory>
-		</rollingPolicy>
-		<encoder>
-			<pattern>[%date{ISO8601}] %-5level %msg%n %ex{full}</pattern>
-		</encoder>
-	</appender>
-	<root level="warn">
-		<appender-ref ref="FILE" />
-	</root>
-	<logger name="nl.knaw.dans.easy" level="info" />
-
-    <!-- Shut up the bagit lib 4 about there not being a "fetch status" code in fetch.txt, which is not in the standard -->
-    <logger name="gov.loc.repository.bagit.impl.FetchTxtReaderImpl" level="off" />
+    <appender name="FILE"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/var/opt/dans.knaw.nl/log/easy-bag-store/easy-bag-store.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>/var/opt/dans.knaw.nl/log/easy-bag-store/easy-bag-store.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%date{ISO8601}] %-5level %msg%n</pattern>
+        </encoder>
+    </appender>
+    <root level="warn">
+        <appender-ref ref="FILE"/>
+    </root>
+    <logger name="nl.knaw.dans.easy" level="info"/>
 </configuration>

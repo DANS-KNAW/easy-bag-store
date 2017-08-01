@@ -59,7 +59,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
         itemId <- ItemId.fromString(cmd.itemId())
         store <- bagStores.get(itemId, cmd.outputDir(), bagStoreBaseDir)
         storeName = getStoreName(store)
-      } yield s"Retrieved item with item-id: $itemId to ${cmd.outputDir()} from BagStore: $storeName"
+      } yield s"Retrieved item with item-id: $itemId to ${ cmd.outputDir() } from BagStore: $storeName"
     case Some(cmd @ commandLine.enum) =>
       cmd.bagId.toOption
         .map(s => for {
@@ -78,13 +78,13 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
         itemId <- ItemId.fromString(cmd.bagId())
         bagId <- itemId.toBagId
         _ <- bagStores.deactivate(bagId, bagStoreBaseDir)
-      } yield s"Marked ${cmd.bagId()} as inactive"
+      } yield s"Marked ${ cmd.bagId() } as inactive"
     case Some(cmd @ commandLine.reactivate) =>
       for {
         itemId <- ItemId.fromString(cmd.bagId())
         bagId <- itemId.toBagId
         _ <- bagStores.reactivate(bagId, bagStoreBaseDir)
-      } yield s"Removed inactive mark from ${cmd.bagId()}"
+      } yield s"Removed inactive mark from ${ cmd.bagId() }"
     case Some(cmd @ commandLine.prune) =>
       implicit val base = bagStoreBaseDir.getOrElse {
         bagStores.stores.toList match {
@@ -109,7 +109,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
             store.baseDir
         }
       }
-      processor.complete(cmd.bagDir()).map(_ => s"Done completing ${cmd.bagDir()}")
+      processor.complete(cmd.bagDir()).map(_ => s"Done completing ${ cmd.bagDir() }")
     case Some(cmd @ commandLine.validate) =>
       implicit val base = bagStoreBaseDir.getOrElse {
         bagStores.stores.toList match {
@@ -121,14 +121,15 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
       }
       fileSystem.isVirtuallyValid(cmd.bagDir()).map(valid => s"Done validating. Result: virtually-valid = $valid")
     case Some(_ @ commandLine.runService) => runAsService()
-    case _ => Try { s"Unknown command: ${commandLine.subcommand}" }
+    case _ => Try { s"Unknown command: ${ commandLine.subcommand }" }
   }
 
   result.doIfSuccess(msg => println(s"OK: $msg"))
-    .doIfFailure { case NonFatal(e) => println(s"FAILED: ${e.getMessage}") }
+    .doIfFailure { case e => logger.error(e.getMessage, e) }
+    .doIfFailure { case NonFatal(e) => println(s"FAILED: ${ e.getMessage }") }
 
   private def listStores: String = {
-    bagStores.stores.map { case (name, base) => s"- $name -> $base" }.mkString("\n")
+    bagStores.stores.map { case (name, base) => s"- $name -> ${ base.baseDir }" }.mkString("\n")
   }
 
   private def getStoreName(p: Path): String = {

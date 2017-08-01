@@ -33,28 +33,31 @@ trait CommandLineOptionsComponent {
     private val _________ = " " * printedName.length
     private val SUBCOMMAND_SEPARATOR = "---\n"
     version(s"$printedName v${ configuration.version }")
-    banner(s"""
-              |Manage a BagStore
-              |
-              |Usage:
-              |
-              |$printedName [{--base-dir|-b <dir>}|{-store|-s <name>}] \\
-              |${_________}  | add --uuid|-u <uuid> <bag>
-              |${_________}  | get <item-id>
-              |${_________}  | enum [--inactive|--all] [<item-id>]
-              |${_________}  | {deactivate|reactivate} <item-id>
-              |${_________}  | prune <bag-dir> <ref-bag-id>...
-              |${_________}  | complete <bag-dir>
-              |${_________}  | validate <bag-dir>
-              |${_________}  | erase {--authority-name|-n} <name> {--authority-password|-p} <password> \\
-              |${_________}      {--tombstone-message|-m <message>} <file-id> <bag-id>...
-              |
-              |Options:
-              |""".stripMargin)
+    banner(
+      s"""
+         |Manage a BagStore
+         |
+         |Usage:
+         |
+         |$printedName [{--base-dir|-b <dir>}|{-store|-s <name>}] \\
+         |${ _________ }| add --uuid|-u <uuid> <bag>
+         |${ _________ }| get <item-id>
+         |${ _________ }| enum [--inactive|--all] [<item-id>]
+         |${ _________ }| {deactivate|reactivate} <item-id>
+         |${ _________ }| prune <bag-dir> <ref-bag-id>...
+         |${ _________ }| complete <bag-dir>
+         |${ _________ }| validate <bag-dir>
+         |${ _________ }| erase {--authority-name|-n} <name> {--authority-password|-p} <password> \\
+         |${ _________ }      {--tombstone-message|-m <message>} <file-id> <bag-id>...
+         |
+         |Options:
+         |""".stripMargin)
 
 
     private implicit val fileConverter = singleArgConverter[Path](s => Paths.get(resolveTildeToHomeDir(s)))
-    private def resolveTildeToHomeDir(s: String): String = if (s.startsWith("~")) s.replaceFirst("~", System.getProperty("user.home")) else s
+
+    private def resolveTildeToHomeDir(s: String): String = if (s.startsWith("~")) s.replaceFirst("~", System.getProperty("user.home"))
+                                                           else s
 
     val bagStoreBaseDir: ScallopOption[Path] = opt[Path](name = "base-dir", short = 'b',
       descr = "BagStore base-dir to use")

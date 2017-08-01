@@ -19,45 +19,31 @@
 
 NUMBER_OF_INSTALLATIONS=$1
 MODULE_NAME=easy-bag-store
-INSTALL_DIR=/opt/dans.knaw.nl/$MODULE_NAME
+INSTALL_DIR=/opt/dans.knaw.nl/${MODULE_NAME}
 PHASE="POST-INSTALL"
 BAG_STAGING_DIR=/srv/dans.knaw.nl/stage
 DEFAULT_BAG_STORE=/srv/dans.knaw.nl/bag-store
 
 
 echo "$PHASE: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
-service_install_initd_service_script "$INSTALL_DIR/bin/$MODULE_NAME-initd.sh" $MODULE_NAME
+service_install_initd_service_script "$INSTALL_DIR/bin/$MODULE_NAME-initd.sh" ${MODULE_NAME}
 service_install_systemd_unit "$INSTALL_DIR/bin/$MODULE_NAME.service"
-service_create_log_directory $MODULE_NAME
+service_create_log_directory ${MODULE_NAME}
 echo "$PHASE: DONE"
 
 
 echo "POST-INSTALL: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
 
-if [ $NUMBER_OF_INSTALLATIONS -eq 1 ]; then # First install
-    echo "First time install, replacing default config with RPM-aligned one"
-    #
-    # Temporary arrangement to make sure the default config settings align with the FHS-abiding
-    # RPM installation
-    #
-    rm /etc/opt/dans.knaw.nl/$MODULE_NAME/logback-service.xml
-    mv /etc/opt/dans.knaw.nl/$MODULE_NAME/rpm-logback-service.xml /etc/opt/dans.knaw.nl/$MODULE_NAME/logback-service.xml
-
-    rm /etc/opt/dans.knaw.nl/$MODULE_NAME/application.properties
-    mv /etc/opt/dans.knaw.nl/$MODULE_NAME/rpm-application.properties /etc/opt/dans.knaw.nl/$MODULE_NAME/application.properties
-fi
-
-
-if [ ! -d $DEFAULT_BAG_STORE ]; then
+if [ ! -d ${DEFAULT_BAG_STORE} ]; then
     echo -n "Creating default bag store..."
-    mkdir -p $DEFAULT_BAG_STORE
-    chown $MODULE_NAME $DEFAULT_BAG_STORE
+    mkdir -p ${DEFAULT_BAG_STORE}
+    chmod 777 ${DEFAULT_BAG_STORE}
     echo "OK"
 fi
 
-if [ ! -d $BAG_STAGING_DIR ]; then
+if [ ! -d ${BAG_STAGING_DIR} ]; then
     echo -n "Creating bag staging directory..."
-    mkdir $BAG_STAGING_DIR
-    chown $MODULE_NAME $BAG_STAGING_DIR
+    mkdir -p ${BAG_STAGING_DIR}
+    chmod 777 ${BAG_STAGING_DIR}
     echo "OK"
 fi

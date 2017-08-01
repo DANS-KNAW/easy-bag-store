@@ -18,17 +18,17 @@ package nl.knaw.dans.easy.bagstore
 import java.io.IOException
 import java.net.URI
 import java.nio.file.Path
-import java.util.concurrent.{ CountDownLatch, ExecutorService }
+import java.util.concurrent.{ CountDownLatch, ExecutorService, Executors }
 import java.util.{ ArrayList => JArrayList, Set => JSet }
 
 import gov.loc.repository.bagit.domain.{ Bag, Manifest => BagitManifest }
 import gov.loc.repository.bagit.exceptions._
 import gov.loc.repository.bagit.hash.{ StandardSupportedAlgorithms, SupportedAlgorithm }
 import gov.loc.repository.bagit.reader.BagReader
-import gov.loc.repository.bagit.verify.{ BagVerifier, CheckManifestHashesTask }
+import gov.loc.repository.bagit.verify._
 import gov.loc.repository.bagit.writer.ManifestWriter
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import resource.Using
+import resource.{ Resource, Using, managed }
 
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
@@ -64,12 +64,13 @@ trait BagFacadeComponent {
 
     def getWeakestCommonAlgorithm(algorithmSets: Set[Set[Algorithm]]): Option[Algorithm]
 
-    def writeFetchFile(bagDir: Path, fetchList: List[FetchItem]): Try[Unit] =
+    def writeFetchFile(bagDir: Path, fetchList: List[FetchItem]): Try[Unit] = {
       Using.fileWriter()(bagDir.resolve(FETCH_TXT_FILENAME).toFile)
         .map(writer => fetchList.foreach {
           case FetchItem(uri, size, path) => writer.write(s"${ uri.toASCIIString }  $size  $path\n")
         })
         .tried
+    }
 
     def removeFromTagManifests(bagDir: Path, filename: String): Try[Unit]
 
@@ -90,15 +91,15 @@ trait Bagit5FacadeComponent extends BagFacadeComponent with DebugEnhancedLogging
     private val algorithmReverseMap = algorithmMap.map(_.swap)
 
     override def isValid(bagDir: Path): Try[Boolean] = {
-      for {
-        bag <- getBag(bagDir)
-        verifier = new BagVerifier
-        valid = Try { verifier.isValid(bag, false) }.map(_ => true).getOrElse(false)
-      } yield valid
+      managed(new BagVerifier)
+        .acquireAndGet(verifier => getBag(bagDir)
+          .map(bag => Try { verifier.isValid(bag, false) }
+            .map(_ => true)
+            .getOrElse(false)))
     }
 
     override def hasValidTagManifests(bagDir: Path): Try[Boolean] = {
-      val verifier = new BagVerifier
+      val executor = Executors.newCachedThreadPool
 
       def runTasks(tagManifest: BagitManifest)(executor: ExecutorService): Try[Boolean] = {
         val values = tagManifest.getFileToChecksumMap
@@ -118,10 +119,16 @@ trait Bagit5FacadeComponent extends BagFacadeComponent with DebugEnhancedLogging
         }
       }
 
-      getBag(bagDir)
-        .map(_.getTagManifests.asScala.toStream
-          .map(runTasks(_)(verifier.getExecutor).unsafeGetOrThrow)
-          .forall(true ==))
+      implicit def connectionResource[A <: ExecutorService] = new Resource[A] {
+        override def close(r: A): Unit = r.shutdown()
+        override def toString = "Resource[java.util.concurrent.ExecutorService]"
+      }
+
+      managed(executor)
+        .acquireAndGet(ex => getBag(bagDir)
+          .map(_.getTagManifests.asScala.toStream
+            .map(runTasks(_)(ex).unsafeGetOrThrow)
+            .forall(true ==)))
     }
 
     override def getPayloadManifest(bagDir: Path, algorithm: Algorithm): Try[Map[Path, String]] = {

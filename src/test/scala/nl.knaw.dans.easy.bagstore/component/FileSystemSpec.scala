@@ -236,7 +236,7 @@ class FileSystemSpec extends TestSupportFixture
   "isVirtuallyValid" should "return true for a valid bag" in {
     FileUtils.copyDirectory(Paths.get("src/test/resources/bags/valid-bag").toFile, testDir.resolve("valid-bag").toFile)
 
-    fileSystem.isVirtuallyValid(testDir.resolve("valid-bag")) should matchPattern { case Success(true) =>  }
+    fileSystem.isVirtuallyValid(testDir.resolve("valid-bag")) should matchPattern { case Success(true) => }
   }
 
   it should "return true for a virtually-valid bag" in {

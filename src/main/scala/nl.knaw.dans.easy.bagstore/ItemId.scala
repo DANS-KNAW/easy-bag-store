@@ -16,13 +16,13 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.net.URLDecoder
-import java.nio.file.{Path, Paths}
+import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
 import com.google.common.net.UrlEscapers
 
 import scala.collection.JavaConverters._
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 abstract class ItemId(val uuid: UUID) {
   def toBagId: Try[BagId]
@@ -52,7 +52,7 @@ case class FileId(bagId: BagId, path: Path) extends ItemId(bagId.uuid) {
   private val pathEscaper = UrlEscapers.urlPathSegmentEscaper()
 
   override def toString: String = {
-    s"$bagId/${path.asScala.map(_.toString).map(pathEscaper.escape).mkString("/")}"
+    s"$bagId/${ path.asScala.map(_.toString).map(pathEscaper.escape).mkString("/") }"
   }
 
   override def toBagId: Try[BagId] = Failure(NoBagIdException(this))
