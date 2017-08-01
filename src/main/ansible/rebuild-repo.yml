@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 
-
 - hosts: "test"
   become: yes
   roles:

@@ -16,58 +16,13 @@
 
 - hosts: "test"
   become: yes
+  roles:
+    - dans.local-test-vm-base
+    - dans.local-yum-repo
+
+- hosts: "test"
+  become: yes
   tasks:
-  - name: Install standard software
-    yum: name="{{ item }}"
-    with_items:
-      - httpd
-      - libselinux-python
-      - libsemanage-python
-      - tree
-      - tmux
-
-  - name: Enable Apache HTTP Server
-    service:
-      name: httpd
-      enabled: yes
-      state: started
-
-  - name: Enable SELinux
-    selinux:
-       policy: targeted
-       state: enforcing
-
-  - name: Allow Apache HTTP Server to call back-end service
-    seboolean:
-      name: httpd_can_network_connect
-      state: yes
-      persistent: yes
-
-  - name: Configure server name
-    lineinfile:
-      dest: "/etc/httpd/conf/httpd.conf"
-      line: 'ServerName test'
-      insertafter: '^#\s?ServerName.*80$'
-
-  - name: Add configuration for site
-    copy:
-      src: "test.conf"
-      dest: "/etc/httpd/conf.d/"
-
-  - name: Reload Apache HTTP Server
-    service:
-      name: httpd
-      state: reloaded
-
-  - name: Add /opt/bin to PATH
-    copy:
-      src: opt.sh
-      dest: /etc/profile.d/
-      mode: "755"
-
-  - include_role:
-      name: yum-repo
-
   - name: Installing package
     yum:
       name: dans.knaw.nl-easy-bag-store

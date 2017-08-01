@@ -20,6 +20,7 @@
 /data-*/
 /.vagrant/
 /.yum-repo
+/.dans.knaw.nl-yum-repo
 *.retry
 
 # Eclipse
