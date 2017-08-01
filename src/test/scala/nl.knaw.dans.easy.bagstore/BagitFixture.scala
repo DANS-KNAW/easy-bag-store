@@ -22,7 +22,7 @@ trait BagitFixture extends BagFacadeComponent with BeforeAndAfterAll {
 
   override val bagFacade = new BagFacade {}
 
-  override def afterAll(): Unit = {
+  override protected def afterAll(): Unit = {
     bagFacade.stop().unsafeGetOrThrow
     super.afterAll()
   }
