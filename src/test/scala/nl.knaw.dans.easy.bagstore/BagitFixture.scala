@@ -15,7 +15,15 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-trait BagitFixture extends BagFacadeComponent {
+import org.scalatest.BeforeAndAfterAll
+
+trait BagitFixture extends BagFacadeComponent with BeforeAndAfterAll {
+  this: TestSupportFixture =>
 
   override val bagFacade = new BagFacade {}
+
+  override def afterAll(): Unit = {
+    bagFacade.stop().unsafeGetOrThrow
+    super.afterAll()
+  }
 }
