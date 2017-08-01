@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagstore.server
 
 import java.net.URI
 
-import nl.knaw.dans.easy.bagstore.{ Bagit5Fixture, ServletFixture, TestSupportFixture }
+import nl.knaw.dans.easy.bagstore.{ BagitFixture, ServletFixture, TestSupportFixture }
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
 import org.scalamock.scalatest.MockFactory
 import org.scalatra.test.scalatest.ScalatraSuite
@@ -25,7 +25,7 @@ import org.scalatra.test.scalatest.ScalatraSuite
 // NOTE: this functionality is part of the StoresServlet, but because we need to have control
 // over the stores using mocking, we have to test this in a separate class
 class ListStoresServletSpec extends TestSupportFixture
-  with Bagit5Fixture
+  with BagitFixture
   with ServletFixture
   with ScalatraSuite
   with MockFactory

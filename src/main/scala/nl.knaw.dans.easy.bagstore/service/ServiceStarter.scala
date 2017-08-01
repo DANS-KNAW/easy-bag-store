@@ -47,6 +47,7 @@ class ServiceStarter extends Daemon with DebugEnhancedLogging {
   def stop(): Unit = {
     logger.info("Stopping service...")
     service.server.stop()
+      .flatMap(_ => service.bagFacade.stop())
       .doIfSuccess(_ => logger.info("Cleaning up ..."))
       .doIfFailure {
         case NonFatal(e) => logger.error(s"Service stop failed: ${ e.getMessage }", e)
