@@ -30,7 +30,7 @@ import org.scalatra.test.scalatest.ScalatraSuite
 import scala.io.Source
 
 class StoresServletSpec extends TestSupportFixture
-  with Bagit5Fixture
+  with BagitFixture
   with BagStoresFixture
   with ServletFixture
   with ScalatraSuite

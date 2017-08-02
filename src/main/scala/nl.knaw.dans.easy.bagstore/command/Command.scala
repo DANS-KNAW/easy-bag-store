@@ -20,6 +20,7 @@ import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore.ItemId
 import nl.knaw.dans.easy.bagstore.service.ServiceWiring
+import nl.knaw.dans.easy.bagstore.TryExtensions2
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
@@ -128,6 +129,8 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     .doIfFailure { case e => logger.error(e.getMessage, e) }
     .doIfFailure { case NonFatal(e) => println(s"FAILED: ${ e.getMessage }") }
 
+  bagFacade.stop().unsafeGetOrThrow
+
   private def listStores: String = {
     bagStores.stores.map { case (name, base) => s"- $name -> ${ base.baseDir }" }.mkString("\n")
   }
@@ -153,10 +156,12 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     Runtime.getRuntime.addShutdownHook(new Thread("service-shutdown") {
       override def run(): Unit = {
         logger.info("Stopping service ...")
-        server.stop()
-        logger.info("Cleaning up ...")
-        server.destroy()
-        logger.info("Service stopped.")
+        (for {
+          _ <- server.stop()
+          _ <- bagFacade.stop()
+          _ = logger.info("Cleaning up ...")
+          _ <- server.destroy()
+        } yield logger.info("Service stopped.")).unsafeGetOrThrow
       }
     })
 

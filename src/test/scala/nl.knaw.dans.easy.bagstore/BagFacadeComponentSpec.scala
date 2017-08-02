@@ -39,7 +39,3 @@ trait BagFacadeComponentSpec extends TestSupportFixture with BagFacadeComponent 
     bagFacade.isValid(testDir.resolve("non-existent-dir")) shouldBe a[Failure[_]]
   }
 }
-
-class Bagit5FacadeComponentSpec extends BagFacadeComponentSpec with Bagit5FacadeComponent {
-  val bagFacade: BagFacade = new Bagit5Facade()
-}

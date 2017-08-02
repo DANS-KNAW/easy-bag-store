@@ -14,20 +14,7 @@
 # limitations under the License.
 #
 
-- name: Create local yum repo dir
-  become: no
-  local_action: file path="../../../.yum-repo" state=directory
-
-- name: Copy RPMs
-  become: no
-  local_action: shell cp ../../../target/rpm/*/RPMS/noarch/*.rpm ../../../.yum-repo/
-
-- yum: name=createrepo
-
-- name: Update repo
-  command: createrepo --update /vagrant/.yum-repo
-
-- name: Configure repo
-  copy:
-    src: test.repo
-    dest: /etc/yum.repos.d/
+- src: https://github.com/DANS-KNAW/dans.local-yum-repo
+  version: v1.0.0
+- src: https://github.com/DANS-KNAW/dans.local-test-vm-base
+  version: v1.0.0
