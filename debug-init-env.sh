@@ -15,7 +15,13 @@
 # limitations under the License.
 #
 
+set -e # abort when a command fails
+
 DATADIR=data
+if [ -e ${DATADIR} ]; then
+    mv ${DATADIR} ${DATADIR}-$(date  +"%Y-%m-%d@%H:%M:%S")
+fi
+mkdir ${DATADIR}
 
 echo -n "Copying test bag stores to $DATADIR..."
 mkdir -p $DATADIR/bag-store1
