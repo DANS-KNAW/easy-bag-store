@@ -21,29 +21,9 @@ NUMBER_OF_INSTALLATIONS=$1
 MODULE_NAME=easy-bag-store
 INSTALL_DIR=/opt/dans.knaw.nl/${MODULE_NAME}
 PHASE="POST-INSTALL"
-BAG_STAGING_DIR=/srv/dans.knaw.nl/stage
-DEFAULT_BAG_STORE=/srv/dans.knaw.nl/bag-store
-
 
 echo "$PHASE: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
-service_install_initd_service_script "$INSTALL_DIR/bin/$MODULE_NAME-initd.sh" ${MODULE_NAME}
-service_install_systemd_unit "$INSTALL_DIR/bin/$MODULE_NAME.service"
+service_install_initd_service_script "$INSTALL_DIR/install/$MODULE_NAME-initd.sh" ${MODULE_NAME}
+service_install_systemd_unit "$INSTALL_DIR/install/$MODULE_NAME.service" ${MODULE_NAME} "$INSTALL_DIR/install/override.conf"
 service_create_log_directory ${MODULE_NAME}
 echo "$PHASE: DONE"
-
-
-echo "POST-INSTALL: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
-
-if [ ! -d ${DEFAULT_BAG_STORE} ]; then
-    echo -n "Creating default bag store..."
-    mkdir -p ${DEFAULT_BAG_STORE}
-    chmod 777 ${DEFAULT_BAG_STORE}
-    echo "OK"
-fi
-
-if [ ! -d ${BAG_STAGING_DIR} ]; then
-    echo -n "Creating bag staging directory..."
-    mkdir -p ${BAG_STAGING_DIR}
-    chmod 777 ${BAG_STAGING_DIR}
-    echo "OK"
-fi

@@ -74,7 +74,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
       }
     }
 
-    private def assertUuidPartitionedCorrectly(uuidPath: Path) = {
+    private def assertUuidPartitionedCorrectly(uuidPath: Path): Unit = {
       assert(uuidPath.asScala.map(_.toString.length) == uuidPathComponentSizes, "UUID-part slashed incorrectly")
     }
 
@@ -82,7 +82,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
       List(s.slice(0, 8), s.slice(8, 12), s.slice(12, 16), s.slice(16, 20), s.slice(20, 32)).mkString("-")
     }
 
-    private def assertUuidValid(uuid: String) = {
+    private def assertUuidValid(uuid: String): Unit = {
       assert(Try(UUID.fromString(uuid)).map(_ => true).getOrElse(false), s"UUID ($uuid) is not valid")
     }
 

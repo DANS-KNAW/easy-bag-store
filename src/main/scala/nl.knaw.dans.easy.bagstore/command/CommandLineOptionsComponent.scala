@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagstore.command
 import java.nio.file.{ Path, Paths }
 
 import nl.knaw.dans.easy.bagstore.ConfigurationComponent
-import org.rogach.scallop.{ ScallopConf, ScallopOption, Subcommand, singleArgConverter }
+import org.rogach.scallop.{ ScallopConf, ScallopOption, Subcommand, ValueConverter, singleArgConverter }
 
 trait CommandLineOptionsComponent {
   this: ConfigurationComponent =>
@@ -54,7 +54,7 @@ trait CommandLineOptionsComponent {
          |""".stripMargin)
 
 
-    private implicit val fileConverter = singleArgConverter[Path](s => Paths.get(resolveTildeToHomeDir(s)))
+    private implicit val fileConverter: ValueConverter[Path] = singleArgConverter[Path](s => Paths.get(resolveTildeToHomeDir(s)))
 
     private def resolveTildeToHomeDir(s: String): String = if (s.startsWith("~")) s.replaceFirst("~", System.getProperty("user.home"))
                                                            else s

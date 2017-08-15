@@ -96,7 +96,7 @@ trait BagStoresComponent {
 
     private def checkBagDoesNotExist(bagId: BagId): Try[Unit] = {
       stores.map { case (name, store) =>
-        implicit val baseDir = store.baseDir
+        implicit val baseDir: BaseDir = store.baseDir
         fileSystem.toContainer(bagId)
           .flatMap {
             case file if Files.exists(file) && Files.isDirectory(file) => Failure(BagIdAlreadyAssignedException(bagId, name))

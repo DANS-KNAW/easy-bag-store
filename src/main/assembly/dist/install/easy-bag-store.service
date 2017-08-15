@@ -1,0 +1,14 @@
+[Unit]
+Description=EASY Bag Store Service
+
+[Service]
+ExecStart=/bin/java \
+ -Dlogback.configurationFile=/etc/opt/dans.knaw.nl/easy-bag-store/logback-service.xml \
+ -Dapp.home=/opt/dans.knaw.nl/easy-bag-store \
+ -jar /opt/dans.knaw.nl/easy-bag-store/bin/easy-bag-store.jar run-service
+
+User=easy-bag-store
+Group=easy-bag-store
+
+[Install]
+WantedBy=multi-user.target

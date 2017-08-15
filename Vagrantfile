@@ -1,3 +1,4 @@
+system "ansible-galaxy install --force --role-file=#{File.dirname(File.expand_path(__FILE__))}/src/main/ansible/requirements.yml"
 Vagrant.configure(2) do |config|
    config.vm.define "test" do |test|
       test.vm.box = "geerlingguy/centos6"

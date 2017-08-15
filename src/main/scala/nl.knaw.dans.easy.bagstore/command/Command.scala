@@ -87,7 +87,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
         _ <- bagStores.reactivate(bagId, bagStoreBaseDir)
       } yield s"Removed inactive mark from ${ cmd.bagId() }"
     case Some(cmd @ commandLine.prune) =>
-      implicit val base = bagStoreBaseDir.getOrElse {
+      implicit val base: BagPath = bagStoreBaseDir.getOrElse {
         bagStores.stores.toList match {
           case (_, store) :: Nil => store.baseDir
           case _ =>
@@ -102,7 +102,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
           .map(_ => "Done pruning"))
         .getOrElse(Success("No reference Bags specified: nothing to do"))
     case Some(cmd @ commandLine.complete) =>
-      implicit val base = bagStoreBaseDir.getOrElse {
+      implicit val base: BagPath = bagStoreBaseDir.getOrElse {
         bagStores.stores.toList match {
           case (_, store) :: Nil => store.baseDir
           case _ =>
@@ -112,7 +112,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
       }
       processor.complete(cmd.bagDir()).map(_ => s"Done completing ${ cmd.bagDir() }")
     case Some(cmd @ commandLine.validate) =>
-      implicit val base = bagStoreBaseDir.getOrElse {
+      implicit val base: BagPath = bagStoreBaseDir.getOrElse {
         bagStores.stores.toList match {
           case (_, store) :: Nil => store.baseDir
           case _ =>
