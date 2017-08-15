@@ -130,7 +130,6 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       trace(dir)
       val staging = Files.createTempFile(stagingBaseDir, "bagdir-staging-", "")
       Files.deleteIfExists(staging)
-
       FileUtils.copyDirectoryToDirectory(dir.toFile, staging.toFile)
       debug(s"Staging directory $dir into $staging")
       staging
