@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagstore
 import java.io.IOException
 import java.net.URI
 import java.nio.file.Path
-import java.util.concurrent.{ CountDownLatch, ExecutorService, Executors }
+import java.util.concurrent.{ CountDownLatch, ExecutorService }
 import java.util.{ ArrayList => JArrayList, Set => JSet }
 
 import gov.loc.repository.bagit.domain.{ Bag, Manifest => BagitManifest }
@@ -27,7 +27,7 @@ import gov.loc.repository.bagit.hash.{ StandardSupportedAlgorithms, SupportedAlg
 import gov.loc.repository.bagit.reader.BagReader
 import gov.loc.repository.bagit.verify._
 import gov.loc.repository.bagit.writer.ManifestWriter
-import resource.{ Resource, Using, managed }
+import resource.Using
 
 import scala.collection.JavaConverters._
 import scala.language.postfixOps

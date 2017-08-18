@@ -17,4 +17,4 @@
 - hosts: "test"
   become: yes
   roles:
-    - yum-repo
+    - dans.local-yum-repo

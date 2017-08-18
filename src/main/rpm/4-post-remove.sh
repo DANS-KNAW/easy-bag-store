@@ -19,10 +19,9 @@
 
 NUMBER_OF_INSTALLATIONS=$1
 MODULE_NAME=easy-bag-store
-INSTALL_DIR=/opt/dans.knaw.nl/${MODULE_NAME}
 PHASE="POST-REMOVE"
 
 echo "$PHASE: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
-service_remove_initd_service_script ${MODULE_NAME} ${NUMBER_OF_INSTALLATIONS}
-service_remove_systemd_unit ${MODULE_NAME} ${NUMBER_OF_INSTALLATIONS}
+service_remove_initd_service_script $MODULE_NAME $NUMBER_OF_INSTALLATIONS
+service_remove_systemd_unit $MODULE_NAME $NUMBER_OF_INSTALLATIONS
 echo "$PHASE: DONE"

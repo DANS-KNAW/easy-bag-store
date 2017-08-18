@@ -22,6 +22,6 @@ MODULE_NAME=easy-bag-store
 PHASE="PRE-INSTALL"
 
 echo "$PHASE: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
-service_stop ${MODULE_NAME} ${NUMBER_OF_INSTALLATIONS}
-service_create_module_user ${MODULE_NAME}
+service_stop $MODULE_NAME $NUMBER_OF_INSTALLATIONS
+service_create_module_user $MODULE_NAME
 echo "$PHASE: DONE"

@@ -16,6 +16,8 @@
 
 - hosts: "test"
   become: yes
+  vars:
+    local_test_vm_base_backend_port: 20110
   roles:
     - dans.local-test-vm-base
     - dans.local-yum-repo
@@ -23,20 +25,29 @@
 - hosts: "test"
   become: yes
   tasks:
-  - name: Installing package
+  - name: Copy test-data to vm
+    copy:
+      src: ../../test/resources/bags/basic-sequence-unpruned-with-refbags/
+      dest: /home/vagrant/test-data/
+      mode: "0777"
+
+  - name: Create test-data archive
+    archive:
+      path: "/home/vagrant/test-data/{{ item }}"
+      dest: "/home/vagrant/test-data/{{ item }}.zip"
+      format: zip
+      mode: "0777"
+    with_items:
+        - a
+        - b
+        - c
+
+  - name: Install package
     yum:
       name: dans.knaw.nl-easy-bag-store
       state: latest
 
-  - name: Configure application (application.properties)
-    replace:
-      dest: '/etc/opt/dans.knaw.nl/easy-bag-store/application.properties'
-      regexp: '^{{ item.key }}.*$'
-      replace: '{{ item.key }}={{ item.value }}'
-    with_items:
-      - { key: 'daemon.external-base-uri', value: 'http://test.dans.knaw.nl/' }
-
   - service:
       name: easy-bag-store
-      state: restarted
+      state: started
       enabled: yes
