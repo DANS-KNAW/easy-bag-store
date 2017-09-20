@@ -16,4 +16,4 @@ fi
 
 java -Dlogback.configurationFile=$LOGCONFIG \
      -Dapp.home=$APPHOME \
-     -jar $APPHOME/bin/easy-bag-store.jar $@
+     -jar $APPHOME/bin/easy-bag-store*.jar $@
