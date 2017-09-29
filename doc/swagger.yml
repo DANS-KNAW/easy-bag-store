@@ -1,0 +1,210 @@
+# TODO LIST:
+#
+# - Schema and pattern voor uuids.
+# - Service document for whole service
+# - Break out components in to separate files (and maybe more parts?)
+#
+
+openapi: 3.0.0
+info:
+  title: Bag store API
+  version: 0.1.0
+
+servers:
+  - url: http://test.dans.knaw.nl
+    description: The bag store service can be hosted on any machine.
+
+components:
+  schemas:
+    StoresFeed:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        link:
+          $ref: '#/components/schemas/link'
+      example:
+        id: 'bag-store'
+        title: 'Bag Store Service'
+        link:
+          rel: 'self'
+          href: 'http://example.bagstore.org/'
+          type: 'application/atom+xml;type=feed'
+      xml:
+        wrapped: true
+        namespace: 'http://www.w3.org/2005/Atom'
+        name: 'feed'
+
+    DirectoryFeed:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        link:
+          $ref: '#/components/schemas/link'
+      example:
+        id: '73e5ac5d-205f-49c0-9a46-8e4eb7462654'
+        title: 'Bag: 73e5ac5d-205f-49c0-9a46-8e4eb7462654'
+        link:
+          rel: 'self'
+          href: 'http://datavault.dans.knaw.nl/ark:/73e5ac5d-205f-49c0-9a46-8e4eb7462654'
+          type: 'application/atom+xml;type=feed'
+      xml:
+        wrapped: true
+        namespace: 'http://www.w3.org/2005/Atom'
+        name: 'feed'
+
+    link:
+      type: object
+      properties:
+        rel:
+          type: string
+          xml:
+            attribute: true
+        href:
+          type: string
+          xml:
+            attribute: true
+        type:
+          type: string
+          xml:
+            attribute: true
+
+paths:
+  /:
+    get:
+      summary: Returns a description of the service
+      responses:
+        '200':
+          description: Description of the service.
+          content:
+            'text/plain':
+              schema:
+                type: string
+              example: |
+                    "Bag Store Service is running...
+                    Available bag stores at <http://example.bagstor.org/stores>
+                    "
+# TODO: describe service document
+            # 'application/atomsvc+xml':
+            #   schema:
+            #     ref
+        '500':
+          description: Service is unavailable because of an error.
+  /stores:
+    get:
+      summary: Returns the status of the service and the available stores.
+      responses:
+        '200':
+          description: Atom feed describing service status and available stores.
+          content:
+              'text/plain':
+                schema:
+                  type: string
+                example: |
+                    "Bag Store Service is running...
+                    Available bag stores:
+                    <http://example.bagstore.org/store1>
+                    <http://example.bagstore.org/store2>
+                    "
+              'application/atom+xml;type=feed':
+                schema:
+                  $ref: '#/components/schemas/StoresFeed'
+
+  /bags:
+    get:
+      summary: Returns list of bags or representation of item.
+      description: >
+        Returns the list of bag-ids in the bag stores accessible by this service.
+        Also supports retrieving a representation of a single item (bag, file or
+        directory). However, this is only a work-around for a limitation of Swagger
+        and will redirect to `/bags/itemId`, in which `itemId` can of course have
+        one or more slashes.
+      parameters:
+        - in: query
+          name: itemId
+          schema:
+            type: string
+          required: false
+          description: bag id of the bag to return
+      responses:
+        '200':
+          description: Representation of bag returned.
+          content:
+            'application/atom+xml;type=feed':
+              schema:
+                $ref: '#components/schemas/DirectoryFeed'
+            'application/zip':
+              schema:
+                type: string
+                format: binary
+            'application/tar':
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: No such bag in the stores.
+
+  /bags/{uuid}:
+    get:
+      summary: Returns a representation of the bag
+      parameters:
+        - in: path
+          name: uuid
+          schema:
+            type: string
+          required: true
+          description: bag id of the bag to return
+      responses:
+        '200':
+          description: Representation of bag returned.
+          content:
+            'application/zip':
+              schema:
+                type: string
+                format: binary
+            'application/tar':
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: No such bag in the stores.
+
+  /stores/{store}/bags/{uuid}:
+    put:
+      summary: Adds a (virtually-valid) bag to the bag store.
+      parameters:
+        - in: path
+          name: store
+          schema:
+            type: string
+          required: true
+          description: The shortname of the store to add the bag to.
+        - in: path
+          name: uuid
+          schema:
+            type: string
+          required: true
+          description: The bag-id under which to store the bag
+      requestBody:
+        content:
+          'application/zip':
+            schema:
+              type: string
+              format: binary
+          'application/tar':
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: bag correctly created
+
+
+
+
+

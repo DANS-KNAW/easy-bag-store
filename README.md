@@ -4,22 +4,30 @@ easy-bag-store
 
 Manage one or more bag stores
 
+TABLE OF CONTENTS
+-----------------
+
+* [SYNOPSIS](#synopsis)
+* [DESCRIPTION](#description)
+    + [Command line tool](#command-line-tool)
+    + [HTTP service](#http-service)
+* [INSTALLATION AND CONFIGURATION](#installation-and-configuration)
+* [BUILDING FROM SOURCE](#building-from-source)
 
 SYNOPSIS
 --------
 
     easy-bag-store [--base-dir,-b <dir>|--store,-s <name>]
-                     # operations on bags in BagStore
-                     | add <bag> [<uuid>]
+                     # operations on bags in a bag store
+                     | add [--uuid,-u] <bag>
                      | get <item-id> <out-location>
                      | enum [[--inactive,-i|--all,-a] <bag-id>]
                      | deactivate <bag-id>
                      | reactivate <bag-id>
                      | verify [<bag-id>]
-                     | erase --authority-name,-n <name> --authority-password,-p <password> 
-                         --tombstone-message,-m <message> <file-id>...
+                     | erase <file-id>...
                      
-                     # operations on bags outside BagStore
+                     # operations on bags outside a bag store
                      | prune <bag-dir> <ref-bag-id>...
                      | complete <bag-dir>
                      | validate <bag-dir>
@@ -34,13 +42,13 @@ DESCRIPTION
 A bag store is a way to store and identify data packages following a few very simple rules. See the [bag-store] page
 for a quasi-formal description and see the [tutorial] page for a more informal, hands-on introduction. The `easy-bag-store` 
 command line tool and HTTP-service facilitate the management of one or more bag stores, but use of these tools is optional; 
-it should be fairly easy to implement your own tools.
+the whole point of the bag store concept is that it should be fairly easy to implement your own tools.
 
 [bag-store]: doc/bag-store.md
 [tutorial]: doc/tutorial.md
 
 ### Command line tool
-By using the `easy-bag-store` command you can manage a BagStore from the command line. The sub-commands in above 
+By using the `easy-bag-store` command you can manage a bag store from the command line. The sub-commands in above 
 [SYNOPSIS](#synopsis) are subdivided into two groups:
 
 * Sub-commands that target items in the bag store. These implement operations that change, check or retrieve items in a bag store.
@@ -51,23 +59,23 @@ By using the `easy-bag-store` command you can manage a BagStore from the command
 Some of the sub-commands require you to specify the store context you want to use. The store to operate on can be specified
 on one of two ways:
 
-* With the `--store` option. This expects the shortname of store, which is mapped to a base directory in the `stores.properties`  
+* With the `--store` option. This expects the shortname of a store, which is mapped to a base directory in the `stores.properties`
   file.
 * By specifying the base directory directly, using the `--base-dir` option.
 
-If you call a sub-command that requires a store context, withouth providing one, you are prompted for a store shortname.
+If you call a sub-command that requires a store context, without providing one, you are prompted for a store shortname.
 
 ### HTTP service
 `easy-bag-store` can also be executed as a service that accepts HTTP requests, using the sub-command `run-service`. `initd` and
-`systemd` scripts are provided, to ease deployment on a Unix-like system (see [INSTALLATION AND CONFIGURATION](#installation-and-configuration)).
+`systemd` scripts are provided, to facilitate deployment on a Unix-like system (see [INSTALLATION AND CONFIGURATION](#installation-and-configuration)).
 
 The following table summarizes the HTTP API. "Method" refers to the HTTP method used in the request. "Path" is the path pattern used.
-In a path pattern `*` refers to any completion of the path, and placeholders for variables start with a colon. Optional part are enclosed
+In a path pattern `*` refers to any completion of the path, and placeholders for variables start with a colon. Optional parts are enclosed
 in square brackets, a pipe symbol denotes alternatives and parentheses are used to group those alternatives.
 
 Method | Path                                             |Action
 -------|--------------------------------------------------|------------------------------------
-`GET`  | `/`                                              | Return a simple message to indicate that the service is up: "EASY Bag Store is running ..."
+`GET`  | `/`                                              | Return a simple message to indicate that the service is up.
 `GET`  | `/bags[?state=(inactive\|all)]`                  | Enumerate bags in all stores. Only active bags are returned, unless specified otherwise by the `state` query parameter.
 `GET`  | `/bags/:uuid`                                    | Enumerate files from the bag with bag-id `:uuid`.
 `GET`  | `/bags/:uuid/*`                                  | Get file with bag local path `*` from bag with bag-id `:uuid`, from any bag store.
