@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <configuration scan="true" scanPeriod="1 minute">
+    <property name="PROJECT_NAME" value="easy-bag-store" />
+    <appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">
+        <syslogHost>localhost</syslogHost>
+        <facility>LOCAL0</facility>
+        <suffixPattern>${PROJECT_NAME} [%date{ISO8601}] %-5level %msg%n</suffixPattern>
+    </appender>
     <appender name="FILE"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/var/opt/dans.knaw.nl/log/easy-bag-store/easy-bag-store.log</file>
+        <file>/var/opt/dans.knaw.nl/log/${PROJECT_NAME}/${PROJECT_NAME}.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/opt/dans.knaw.nl/log/easy-bag-store/easy-bag-store.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>/var/opt/dans.knaw.nl/log/${PROJECT_NAME}/${PROJECT_NAME}.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
@@ -13,6 +19,7 @@
     </appender>
     <root level="warn">
         <appender-ref ref="FILE"/>
+        <appender-ref ref="SYSLOG"/>
     </root>
     <logger name="nl.knaw.dans.easy" level="info"/>
 </configuration>
