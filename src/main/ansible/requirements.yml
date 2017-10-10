@@ -15,6 +15,6 @@
 #
 
 - src: https://github.com/DANS-KNAW/dans.local-yum-repo
-  version: v3.1.0
+  version: v3.1.1
 - src: https://github.com/DANS-KNAW/dans.local-test-vm-base
   version: v2.1.0
