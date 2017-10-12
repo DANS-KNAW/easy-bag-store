@@ -35,7 +35,7 @@ trait BagStoreServerComponent {
       this.setHandler(new ServletContextHandler(ServletContextHandler.NO_SESSIONS) {
         this.addEventListener(new ScalatraListener {
           override def probeForCycleClass(classLoader: ClassLoader): (String, LifeCycle) = {
-            ("bagindex-lifecycle", new LifeCycle {
+            ("bagstore-lifecycle", new LifeCycle {
               override def init(context: ServletContext): Unit = {
                 context.mount(defaultServlet, "/")
                 context.mount(bagsServlet, "/bags")
@@ -50,18 +50,18 @@ trait BagStoreServerComponent {
     logger.info(s"HTTP port is $serverPort")
 
     def start(): Try[Unit] = Try {
-      logger.info("Starting BagIndex server...")
+      logger.info("Starting BagStore server...")
       server.start()
     }
 
     def stop(): Try[Unit] = Try {
-      logger.info("Stopping BagIndex server...")
+      logger.info("Stopping BagStore server...")
       server.stop()
     }
 
     def destroy(): Try[Unit] = Try {
       server.destroy()
-      logger.info("BagIndex server stopped.")
+      logger.info("BagStore server stopped.")
     }
   }
 }
