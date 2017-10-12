@@ -1,0 +1,7 @@
+#!/usr/bin/python
+#
+import os, json
+
+print json.dumps({
+    'test_data_not_exists': not os.path.exists('/srv/dans.knaw.nl/bag-store/')
+})
