@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: Bag Store Service API API
+  title: Bag Store Service API
   version: 0.1.0
   description: |
     This document specifies the Bag Store Service API. A [bag store] is a test
