@@ -11,5 +11,5 @@ choose) what a bag store is and provides a tool to facilitate working with it. T
 
 [introduces]: tutorial.html
 [defines]: bag-store.html
-[command line]: {{ site.baseurl }}/../README.md
+[command line]: https://DANS-KNAW/easy-bag-store
 [HTTP]: api.html
