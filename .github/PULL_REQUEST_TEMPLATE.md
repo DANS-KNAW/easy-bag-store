@@ -1,4 +1,4 @@
-Fixes EASY-XXXX
+Fixes EASY-
 
 #### When applied it will...
 * 

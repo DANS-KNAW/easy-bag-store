@@ -1,0 +1,193 @@
+openapi: 3.0.0
+info:
+  title: Bag Store Service API API
+  version: 0.1.0
+  description: |
+    This document specifies the Bag Store Service API. A [bag store] is
+
+
+    [bag store]: bag-store.md
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: 'http://test.dans.knaw.nl'
+    description: Local test VM
+paths:
+  /:
+    get:
+      summary: Returns a description of the service.
+      description:
+        This is the starting place for navigating the Bag Store Service. It returns machine or human readable
+        description of the service.
+      responses:
+        '200':
+          description: description of the service
+          content:
+            'application/atomsvc+xml':
+              schema:
+                $ref: 'atom.yml#/components/schemas/ServiceDocument'
+                description: a AtomPub service document describing the service
+                externalDocs: 'https://tools.ietf.org/html/rfc5023#section-8'
+            'text/plain':
+              schema:
+                type: string
+                description: a plain text, human readable description of the service
+          links:
+            stores:
+              description: Links to a list of available bag stores.
+              operationId: getStores
+            bags:
+              description: Links to a list of all the bags in the bag store managed by this service.
+              operationId: getBags
+        '500':
+          description: Service is unavailable because of an error.
+  /stores:
+    get:
+      operationId: getStores
+      summary: Returns a list of the available bag stores.
+      responses:
+        '200':
+          description: Atom feed describing service status and available stores.
+          content:
+            'text/plain':
+              schema:
+                type: string
+            'application/atom+xml;type=feed':
+              schema:
+                $ref: 'atom.yml#/components/schemas/StoresFeed'
+  '/stores/{store}':
+    parameters:
+      - in: path
+        name: store
+        schema:
+          type: string
+        required: true
+    get:
+      operationId: getStoreInfo
+      summary: Returns information about an individual bag store.
+  /bags:
+    get:
+      summary: Returns an enumeration of the bags in all the bag stores.
+      description: >
+        Returns the list of bag-ids in the bag stores accessible by this
+        service.
+      responses:
+        '200':
+          description: List of links to bags.
+          content:
+            'application/atom+xml;type=feed':
+              schema:
+                $ref: 'atom.yml#/components/schemas/DirectoryFeed'
+            'application/zip':
+              schema:
+                type: string
+                format: binary
+            'application/tar':
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: No such bag in the stores.
+  /bags/{uuid}/{p1}/{p2}/{p3}/{pn}:
+    get:
+      summary: Returns a representation of an item from the bag store.
+      description: |
+        An item is either an entire bag, or a directory or file in a bag. `p1`..`pn` represents
+        an arbitrary length path, something that can unfortunately not be expressed in OpenAPI.
+      parameters:
+        - in: path
+          name: uuid
+          schema:
+            type: string
+          required: true
+          description: bag id of the bag to return
+        - in: path
+          name: p1
+          schema:
+            type: string
+          required: false
+          description: path element 1
+        - in: path
+          name: p2
+          schema:
+            type: string
+          required: false
+          description: path element 2
+        - in: path
+          name: p3
+          schema:
+            type: string
+          required: false
+          description: path element 3
+        - in: path
+          name: pn
+          schema:
+            type: string
+          required: false
+          description: path element n
+        - in: header
+          name: Range
+          schema:
+            type: string
+          required: false
+          description: Request to return partial content.
+      responses:
+        '200':
+          description: Representation of bag returned.
+          content:
+            'application/tar':
+              schema:
+                type: string
+                format: binary
+            'application/zip':
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: No such bag in the stores.
+  '/stores/{store}/bags/{uuid}':
+    put:
+      summary: Adds a bag to the specified bag store.
+      description: |
+
+      parameters:
+        - in: path
+          name: store
+          schema:
+            type: string
+          required: true
+          description: the shortname of the store to add the bag to
+        - in: path
+          name: uuid
+          schema:
+            type: string
+          required: true
+          description: the bag-id under which to store the bag
+      requestBody:
+        content:
+          application/tar:
+            schema:
+              type: string
+              format: binary
+          application/zip:
+            schema:
+              type: string
+              format: binary
+      responses:
+        201:
+          description: The bag was correctly created.
+        400:
+          description: |
+            The bag was rejected by the bag store. The reason will be included in the response
+            entity. Some possible causes are:
+
+            * The UUID is already assigned to a bag in one of the managed stores.
+            * The UUID was syntactically incorrect.
+            * The bag is not virtually-valid.
+        503:
+          description: |
+            The server cannot fulfil the request because of temporary situation. If possible, the
+            reason will be explained in the response entity. Some possible causes are:
+
+            * There is not enough disk space to store the bag.

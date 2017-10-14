@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright (C) 2016-17 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
+    Copyright (C) 2016 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-            http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,18 +20,19 @@
     <parent>
         <groupId>nl.knaw.dans.shared</groupId>
         <artifactId>dans-scala-prototype</artifactId>
-        <version>1.40</version>
+        <version>1.56</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>nl.knaw.dans.easy</groupId>
     <artifactId>easy-bag-store</artifactId>
-    <version>1.x-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <version>1.1.0-SNAPSHOT</version>
     <name>EASY Bag Store</name>
     <url>https://github.com/DANS-KNAW/easy-bag-store</url>
-    <description>Manage a BagStore</description>
-    <inceptionYear>2016-17</inceptionYear>
+    <description>Manage one or more BagStores</description>
+    <inceptionYear>2016</inceptionYear>
     <properties>
-        <main-class>nl.knaw.dans.easy.bagstore.Command</main-class>
+        <main-class>nl.knaw.dans.easy.bagstore.command.Command</main-class>
     </properties>
     <scm>
         <developerConnection>scm:git:https://github.com/DANS-KNAW/easy-bag-store</developerConnection>
@@ -50,6 +51,12 @@
         <dependency>
             <groupId>org.scalamock</groupId>
             <artifactId>scalamock-scalatest-support_2.11</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatra</groupId>
+            <artifactId>scalatra-scalatest_2.11</artifactId>
+            <version>2.3.0</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.rogach</groupId>
@@ -71,6 +78,7 @@
         <dependency>
             <groupId>gov.loc</groupId>
             <artifactId>bagit</artifactId>
+            <version>5.0.3</version>
         </dependency>
         <dependency>
             <groupId>com.jsuereth</groupId>
@@ -79,6 +87,7 @@
         <dependency>
             <groupId>nl.knaw.dans.lib</groupId>
             <artifactId>dans-scala-lib</artifactId>
+            <version>1.2</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -92,10 +101,6 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-ajp</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -166,4 +171,37 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>rpm</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <file>
+                    <exists>/usr/local/bin/rpm</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>rpm-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-rpm</id>
+                                <goals>
+                                    <goal>attached-rpm</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <group>Applications/Archiving</group>
+                            <requires combine.children="append">
+                                <require>jsvc</require>
+                            </requires>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

@@ -1,11 +1,11 @@
 /**
- * Copyright (C) 2016-17 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
+ * Copyright (C) 2016 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,11 +15,11 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.{ Path, Paths }
 
 import org.apache.commons.io.FileUtils
 
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 trait BagFacadeComponentSpec extends TestSupportFixture with BagFacadeComponent {
 
@@ -38,8 +38,4 @@ trait BagFacadeComponentSpec extends TestSupportFixture with BagFacadeComponent 
   it should "return a failure when passed a non-existent directory" in {
     bagFacade.isValid(testDir.resolve("non-existent-dir")) shouldBe a[Failure[_]]
   }
-}
-
-class Bagit4FacadeComponentSpec extends BagFacadeComponentSpec with Bagit4FacadeComponent {
-  val bagFacade: BagFacade = new Bagit4Facade()
 }
