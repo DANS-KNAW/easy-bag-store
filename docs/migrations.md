@@ -1,5 +1,7 @@
-Migrations
-==========
+---
+title: Migrations
+layout: page
+---
 
 A **Migration** is a BagStore-wide transformation. The input of a Migration is always one or more BagStores. The output
 may in principle be anything depending on the Migration procedure. Below we will define some Migrations whose outputs are also one or

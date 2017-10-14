@@ -1,5 +1,7 @@
-The bag store
-=============
+---
+title: Bag store
+layout: page
+---
 
 Introduction
 ------------
@@ -12,7 +14,7 @@ those classes.
 
 Structure
 ---------
-1. **DEFINITION**: a **BagStore** is a collection of immutable **Bag**s (see [BagIt]) stored on a 
+1. **BAG-STORE**: a **BagStore** is a collection of immutable **Bag**s (see [BagIt]) stored on a 
    hierarchical files system, under a common directory, the **base-dir**.
 2. **VIRTUALLY-VALID**: all the the Bags in the BagStore must be **virtually-valid**. A Bag is
    virtually-valid when:
@@ -81,7 +83,7 @@ Schematic summary
 
 The following diagram summarizes the structure and operations of a BagStore.
 
-![bag-store](./bag-store.png)   
+![bag-store](./img/bag-store.png)   
 
 Remarks:
 * The notation `bag-id < item-id` is intended to mean that a bag-id is a special kind of item-id.

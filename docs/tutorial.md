@@ -1,5 +1,7 @@
-Tutorial introduction to the bag store
-======================================
+---
+title: Tutorial introduction 
+layout: page
+---
 
 Why?
 ----
