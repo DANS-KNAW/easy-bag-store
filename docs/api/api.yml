@@ -1,7 +1,15 @@
 openapi: 3.0.0
 info:
-  title: Bag store API
+  title: Bag Store Service API API
   version: 0.1.0
+  description: |
+    This document specifies the Bag Store Service API. A [bag store] is
+
+
+    [bag store]: bag-store.md
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
 servers:
   - url: 'http://test.dans.knaw.nl'
     description: Local test VM
@@ -142,7 +150,7 @@ paths:
     put:
       summary: Adds a bag to the specified bag store.
       description: |
-        
+
       parameters:
         - in: path
           name: store
