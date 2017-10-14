@@ -3,7 +3,7 @@ info:
   title: Bag Store Service API API
   version: 0.1.0
   description: |
-    This document specifies the Bag Store Service API. A [bag store] is a
+    This document specifies the Bag Store Service API. A [bag store] is a test
 
 
     [bag store]: bag-store.md
