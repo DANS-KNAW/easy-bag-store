@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstore.component
 
-import java.io.InputStream
+import java.io.{ InputStream, OutputStream }
 import java.nio.file.{ Files, Path }
 import java.util.UUID
 
@@ -48,6 +48,20 @@ trait BagStoresComponent {
             .find(_.isSuccess)
             .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
         }
+    }
+
+    def get(itemId: ItemId, output: => OutputStream, fromStore: Option[Path] = None): Try[Unit] = {
+      for ((_, store) <- stores) {
+        store.get(itemId, output) match {
+          case Success(_) => return Success(())
+          case Failure(_) =>
+        }
+      }
+
+      itemId match {
+        case id @ BagId(_) => Failure(NoSuchBagException(id))
+        case id @ FileId(_, _) => Failure(NoSuchFileException(id))
+      }
     }
 
     def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false, fromStore: Option[Path] = None): Try[Seq[BagId]] = {

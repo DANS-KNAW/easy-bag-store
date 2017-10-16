@@ -59,7 +59,7 @@
         - a
         - b
         - c
-    when: ansible_local.conditions.test_data_not_exists
+    when: ansible_local.conditions.test_data_does_not_exist
 
   - name: Install package
     yum:
