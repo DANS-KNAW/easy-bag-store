@@ -3,7 +3,6 @@ title: easy-bag-store
 description: >-
   A simple way to archive data packages.
 baseurl: "/easy-bag-store"
-url: "https://janvanmansum.github.io"
 github_username:  DANS-KNAW
 
 # Build settings
