@@ -1,7 +1,20 @@
 ---
-title: Bag store
+title: Definitions
 layout: page
 ---
+
+TABLE OF CONTENTS
+-----------------
+- [Introduction](#introduction)
+- [Structure](#structure)
+- [Operations](#operations)
+- [Schematic summary](#schematic-summary)
+- [Migrations](#migrations)
+  * [Merge BagStores](#merge-bagstores)
+  * [Split BagStore](#split-bagstore)
+  * [Change bag-id slashing](#change-bag-id-slashing)
+- [Technical considerations](#technical-considerations)
+  * [Slashing the bag-id](#slashing-the-bag-id)
 
 Introduction
 ------------
@@ -22,7 +35,7 @@ Structure
     - it is incomplete, but contains a `fetch.txt` file and can be made valid by fetching the files
       listed in it (and removing `fetch.txt` and its checksums from the Bag). If local-item-uris (see
       next point) are used, they must reference Items in the same BagStore.
-3. **ITEM-ID:** an **Item** is a Bag or a **File** in a Bag. Each Item has an **item-id**.
+3. **ITEM-ID:<a id="item-id" />** an **Item** is a Bag or a **File** in a Bag. Each Item has an **item-id**.
     - **bag-id** = `<uuid>`, that is a [UUID]
     - **file-id** = `<bag-id>/percent-encoded(path-in-bag)`, where **percent-encoded** means that the 
       path-components are percent encoded as described in [RFC3986] and **path-in-bag** is the relative
@@ -73,14 +86,11 @@ where there is a legal obligation to destroy the data. For other use cases there
 * To support updates to Bags, add metadata that records that a Bag is part of a sequence of Bags, that together
   form the revision history of one logical (and mutable) Bag. See for an example implementation the
   [easy-bag-index] project.
-* To clean up a BagStore that has gathered too much "garbage", do a [Clean-up BagStore] migration.
 
 [easy-bag-index]: https://github.com/DANS-KNAW/easy-bag-index
-[Clean-up BagStore]: ./migrations.md#clean-up-bagstore
 
 Schematic summary
 -----------------
-
 The following diagram summarizes the structure and operations of a BagStore.
 
 ![bag-store](./img/bag-store.png)   
@@ -93,6 +103,43 @@ Remarks:
 * All Items are ultimately contained in a BagStore, so one could argue that the BagStore should have been pictured to contain Items
   rather than Bags. I have opted to stress the fact that a BagStore only *directly* contains Bags, leaving the fact that Files are 
   indirectly contained in a BagStore implicit.
+  
+
+Migrations
+----------  
+A **Migration** is a BagStore-wide transformation. The input of a Migration is always one or more BagStores. The output
+may in principle be anything depending on the Migration procedure. Below we will define some Migrations whose outputs are also one or
+more BagStores. Migrations are riskier than normal operations and should normally be avoided.
+
+
+### Merge BagStores
+Merging two BagStores can be done in at most two steps:
+
+1. Harmonize the slashing settings of both BagStores. (This can of course be equal to the settings of one of the existing BagStores.)
+2. Copy the base-dirs and their contents to the new base-dir. (Again, this can be one of the existing base-dirs.)
+
+If the slashing settings are already equal, this step can be foregone.
+
+### Split BagStore
+Splitting a BagStore is a bit more involved, because BagStores must not include files by reference from other BagStores. It is therefore
+necessary to determine which bags form a self-contained sub-set:
+
+1. Determine which bags you want to split off.
+2. For each bag determine if it has `fetch.txt` that includes Files, add the Bag that actually contains them to the BagStore to be
+   split off, recursively.
+
+### Change bag-id slashing
+This Migration only changes directory names:
+
+1. From base-dir downwards find the last directory-level that has the desired name-length already. 
+2. In each directories at this level:
+   
+   1. For each bag contained in the directory:
+
+      1. Remove the slashes from the remaining path to the bag
+      2. Insert the slashes in the remaining path in the new positions
+      3. Move the bag to the location pointed to by the new remaining path.
+
 
 Technical considerations
 ------------------------

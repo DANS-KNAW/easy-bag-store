@@ -28,3 +28,7 @@
 /.settings
 /.classpath
 /.cache
+
+# Jekyll
+/Gemfile.lock
+/.jekyll-metadata

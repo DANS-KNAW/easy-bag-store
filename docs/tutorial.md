@@ -1,5 +1,5 @@
 ---
-title: Tutorial introduction 
+title: Tutorial 
 layout: page
 ---
 

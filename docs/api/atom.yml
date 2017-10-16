@@ -1,98 +1,18 @@
 components:
   schemas:
 
-    AtomTitle:
+    Title:
       type: string
       xml:
-        wrapped: true
         namespace: 'http://www.w3.org/2005/Atom'
         prefix: atom
-
-    ServiceDocument:
-      type: object
-      properties:
-        workspace:
-          $ref: '#/components/schemas/Workspace'
-      example:
-        workspace:
-          title: My workspace
-          collections:
-            - href: 'http://test.dans.knaw.nl/stores'
-              title: bag-stores
-            - href: 'http://test.dans.knaw.nl/bags'
-              title: bags
-      xml:
-        wrapped: true
-        namespace: 'http://www.w3.org/2007/app'
-        name: service
-
-    Workspace:
-      type: object
-      properties:
-        title:
-          $ref: '#/components/schemas/AtomTitle'
-        collections:
-          type: array
-          items:
-            $ref: '#/components/schemas/Collection'
-
-    Collection:
-      type: object
-      properties:
-        href:
-          $ref: '#/components/schemas/Href'
-        title:
-          $ref: '#/components/schemas/AtomTitle'
-      xml:
-        name: collection
 
     Href:
       type: string
       xml:
+        namespace: 'http://www.w3.org/2005/Atom'
         attribute: true
-
-    StoresFeed:
-      type: object
-      properties:
-        id:
-          type: string
-        title:
-          type: string
-        link:
-          $ref: '#/components/schemas/Link'
-      example:
-        id: bag-store
-        title: Bag Store Service
-        link:
-          rel: self
-          href: 'http://example.bagstore.org/'
-          type: 'application/atom+xml;type=feed'
-      xml:
-        wrapped: true
-        namespace: 'http://www.w3.org/2005/Atom'
-        name: feed
-
-    DirectoryFeed:
-      type: object
-      properties:
-        id:
-          type: string
-        title:
-          type: string
-        link:
-          $ref: '#/components/schemas/Link'
-      example:
-        id: "73e5ac5d-205f-49c0-9a46-8e4eb7462654"
-        title: 'Bag: 73e5ac5d-205f-49c0-9a46-8e4eb7462654'
-        link:
-          rel: self
-          href: >-
-            "http://datavault.dans.knaw.nl/ark:/73e5ac5d-205f-49c0-9a46-8e4eb7462654"
-          type: "application/atom+xml;type=feed"
-      xml:
-        wrapped: true
-        namespace: 'http://www.w3.org/2005/Atom'
-        name: feed
+        prefix: atom
 
     Link:
       type: object
@@ -108,4 +28,39 @@ components:
         type:
           type: string
           xml:
+            namespace: 'http://www.w3.org/2005/Atom'
             attribute: true
+            prefix: atom
+
+    Entry:
+      type: object
+      properties:
+        id:
+          type: string
+          xml:
+            attribute: true
+        link:
+          $ref: '#components/schemas/Link'
+        title:
+          $ref: '#components/schemas/Title'
+      xml:
+        name: 'entry'
+        namespace: 'http://www.w3.org/2005/Atom'
+        prefix: atom
+
+    Feed:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        link:
+          $ref: '#/components/schemas/Link'
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entry'
+
+
+
