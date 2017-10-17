@@ -57,7 +57,7 @@ Structure
 5. **INACTIVE**: a Bag is either **active** or **inactive**. It is inactive if the bag-base-dir is preceded 
    by a dot. It must start off active. The item-ids of a Bag and the Files it contains stay the same whether the Bag is active or inactive. 
 
-[tutorial]: ./tutorial.md
+[tutorial]: 04_tutorial.md
 [BagIt]: https://tools.ietf.org/html/draft-kunze-bagit
 [as defined by the BagIt specs]: https://tools.ietf.org/html/draft-kunze-bagit#section-3
 [UUID]: https://en.wikipedia.org/wiki/Universally_unique_identifier
