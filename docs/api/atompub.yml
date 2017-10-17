@@ -1,0 +1,41 @@
+components:
+  schemas:
+    ServiceDocument:
+      type: object
+      description: an AtomPub service document describing the service
+      externalDocs: 'https://tools.ietf.org/html/rfc5023#section-8'
+      properties:
+        workspace:
+          $ref: '#/components/schemas/Workspace'
+      example:
+        workspace:
+          title: My workspace
+          collections:
+            - href: 'http://test.dans.knaw.nl/stores'
+              title: 'bag-stores'
+            - href: 'http://test.dans.knaw.nl/bags'
+              title: 'bags'
+      xml:
+        wrapped: true
+        namespace: 'http://www.w3.org/2007/app'
+        name: service
+
+    Workspace:
+      type: object
+      properties:
+        title:
+          $ref: 'atom.yml#/components/schemas/Title'
+        collections:
+          type: array
+          items:
+            $ref: '#/components/schemas/Collection'
+
+    Collection:
+      type: object
+      properties:
+        href:
+          $ref: 'atom.yml#/components/schemas/Href'
+        title:
+          $ref: 'atom.yml#/components/schemas/Title'
+      xml:
+        name: collection

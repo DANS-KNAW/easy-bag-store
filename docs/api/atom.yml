@@ -1,0 +1,66 @@
+components:
+  schemas:
+
+    Title:
+      type: string
+      xml:
+        namespace: 'http://www.w3.org/2005/Atom'
+        prefix: atom
+
+    Href:
+      type: string
+      xml:
+        namespace: 'http://www.w3.org/2005/Atom'
+        attribute: true
+        prefix: atom
+
+    Link:
+      type: object
+      properties:
+        rel:
+          type: string
+          xml:
+            attribute: true
+        href:
+          type: string
+          xml:
+            attribute: true
+        type:
+          type: string
+          xml:
+            namespace: 'http://www.w3.org/2005/Atom'
+            attribute: true
+            prefix: atom
+
+    Entry:
+      type: object
+      properties:
+        id:
+          type: string
+          xml:
+            attribute: true
+        link:
+          $ref: '#components/schemas/Link'
+        title:
+          $ref: '#components/schemas/Title'
+      xml:
+        name: 'entry'
+        namespace: 'http://www.w3.org/2005/Atom'
+        prefix: atom
+
+    Feed:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        link:
+          $ref: '#/components/schemas/Link'
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entry'
+
+
+

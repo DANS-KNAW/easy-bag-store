@@ -1,0 +1,223 @@
+openapi: 3.0.0
+info:
+  title: Bag Store Service API
+  version: 0.1.0
+  description: |
+    This document specifies the Bag Store Service API. It provides HTTP access to one or more [bag store]s. This API
+    implements the [operations] `ADD`, `ENUM` and `GET`, using the [AtomPub] protocol. As an alternative&mdash;mainly
+    for direct human interaction&mdash;plain text can be used. The operations `DEACTIVATE`, `REACTIVATE`
+    and `ERASE` are not implemented, as they should be used with care and only in very exceptional circumstances,
+    so certainly not in an automated workflow.
+
+    The `ENUM` and `GET` operations are available both per bag store and for all the bag stores together. The
+    `ADD` operation must specify the store add the bag to.
+
+    (***Note**: OpenAPI cannot express parameters that capture more than one path component, so we define such path
+    parameters as: `p1`, `p2`, `p3`, `pn`*).
+
+    [bag store]: bag-store.html
+    [operations]: bag-store.html#operations
+    [AtomPub]: https://tools.ietf.org/html/rfc5023
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: 'http://test.dans.knaw.nl'
+    description: Local test VM
+
+paths:
+  /:
+    get:
+      summary: Returns a description of the service.
+      description:
+        This is the starting place for navigating the Bag Store Service. It returns a machine or human readable
+        description of the service.
+      responses:
+        200:
+          description: description of the service
+          content:
+            application/atomsvc+xml:
+              schema:
+                $ref: 'atompub.yml#/components/schemas/ServiceDocument'
+            text/plain:
+              schema:
+                type: string
+                description: a plain text, human readable description of the service
+                example: |
+                  Bag Store Service is running.
+                  List of stores at <http://test.dans.knaw.nl/stores>
+                  List of bags at <http://test.dans.knaw.nl/bags>
+          links:
+            stores:
+              description: Links to a list of available bag stores.
+              operationId: getStores
+            bags:
+              description: Links to a list of all the bags in the bag store managed by this service.
+              operationId: getBags
+        500:
+          description: Service is unavailable because of an error.
+
+  /stores:
+    get:
+      operationId: getStores
+      summary: Returns a list of the available bag stores.
+      description: |
+        ***Note:** there seems to be a bug in Swagger-UI. In the Atom representation example the contents
+        of the first entry is repeated in the next. This is of course not what is intended. Look at the Yaml source
+        for the correct specification.*
+      responses:
+        200:
+          content:
+            application/atom+xml;type=feed:
+              schema:
+                $ref: 'schemas.yml#/components/schemas/StoresFeed'
+            text/plain:
+              schema:
+                type: string
+                example: |
+                  Available stores:
+                  <http://test.dans.knaw.nl/store1>
+                  <http://test.dans.knaw.nl/store2>
+          links:
+            store:
+              operationId: getStoreInfo
+              parameters:
+                - store
+
+  /stores/{store}:
+    parameters:
+      - in: path
+        name: store
+        schema:
+          type: string
+        required: true
+    get:
+      operationId: getStoreInfo
+      summary: Enumerates the bag-ids in one bag store.
+      description:
+        # Describe pagination
+      responses:
+        200:
+
+
+  /bags:
+    get:
+      summary: Enumerates the bag-ids in all the bag stores.
+      description: |
+        Returns the list of bag-ids in the bag stores accessible by this
+        service.
+        # Describe pagination
+      responses:
+        200:
+          description: List of links to bags.
+          content:
+
+  /bags/{uuid}/{p1}/{p2}/{p3}/{pn}:
+    get:
+      summary: Returns a representation of an item from the bag store.
+      description: |
+        An item is either an entire bag, or a directory or file in a bag. The item fetched is specified
+        by the [item-id]:
+
+        `uuid[/p1[/p2[..[pn]..]]`.
+
+        [item-id]: bag-store.html#item-id
+      parameters:
+        - in: path
+          name: uuid
+          schema:
+            type: string
+          required: true
+          description: bag id of the bag to return
+        - in: path
+          name: p1
+          schema:
+            type: string
+          required: false
+          description: path element 1
+        - in: path
+          name: p2
+          schema:
+            type: string
+          required: false
+          description: path element 2
+        - in: path
+          name: p3
+          schema:
+            type: string
+          required: false
+          description: path element 3
+        - in: path
+          name: pn
+          schema:
+            type: string
+          required: false
+          description: path element n
+        - in: header
+          name: Range
+          schema:
+            type: string
+          required: false
+          description: Request to return partial content.
+      responses:
+        200:
+          description: Representation of bag returned.
+          content:
+            'application/tar':
+              schema:
+                type: string
+                format: binary
+            'application/zip':
+              schema:
+                type: string
+                format: binary
+        404:
+          description: No such item in the stores.
+
+  /stores/{store}/bags/{uuid}:
+    put:
+      summary: Adds a bag to the specified bag store.
+      description: |
+
+      parameters:
+        - in: path
+          name: store
+          schema:
+            type: string
+          required: true
+          description: the shortname of the store to add the bag to
+        - in: path
+          name: uuid
+          schema:
+            type: string
+          required: true
+          description: the bag-id under which to store the bag
+      requestBody:
+        content:
+          application/tar:
+            schema:
+              type: string
+              format: binary
+          application/zip:
+            schema:
+              type: string
+              format: binary
+      responses:
+        201:
+          description: The bag was correctly created.
+        400:
+          description: |
+            The bag was rejected by the bag store. The reason will be included in the response
+            entity. Some possible causes are:
+
+            * The UUID is already assigned to a bag in one of the managed stores.
+            * The UUID was syntactically incorrect.
+            * The bag is not virtually-valid.
+        503:
+          description: |
+            The server cannot fulfil the request because of a temporary situation. If possible, the
+            reason will be explained in the response entity. Some possible causes are:
+
+            * There is not enough disk space to store the bag.
+
