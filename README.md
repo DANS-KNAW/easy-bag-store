@@ -14,5 +14,5 @@ choose) what a bag store is and provides a tool to facilitate working with it. T
 
 [introduces]: https://dans-knaw.github.io/easy-bag-store/04_tutorial.html
 [defines]: https://dans-knaw.github.io/easy-bag-store/03_definitions.html
-[command line]: https://dans-knaw.github.io/easy-bag-store/indexhtml
+[command line]: https://dans-knaw.github.io/easy-bag-store/index.html
 [HTTP]: https://dans-knaw.github.io/easy-bag-store/02_to_api.html
