@@ -10,9 +10,10 @@ existing solution was becoming hard to maintain and evolve, so we decided to go 
 We were looking for something with the following properties:
 
 * Simple
+* Support archival package authenticity
 * Not *too* much redundant storage
 * Independent from any particular repository software
-* At the same time: based on open formats
+* Based on open formats
 * Extensible, modular design 
  
 For our [SWORDv2 deposit service] we had already decided on [BagIt] as the exchange format. The simplest
@@ -157,7 +158,8 @@ as well have copied the bag to the given path yourself, and that is quite true. 
 to be so simple that manual operation would be feasible. 
 
 #### Enter: bag store operations
-This is a good moment to introduce the rules of the bag store. The only operations allowed on it are:
+This is a good moment to introduce the rules of the bag store, because not only do we want it to be simple but also to
+support archival package authenticity. That is why we limit the allow operations to the following: 
 
 * `ADD` - add a *valid* bag (actually a "virtually-valid" bag, but we will come to that).
 * `GET` - read any part of the bag store.
@@ -175,6 +177,9 @@ a conscious effort.
 
 So, let's now move on to an even simpler task: retrieving an item.
 
+[EASY]: https://easy.dans.knaw.nl/ui/browse
+[Library Of Congress]: https://github.com/LibraryOfCongress/bagit-java
+
 ### Retrieving an item
 To retrieve a bag or any part of it, we could actually simply read it from disk, and that would not violate
 the bag store rules. However, when referring to bag store items (bags, or files and directories in them) it 
@@ -186,6 +191,8 @@ an ASCII string without spaces. The actual path may of course contain non-ASCII 
 encoding should be UTF-8. 
 
 We can use `easy-bag-store` to find and item for us.
+
+[Percent-encoding]: https://tools.ietf.org/html/rfc3986#section-2.1
 
 #### A bag
 1. Let's first enumerate the bags in the store.
@@ -226,32 +233,107 @@ We can use `easy-bag-store` to find and item for us.
 
 #### A directory
 
-<!-- TODO -->
-
-[Percent-encoding]: https://tools.ietf.org/html/rfc3986#section-2.1
+*WORK IN PROGRESS*
 
 
 ### Adding an updated bag
+Now you will probably say: "Okay, so keeping your archival packages immutable may go a long way to 
+guarding their authenticity over time, but out here in the real world data tends to get updated. How,
+do we deal with that?" The answer is: in the simplest possible way; by adding a new version. Keeping
+track of the versions is not built in to the bag store, but here is were modular design comes in:
+you can add that capability by simply adding appropriate metadata. That could be something as simple
+as a "version" metadata field, or something a bit more sophisticated. Our [`easy-bag-index`] module takes a
+different approach by recording both a timestamp and a pointer to the base revision, the combination
+of which is always enough to reconstruct the version history.
 
+[`easy-bag-index`]: https://github.com/DANS-KNAW/easy-bag-index
 
+#### Virtually-valid
+However, an objection to such an approach could be that you would be storing a lot of files 
+redundantly. The bag store does have some support to ameliorate that. Instead of requiring every bag 
+to be valid according to [the BagIt definition of valid], it must be "virtually" valid. A bag is
+virtually-valid when:
 
+* it is valid, *or*...
+* it is incomplete, but has a [`fetch.txt`] with references to the missing files.
 
+The idea is that the only things we need to do to make the bag valid are:
+
+* Download the files referenced from `fetch.txt` into the bag.
+* Remove `fetch.txt` from the bag.
+* Remove any entries for `fetch.txt` in the tag manifests, if present.
+
+If we can prove that this would be enough to make the bag valid, then it is virtually-valid. Note that
+this term was introduced by us and is nowhere to be found in the BagIt specifications document.
+
+So, now we can store a new version of a archival package, but for all the files that haven't been
+updated, we include a fetch reference to the already archived file. 
+
+[the BagIt definition of valid]: https://tools.ietf.org/html/draft-kunze-bagit#section-3
+[`fetch.txt`]: https://tools.ietf.org/html/draft-kunze-bagit-14#section-2.2.3
+
+#### Pruning
+OK, enough theory, let's try to create an update for our example bag. The `easy-bag-store` tool has
+a command to help you strip your updated bag of unnecessary files.
+
+1. Copy `my-example-bag` to `my-example-bag-v2`
+2. Make a change to one of the data files in `my-example-bag-v2`. (Remember which one.)
+3. Now copy the bag-id of the version we stored earlier (use `easy-bag-store enum` if needed) and 
+   use it in the following command:
+   
+        easy-bag-store prune my-example-bag-v2 <the bag-id>
+        > OK: Done pruning
+   
+4. Now let's have a look at `my-example-bag-v2`:
+
+        tree my-example-bag-v2
+        > my-example-bag-v2/
+          ├── bag-info.txt
+          ├── bagit.txt
+          ├── data
+          │   └── <the one file you changed>
+          ├── fetch.txt
+          ├── manifest-md5.txt
+          └── tagmanifest-md5.txt
+
+5. Yes, that's right: all the other data files are gone. Take a look at the contents of `fetch.txt`
+
+        cat my-example-bag-v2/fetch.txt
+        > http://localhost/<bag-id of my-example-bag>/data/path/to/unchanged/file1  <file size>  data/path/to/unchanged/file1
+          ... more lines
+          
+   All the payload files from `my-example-bag` should be included in `fetch.txt`, except for the 
+   one changed file of course.
+   
+As you may have noticed, the URLs in `fetch.txt` all start with `http://localhost/`. This means that 
+where these URLs resolve to depends on if there is a web server listening on localhost:80, and how *it*
+will resolve the paths passed to it. To get the correct behavior we could therefore set up such a
+server and implement the fairly simple mapping from item-id to item-location. However, that hardly
+seems worth the trouble and `easy-bag-store` takes a s
+ 
+#### Round-trip: adding, retrieving, completing
+Finally, to come full circle, do the following steps:
+
+1. Add the updated bag:
+
+        easy-bag-store add my-example-bag-v2
+
+2. Retrieve it again from the bag store:
+
+        easy-bag-store get <bag-id of my-example-bag-v2> out2
+        
+3. Note that the retrieved bag is still only virtually-valid, and not valid. We will use the 
+   `easy-bag-store complete` for that.
+   
+        easy-bag-store complete out2
+
+4. Verify that `my-example-bag-v2` and `out2` are equal
+
+        diff -r my-example-bag-v2 out2
+
+ 
 ### Using the HTTP service
 
-   
-   
-[EASY]: https://easy.dans.knaw.nl/ui/browse
-[Library Of Congress]: https://github.com/LibraryOfCongress/bagit-java
-       
-3. Adding a bag to the store
-    - Add an example bag through the command line
-    - Inspecting the location where it is stored
-    - Verifying the bag in storage
-4. Bagger: 
-    - creating a Bag
-    - adding it
-5. Adding an update:
-    - prune the update
-    - add it
-    - Showing that non-virtually-valid bag is not accepted
 
+Appendix: extended motivation of features
+-----------------------------------------
