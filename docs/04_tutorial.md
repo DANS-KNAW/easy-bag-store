@@ -22,7 +22,7 @@ to protect against possibility of data loss, to make it easier to evolve your ar
 
 As we go along I will point out how the bag store rules are designed to improve these points ...
 
-<!-- TODO: laatste stuk herformulere -->
+<!-- TODO: laatste stuk herformuleren -->
 
 
 [DANS]: https://dans.knaw.nl/en 
@@ -119,18 +119,124 @@ Tutorial
 5. At this point, we are ready to add the bag to the store:
 
         easy-bag-store add my-example-bag    
-        > OK: Added Bag with bag-id: aecd427f-45a8-4551-ab06-8edd2a580354 to BagStore: default    
+        > OK: Added Bag with bag-id: aecd427f-45a8-4551-ab06-8edd2a580354 to \
+            BagStore: default    
    
-    
+   The bag-id will of course be different in each case. You may also specify a UUID to use as bag-id,
+   using the `-u` option (`easy-bag-store add -u <your UUID> my-example-bag`). The great thing about 
+   UUIDs is that they can be minted in a decentralized fashion and still be guaranteed to be unique.
+
+6. The default bag store is located in the directory `/srv/dans.knaw.nl/bag-store`. Check that
+   the bag was copied into the bag store:
    
+        tree /srv/dans.knaw.nl/bag-store
+        > ae
+          └── cd427f45a84551ab068edd2a580354
+              └── my-example-bag
+                  ├── bag-info.txt
+                  ├── bagit.txt
+                  ├── data
+                  │   ├── manifest-sha1.txt
+                  │   ├── meta
+                  │   │   ├── file_metadata.xml
+                  │   │   └── general_conditions_DANS.pdf
+                  │   └── <other files in dataset>
+                  │   
+                  ├── manifest-md5.txt
+                  └── tagmanifest-md5.txt
+                  
+   As you can see the bag-id is used to form a path from the bag store base directory to a container in which
+   the bag is then stored. The slashes must be put in the same places for all the bags in a bag store. So in this
+   the first two characters of the bag-id form the name of the parent directory and the rest (stripped of dashes)
+   the child. Note that this "slashing pattern" strictly speaking doesn't need to be stored anywhere, as it 
+   will be implicitly recorded when adding the first bag. However, the `easy-bag-store` tool does use a configuration
+   setting for this, as "discovering" this every time would be inefficient.                
+        
+Wasn't that great? And it took only six steps and three pages to explain ;) ! At this point you may think you might just 
+as well have copied the bag to the given path yourself, and that is quite true. Actually, that is the point of the bag store:
+to be so simple that manual operation would be feasible. 
+
+#### Enter: bag store operations
+This is a good moment to introduce the rules of the bag store. The only operations allowed on it are:
+
+* `ADD` - add a *valid* bag (actually a "virtually-valid" bag, but we will come to that).
+* `GET` - read any part of the bag store.
+* `ENUM` - enumerate the bags and/or files in a bag store. 
+
+Note that there is no <del>`MODIFY`</del>. If we should happen to add an invalid bag, we corrupt the bag store. So, 
+while manual operation is feasible in theory, in practise you would soon be developing some scripts to:
+
+* verify that the bag you are about to add is valid (actually "virtually valid", but we explain that below);
+* change the file permissions of the contents of the bag to read-only, so as to prevent accidentally modifying them;
+* convert the UUID to a path correctly.
+
+These are precisely the things that `easy-bag-store add` does for you! To mess up you now really have to make
+a conscious effort. 
+
+So, let's now move on to an even simpler task: retrieving an item.
+
+### Retrieving an item
+To retrieve a bag or any part of it, we could actually simply read it from disk, and that would not violate
+the bag store rules. However, when referring to bag store items (bags, or files and directories in them) it 
+is often not convenient to use local paths. That is why they have **item-id**s.
+
+The item-id of a bag (= bag-id) is the UUID under which it was stored. The item-id of a file or directory is 
+the bag-id with the percent-encoded file path appended to it. [Percent-encoding] is a way to map the path to 
+an ASCII string without spaces. The actual path may of course contain non-ASCII characters. The character 
+encoding should be UTF-8. 
+
+We can use `easy-bag-store` to find and item for us.
+
+#### A bag
+1. Let's first enumerate the bags in the store.
+
+        easy-bag-store enum
+        > <uuid of my-example-bag>
+          OK: Done enumerating
+          
+2. Copy the bag to some output directory:
+
+        easy-bag-store get <uuid of my-example-bag> out
+        > OK: Retrieved item with item-id: <uuid of my-example-bag> to out \
+            from BagStore: /srv/dans.knaw.nl/bag-store
+        
+3. Now to check that the bag you retrieved is equal to the one you added:
+
+        diff -r my-example-bag out        
+
+   No output here is good. It means the directories are the same. 
+
+#### A single file
+1. Let's start by enumerating the files in our bag. This has the benefit that we don't have to 
+   perform the percent-encoding ourselves:
    
-### Retrieving a bag
+        easy-bag-store enum <uuid of my-example-bag>
+        > <uuid of my-example-bag>/path/to/some/file
+          ... more files
+          OK: Done enumerating
+            
+2. Select one of the item-ids from the output and:
 
+        easy-bag-store get <item-id> .
+        > OK: Retrieved item with item-id: <item-id> to . \
+            from BagStore: /srv/dans.knaw.nl/bag-store     
+             
+    We have now copies the select file to the current directory, which you can check with a simple
+    `ls` call.
 
+#### A directory
 
+<!-- TODO -->
+
+[Percent-encoding]: https://tools.ietf.org/html/rfc3986#section-2.1
 
 
 ### Adding an updated bag
+
+
+
+
+### Using the HTTP service
 
    
    

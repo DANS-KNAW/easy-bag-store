@@ -30,7 +30,7 @@
           </y:NodeLabel>
           <y:UML clipContent="true" constraint="" omitDetails="false" stereotype="" use3DEffect="false">
             <y:AttributeLabel>base-dir
-
+slash-pattern
 </y:AttributeLabel>
             <y:MethodLabel/>
           </y:UML>
@@ -153,10 +153,10 @@ local-item-uri = "http://localhost/" + item-id</y:NodeLabel>
           <y:Geometry height="101.0" width="383.0" x="897.5" y="261.8671875"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="88.796875" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tl" textColor="#000000" verticalTextPosition="bottom" visible="true" width="370.45703125" x="4.0" y="4.0">LOCATIONS
+          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="88.796875" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tl" textColor="#000000" verticalTextPosition="bottom" visible="true" width="352.5625" x="4.0" y="4.0">LOCATIONS
 
 item-location = bag-location | file-location
-bag-location = base-dir / slashed ( bag-id ) / [.] bag-base-dir
+bag-location = base-dir / slashed ( bag-id ) / [.] bag-name
 file-location = bag-location / path-in-bag
 
 </y:NodeLabel>
@@ -173,13 +173,13 @@ file-location = bag-location / path-in-bag
           <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="173.59375" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tl" textColor="#000000" verticalTextPosition="bottom" visible="true" width="249.912109375" x="4.0" y="4.0">OPERATIONS
 
 Core:
-ADD ( bag-dir, uuid )
+ADD ( bag, uuid )
 GET ( item-id )
 ENUM ( filter=active|inactive|all, [bag-id] )
 
 Extra:
 DEACTIVATE | REACTIVATE ( bag-id )
-ERASE ( file-id... )
+ERASE ( file-id, eraser, reason )
 
 
 </y:NodeLabel>
@@ -292,7 +292,6 @@ ERASE ( file-id... )
       </data>
     </edge>
     <edge id="e5" source="n10" target="n3">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
