@@ -18,9 +18,6 @@ TABLE OF CONTENTS
 - [Technical considerations](#technical-considerations)
   * [Slashing the bag-id](#slashing-the-bag-id)
 
-<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
-  
-
 Introduction
 ------------
 
@@ -29,6 +26,18 @@ quasi formal definition we will use CamelCase for classes and lowercase-with-das
 those classes.
  
 (See [tutorial] for a more hands-on introduction.)
+
+Properties
+----------
+
+* Common **base-dir**
+* Stores **virtually-valid** Bags
+* Stores immutable Bags
+* UUIDs for decentralized **bag-id** minting
+* Trivial translations between **item-id**, **item-location** and **local-item-uri** 
+* 
+
+
 
 Structure
 ---------

@@ -35,7 +35,7 @@ import scala.util.{ Failure, Success, Try }
 trait BagProcessingComponent extends DebugEnhancedLogging {
   this: FileSystemComponent with BagFacadeComponent =>
 
-  val processor: BagProcessing
+  val bagProcessing: BagProcessing
 
   trait BagProcessing {
 
@@ -73,10 +73,12 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       } yield ()
     }
 
+    // FIXME: Only called in BagStoreComp
     def setFilePermissions(permissions: String = outputBagPermissions)(path: Path): Try[Path] = Try {
       Files.setPosixFilePermissions(path, PosixFilePermissions.fromString(permissions))
     }
 
+    // FIXME: Only called in BagStoreComp and in previous method
     def setPermissions(bagDir: BaseDir, permissions: String = outputBagPermissions) = Try {
       logger.info(s"Setting bag permissions to: $permissions, bag directory: $bagDir")
       val posixFilePermissions = PosixFilePermissions.fromString(permissions)

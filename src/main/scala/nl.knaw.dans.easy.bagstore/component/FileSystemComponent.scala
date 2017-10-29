@@ -318,6 +318,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
         }
     }
 
+    // FIXME: only used in BagStoreComponent
     def makePathAndParentsInBagStoreGroupWritable(path: Path)(implicit baseDir: BaseDir): Try[Unit] = {
       for {
         seq <- getPathsInBagStore(path)
@@ -335,6 +336,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
       Files.setPosixFilePermissions(path, permissions.union(Set(PosixFilePermission.GROUP_WRITE)).asJava)
     }
 
+    // FIXME: only used in BagStoreComponent
     def removeEmptyParentDirectoriesInBagStore(container: Path)(implicit baseDir: BaseDir): Try[Unit] = {
       for {
         paths <- getPathsInBagStore(container)

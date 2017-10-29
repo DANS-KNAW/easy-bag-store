@@ -202,9 +202,9 @@ class BagStoresSpec extends TestSupportFixture
   it should "return all FileIds in a virtually-valid Bag" in {
     implicit val baseDir: BaseDir = bagStore1.baseDir
     inside(bagStore1.add(testBagUnprunedA)) { case Success(ais) =>
-      processor.prune(testBagUnprunedB, ais :: Nil) shouldBe a[Success[_]]
+      bagProcessing.prune(testBagUnprunedB, ais :: Nil) shouldBe a[Success[_]]
       inside(bagStore1.add(testBagUnprunedB)) { case Success(bis) =>
-        processor.prune(testBagUnprunedC, bis :: Nil) shouldBe a[Success[_]]
+        bagProcessing.prune(testBagUnprunedC, bis :: Nil) shouldBe a[Success[_]]
         inside(bagStore1.add(testBagUnprunedC)) { case Success(cis) =>
           inside(bagStores.enumFiles(cis).map(_.toList)) {
             case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 13 and

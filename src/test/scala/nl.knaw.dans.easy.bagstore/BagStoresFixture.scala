@@ -33,7 +33,7 @@ trait BagStoresFixture extends BagStoreFixture {
     override val localBaseUri: URI = new URI("http://example-archive.org")
   }
 
-  override val processor = new BagProcessing {
+  override val bagProcessing = new BagProcessing {
     override val stagingBaseDir: BagPath = testDir
     override val outputBagPermissions: String = "rwxr-xr-x"
   }

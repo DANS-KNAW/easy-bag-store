@@ -87,8 +87,8 @@ trait BagStoresComponent {
     def putBag(inputStream: InputStream, bagStore: BagStore, uuid: UUID): Try[BagId] = {
       for {
         _ <- checkBagDoesNotExist(BagId(uuid))
-        staging <- processor.unzipBag(inputStream)
-        staged <- processor.findBagDir(staging)
+        staging <- bagProcessing.unzipBag(inputStream)
+        staged <- bagProcessing.findBagDir(staging)
         bagId <- bagStore.add(staged, Some(uuid), skipStage = true)
         _ = FileUtils.deleteDirectory(staging.toFile)
       } yield bagId
