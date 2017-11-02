@@ -15,8 +15,8 @@
  */
 package nl.knaw.dans.easy.bagstore.component
 
-import java.io.InputStream
-import java.nio.file.{ Files, Path }
+import java.io.{InputStream, OutputStream}
+import java.nio.file.{Files, Path}
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore._
@@ -24,7 +24,7 @@ import nl.knaw.dans.lib.error._
 import org.apache.commons.io.FileUtils
 
 import scala.language.postfixOps
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 trait BagStoresComponent {
   this: FileSystemComponent with BagProcessingComponent with BagStoreComponent =>
@@ -38,6 +38,19 @@ trait BagStoresComponent {
     def getStore(name: String): Option[BagStore] = stores.get(name)
 
     def get(itemId: ItemId, output: Path, fromStore: Option[Path] = None): Try[Path] = {
+      fromStore
+        .flatMap(baseDir => stores.collectFirst {
+          case (_, store) if store.baseDir == baseDir => store.get(itemId, output)
+        })
+        .getOrElse {
+          stores.values.toStream
+            .map(_.get(itemId, output))
+            .find(_.isSuccess)
+            .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
+        }
+    }
+
+    def getStream(itemId: ItemId, output: => OutputStream, fromStore: Option[Path] = None): Try[Unit] = {
       fromStore
         .flatMap(baseDir => stores.collectFirst {
           case (_, store) if store.baseDir == baseDir => store.get(itemId, output)
