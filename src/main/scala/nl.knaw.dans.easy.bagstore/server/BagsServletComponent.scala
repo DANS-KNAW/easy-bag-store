@@ -45,24 +45,6 @@ trait BagsServletComponent extends DebugEnhancedLogging {
         })
     }
 
-//    get("/:uuid") {
-//      contentType = "text/plain"
-//      val uuidStr = params("uuid")
-//      ItemId.fromString(uuidStr)
-//        .recoverWith {
-//          case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
-//        }
-//        .flatMap(_.toBagId)
-//        .flatMap(bagStores.enumFiles(_))
-//        .map(bagIds => Ok(bagIds.mkString("\n")))
-//        .getOrRecover {
-//          case e: IllegalArgumentException => BadRequest(e.getMessage)
-//          case e: NoSuchBagException => NotFound(e.getMessage)
-//          case e =>
-//            logger.error("Unexpected type of failure", e)
-//            InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
-//        }
-//    }
 
     get("/:uuid") {
       contentType = "text/plain"
@@ -116,10 +98,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
       }
     }
 
-    get("/test") {
-      contentType = "text/plain"
-      Ok("It is a test!")
-    }
+
 
 
 

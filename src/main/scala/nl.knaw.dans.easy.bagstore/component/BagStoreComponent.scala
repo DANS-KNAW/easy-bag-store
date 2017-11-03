@@ -81,7 +81,7 @@ trait BagStoreComponent {
               location <- fileSystem.toLocation(bagId)
               stagingDir <- processor.stageBagDir(location)
               stagedBag = stagingDir.resolve(location.getFileName)
-              _ <- processor.complete(stagedBag)
+                _ <- processor.complete(stagedBag)
               zipStaging <- processor.stageBagZip(stagedBag)
               _ = Files.copy(zipStaging.resolve(location.getFileName), output)
               _ = FileUtils.deleteDirectory(stagingDir.toFile)
