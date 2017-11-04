@@ -3,6 +3,32 @@ title: Tutorial
 layout: page
 ---
 
+Table of contents
+-----------------
+
+- [Motivation](#motivation)
+- [Prerequisites](#prerequisites)
+- [Tutorial](#tutorial)
+  * [Starting up](#starting-up)
+  * [Adding a bag](#adding-a-bag)
+    + [Enter: bag store operations](#enter--bag-store-operations)
+  * [Retrieving an item](#retrieving-an-item)
+    + [A bag](#a-bag)
+    + [A single file](#a-single-file)
+    + [A directory](#a-directory)
+  * [Adding an updated bag](#adding-an-updated-bag)
+    + [Virtually-valid](#virtually-valid)
+    + [Pruning](#pruning)
+    + [Round-trip: adding, retrieving, completing](#round-trip--adding--retrieving--completing)
+  * [Using the HTTP service](#using-the-http-service)
+- [Appendix I: extended motivation of features](#appendix-i--extended-motivation-of-features)
+  * [Simple](#simple)
+  * [Open standards](#open-standards)
+  * [Software independent](#software-independent)
+  * [Authenticity](#authenticity)
+  * [Efficiency](#efficiency)
+  * [Modular design](#modular-design)
+
 Motivation
 ----------
 We created the bag store here at [DANS], because we needed a way to store our archival packages. Our 
@@ -10,7 +36,7 @@ existing solution was becoming hard to maintain and evolve, so we decided to go 
 We were looking for something with the following properties:
 
 * **Simple** 
-* Based on **open** formats
+* Based on open **standards**
 * **Independent** from any particular repository software
 * Support archival package **authenticity**
 * Reasonably storage **efficient**
@@ -178,17 +204,22 @@ Tutorial
         
 Wasn't that great? And it took only six steps and three pages to explain! At this point you may think you might just 
 as well have copied the bag to the given path yourself, and that is quite true. Actually, that is the point of the bag store:
-to be so simple that manual operation would be feasible. 
+to be so simple that manual operation would be feasible. This is how we attain the **independence** from
+any repository software that we talked about earlier.
 
 #### Enter: bag store operations
-This is a good moment to introduce the rules of the bag store, because not only do we want it to be simple but also to
-support archival package authenticity. That is why we limit the allowed operations to the following: 
+This is a good moment to introduce the rules of the bag store, because not only do we want it to be **simple** but also to
+support archival package **authenticity**. That is why we limit the allowed operations to the following: 
 
 * `ADD` - add a *valid* bag (actually a "virtually-valid" bag, but we will come to that).
 * `GET` - read any part of the bag store.
 * `ENUM` - enumerate the bags and/or files in a bag store. 
 
-Note that there is no <del>`MODIFY`</del>. If we should happen to add an invalid bag, we corrupt the bag store. So, 
+Note that there is no <del>`MODIFY`</del>. By making the bag store "add-only"&mdash;carving the added bags in stone as 
+it were&mdash;we make it easier to guarantee the authenticity of the recorded data, at least at the bit level. We might
+set the permissions on the archived files to read-only and even flag them as immutable.   
+
+This *does* mean, however, that iff we should happen to add an invalid bag, we corrupt the bag store. So, 
 while manual operation is feasible in theory, in practise you would soon be developing some scripts to:
 
 * verify that the bag you are about to add is (virtually) valid;
@@ -209,10 +240,15 @@ is often not convenient to use local paths. That is why they have **item-id**s.
 
 The item-id of a bag (= bag-id) is the UUID under which it was stored. The item-id of a file or directory is 
 the bag-id with the percent-encoded file path appended to it. [Percent-encoding] is a way to map the path to 
-an ASCII string without spaces. The actual path may of course contain non-ASCII characters. The character 
-encoding should be UTF-8. 
+a string containing only a subset of ASCII, particularly characters that can be used as part of a URI. The actual 
+path may of course contain non-ASCII characters. The character encoding should be UTF-8.
 
-We can use `easy-bag-store` to find and item for us.
+This way we further support **authenticity** because we have a simple mapping between the exact location where 
+each item is stored and its global identifier. The only extra information we need is the base directory of
+the bag store. Also note that we build on the open **standard**s by using the percent encoding scheme from the 
+URI definition (RFC3986) .
+
+We can use `easy-bag-store` to find an item for us.
 
 [Percent-encoding]: https://tools.ietf.org/html/rfc3986#section-2.1
 
@@ -220,18 +256,23 @@ We can use `easy-bag-store` to find and item for us.
 1. Let's first enumerate the bags in the store.
 
         easy-bag-store enum
-        > <uuid of my-example-bag>
+        > 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
           OK: Done enumerating
+          
+   In your case the bag-id will of course be different and you will need to use the one from your output
+   rather than the one given above.       
           
 2. Copy the bag to some output directory:
 
-        easy-bag-store get <uuid of my-example-bag> out
-        > OK: Retrieved item with item-id: <uuid of my-example-bag> to out \
-            from BagStore: /srv/dans.knaw.nl/bag-store
+        easy-bag-store get 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 out
+        > OK: Retrieved item with item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 \
+           to out from BagStore: /srv/dans.knaw.nl/bag-store
+           
+   The directory `out` will be created automatically.
         
 3. Now to check that the bag you retrieved is equal to the one you added:
 
-        diff -r my-example-bag out        
+        diff -r sample out        
 
    No output here is good. It means the directories are the same. 
 
@@ -239,18 +280,32 @@ We can use `easy-bag-store` to find and item for us.
 1. Let's start by enumerating the files in our bag. This has the benefit that we don't have to 
    perform the percent-encoding ourselves:
    
-        easy-bag-store enum <uuid of my-example-bag>
-        > <uuid of my-example-bag>/path/to/some/file
-          ... more files
+        easy-bag-store enum 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+        > 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/\
+            %E6%AA%94%E6%A1%88.txt
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/manifest-md5.txt
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03.jpeg
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02.jpeg
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image01.png
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/bag-info.txt
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/README.TXT
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/bagit.txt
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/tagmanifest-md5.txt
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/file1.txt
           OK: Done enumerating
+          
+    Notice that the Chinese characters and spaces appear percent-encoded. Als note that the bag
+    name ("sample" in this case) is not part of the identifier.      
             
 2. Select one of the item-ids from the output and:
 
-        easy-bag-store get <item-id> .
-        > OK: Retrieved item with item-id: <item-id> to . \
-            from BagStore: /srv/dans.knaw.nl/bag-store     
+        easy-bag-store get \
+            8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03.jpeg .
+        > OK: Retrieved item with \
+          item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03.jpeg to . \
+          from BagStore: /srv/dans.knaw.nl/bag-store     
              
-    We have now copies the select file to the current directory, which you can check with a simple
+    We have now copied the selected file to the current directory, which you can check with a simple
     `ls` call.
 
 #### A directory
@@ -259,22 +314,23 @@ We can use `easy-bag-store` to find and item for us.
 
 
 ### Adding an updated bag
-Now you will probably say: "Okay, so keeping your archival packages immutable may go a long way to 
-guarding their authenticity over time, but out here in the real world data tends to get updated. How,
-do we deal with that?" The answer is: in the simplest possible way; by adding a new version. Keeping
-track of the versions is not built in to the bag store, but here is were modular design comes in:
+Now guarding **authenticity** of your archival packages by disallowing any changes to them may seem
+a bit draconic. In the real world packages do get updated because of errors, newly available data, etc.
+How do we deal with that? The answer is: in the simplest possible way; by adding a new version. 
+
+Keeping track of the versions is not built in to the bag store, but here is were **modular** design comes in:
 you can add that capability by simply adding appropriate metadata. That could be something as simple
 as a "version" metadata field, or something a bit more sophisticated. Our [`easy-bag-index`] module takes a
-different approach by recording both a timestamp and a pointer to the base revision, the combination
-of which is always enough to reconstruct the version history.
+records both a timestamp and a pointer to the base revision, the combination of which is always enough 
+to reconstruct the version history.
 
 [`easy-bag-index`]: https://github.com/DANS-KNAW/easy-bag-index
 
 #### Virtually-valid
 However, an objection to such an approach could be that you would be storing a lot of files 
-redundantly. The bag store does have some support to ameliorate that. Instead of requiring every bag 
-to be valid according to [the BagIt definition of valid], it must be "virtually" valid. A bag is
-virtually-valid when:
+redundantly. After all, a package update may leave many files unchanged. The bag store supports  
+a way to storage fairly storage **efficient**. Instead of requiring every bag to be valid according to 
+[the BagIt definition of valid], it must be "virtually" valid. A bag is virtually-valid when:
 
 * it is valid, *or*...
 * it is incomplete, but has a [`fetch.txt`] with references to the missing files.
@@ -295,37 +351,58 @@ updated, we include a fetch reference to the already archived file.
 [`fetch.txt`]: https://tools.ietf.org/html/draft-kunze-bagit-14#section-2.2.3
 
 #### Pruning
-OK, enough theory, let's try to create an update for our example bag. The `easy-bag-store` tool has
+OK, enough theory, let's try to create an update for our sample bag. The `easy-bag-store` tool has
 a command to help you strip your updated bag of unnecessary files.
 
-1. Copy `my-example-bag` to `my-example-bag-v2`
-2. Make a change to one of the data files in `my-example-bag-v2`. (Remember which one.)
-3. Now copy the bag-id of the version we stored earlier (use `easy-bag-store enum` if needed) and 
+1. Copy `sample` to `sample-updated`
+
+        cp -r sample sample-updated
+        
+2. Make a change to one of the data files in `sample-updated`, let's say the README.TXT
+
+        echo "...and some more text" >> sample-updated/data/README.TXT
+
+3. Let's also remove a file
+        
+        rm sample-updated/data/img/image01.png
+
+4. ...and add one
+
+        echo "New file content" > sample-updated/data/NEW.TXT
+
+
+5. Now copy the bag-id of the version we stored earlier (use `easy-bag-store enum` if needed) and 
    use it in the following command:
    
-        easy-bag-store prune my-example-bag-v2 <the bag-id>
+        easy-bag-store prune sample-updated 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
         > OK: Done pruning
    
-4. Now let's have a look at `my-example-bag-v2`:
+4. Now let's have a look at `sample-updated`:
 
-        tree my-example-bag-v2
-        > my-example-bag-v2/
-          ├── bag-info.txt
-          ├── bagit.txt
-          ├── data
-          │   └── <the one file you changed>
-          ├── fetch.txt
-          ├── manifest-md5.txt
-          └── tagmanifest-md5.txt
+        tree sample-updated/
+        > sample-updated/
+            ├── bag-info.txt
+            ├── bagit.txt
+            ├── data
+            │   ├── NEW.TXT
+            │   ├── path
+            │   │   └── with a
+            │   └── README.TXT
+            ├── fetch.txt
+            ├── manifest-md5.txt
+            └── tagmanifest-md5.txt
 
 5. Yes, that's right: all the other data files are gone. Take a look at the contents of `fetch.txt`
 
-        cat my-example-bag-v2/fetch.txt
-        > http://localhost/<bag-id of my-example-bag>/data/path/to/unchanged/file1  <file size>  data/path/to/unchanged/file1
-          ... more lines
+        cat sample-updated/fetch.txt
+        > http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/%E6%AA%94%E6%A1%88.txt  34  data/path/with a/space/檔案.txt
+          http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03.jpeg  2775738  data/img/image03.jpeg
+          http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/file1.txt  0  data/path/with a/space/file1.txt
+          http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02.jpeg  13829  data/img/image02.jpeg
           
-   All the payload files from `my-example-bag` should be included in `fetch.txt`, except for the 
-   one changed file of course.
+   All the payload files from `sample` should be included in `fetch.txt`, except `README.TXT` (which was
+   changed), `NEW.TXT` (which was added) and `image01.png` (which was removed).
+   
    
 As you may have noticed, the URLs in `fetch.txt` all start with `http://localhost/`. This means that 
 where these URLs resolve to depends on if there is a web server listening on localhost:80, and how *it*
@@ -363,14 +440,14 @@ Appendix I: extended motivation of features
 ### Simple
 
 
-### Open formats
+### Open standards
 
 
 
 ### Software independent
 
 
-### Authenticiy
+### Authenticity
 
 
 ### Efficiency
