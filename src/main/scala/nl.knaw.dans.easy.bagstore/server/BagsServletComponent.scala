@@ -98,6 +98,6 @@ trait BagsServletComponent extends DebugEnhancedLogging {
       }
     }
 
-    
+
   }
 }
