@@ -47,7 +47,7 @@
       src: ../../test/resources/bags/basic-sequence-unpruned-with-refbags/
       dest: /home/vagrant/test-data/
       mode: "0777"
-    when: ansible_local.conditions.test_data_not_exists
+    when: ansible_local.conditions.test_data_does_not_exist
 
   - name: Create test-data archive
     archive:
