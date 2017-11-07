@@ -356,26 +356,34 @@ a command to help you strip your updated bag of unnecessary files.
 
 1. Copy `sample` to `sample-updated`
 
-        cp -r sample sample-updated
+        cp -r sample /tmp/sample-updated
+        
+   (**Note**: because of a bug it is currently necessary to `sample-updated` on the same partition as the bag store)        
         
 2. Make a change to one of the data files in `sample-updated`, let's say the README.TXT
 
-        echo "...and some more text" >> sample-updated/data/README.TXT
+        echo "...and some more text" >> /tmp/sample-updated/data/README.TXT
 
 3. Let's also remove a file
         
-        rm sample-updated/data/img/image01.png
+        rm /tmp/sample-updated/data/img/image01.png
 
 4. ...and add one
 
-        echo "New file content" > sample-updated/data/NEW.TXT
+        echo "New file content" > /tmp/sample-updated/data/NEW.TXT
 
+5. Update the checksums in the new bag:
+
+        bagit update /tmp/sample-updated
 
 5. Now copy the bag-id of the version we stored earlier (use `easy-bag-store enum` if needed) and 
    use it in the following command:
    
-        easy-bag-store prune sample-updated 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+        easy-bag-store prune /tmp/sample-updated 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
         > OK: Done pruning
+        
+   Note that we provided as the second argument the bag-id of the bag in which the unchanged files 
+   where located. You append as many bag-ids as you like. We call these reference bags or **ref-bag**s.
    
 4. Now let's have a look at `sample-updated`:
 
@@ -404,18 +412,31 @@ a command to help you strip your updated bag of unnecessary files.
    changed), `NEW.TXT` (which was added) and `image01.png` (which was removed).
    
    
-As you may have noticed, the URLs in `fetch.txt` all start with `http://localhost/`. This means that 
-where these URLs resolve to depends on if there is a web server listening on localhost:80, and how *it*
-will resolve the paths passed to it. To get the correct behavior we could therefore set up such a
-server and implement the fairly simple mapping from item-id to item-location. However, that hardly
-seems worth the trouble and `easy-bag-store` takes a s
+As you may have noticed, the URLs in `fetch.txt` all start with `http://localhost/`. These URLs are called
+**local-item-uri**s. They will of course only really work, if&mdash;on this host&mdash;there is a web server to do the
+item-to-location mapping  as described earlier (looking in the correct bag store). We could set that up, but really what
+the local-item-uris are intended to do is point back into the same bag store that the `fetch.txt` file is stored in.
+That makes resolving the local-item-uri trivial, as leaving off `http://localhost/` gives you the item-id.
+
+The local-item-uris must never point to anything else, even if we set up the web server to give back the correct 
+file. The reason for this rule is that we want to keep the bag store self contained. This supports **authenticity** of 
+the archival packages. Being able to find all the files in a packages obviously is a sine qua non for guaranteeing its
+authenticity. If we cannot even do that, we should up all claims of being a functioning archive.
+
+Note, that fetching items with *non-local* URLs is still sound practice, however, it is essential to consider how the 
+persistence of these URLs is guaranteed (and by whom). It does pose more challenges than keeping all the packages 
+locally in a common base directory.
  
 #### Round-trip: adding, retrieving, completing
-Finally, to come full circle, do the following steps:
+Finally, to come full circle, we will show that the updated bag can be added, retrieved and completed to its
+full content.
 
 1. Add the updated bag:
 
-        easy-bag-store add my-example-bag-v2
+        easy-bag-store add sample-updated
+        
+        
+        
 
 2. Retrieve it again from the bag store:
 
@@ -432,6 +453,10 @@ Finally, to come full circle, do the following steps:
 
  
 ### Using the HTTP service
+
+
+
+
 
 
 Appendix I: extended motivation of features
@@ -456,3 +481,5 @@ Appendix I: extended motivation of features
 ### Modular design
 
 
+Appendix II: Migrations
+-----------------------

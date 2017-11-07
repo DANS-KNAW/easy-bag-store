@@ -68,6 +68,12 @@ trait BagFacadeComponent {
           .getOrElse(false))
     }
 
+    def isVirtuallyValid(bagDir: Path): Try[Boolean] = {
+
+
+
+    }
+
     def hasValidTagManifests(bagDir: Path): Try[Boolean] = {
       def runTasks(tagManifest: BagitManifest)(executor: ExecutorService): Try[Boolean] = {
         val values = tagManifest.getFileToChecksumMap
