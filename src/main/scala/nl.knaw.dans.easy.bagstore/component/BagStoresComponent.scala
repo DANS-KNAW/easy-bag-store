@@ -24,7 +24,7 @@ import nl.knaw.dans.lib.error._
 import org.apache.commons.io.FileUtils
 
 import scala.language.postfixOps
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 trait BagStoresComponent {
   this: FileSystemComponent with BagProcessingComponent with BagStoreComponent =>
@@ -59,7 +59,14 @@ trait BagStoresComponent {
           stores.values.toStream
             .map(_.get(itemId, output))
             .find(_.isSuccess)
-            .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
+            //            .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
+            .getOrElse(
+            itemId match {
+              case id @ BagId(_) => Failure(NoSuchBagException(id))
+              case id @ FileId(_, _) => Failure(NoSuchFileException(id))
+            }
+          )
+
         }
     }
 

@@ -73,7 +73,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
               case bagId: BagId =>
                 debug(s"Retrieving item $bagId")
                 request.getHeader("Accept") match {
-                  case "application/zip" => base.get(bagId, response.outputStream).map(_ => Ok())
+                  case "application/zip" => base.get(bagId, response.outputStream)//.map(_ => Ok())
                   case "text/plain" | "*/*" | null => base.enumFiles(bagId).map(files => Ok(files.toList.mkString("\n")))
                   case _ => Try { NotAcceptable() }
                 }
