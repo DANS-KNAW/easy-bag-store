@@ -15,8 +15,8 @@
  */
 package nl.knaw.dans.easy.bagstore.component
 
-import java.io.InputStream
-import java.nio.file.{ Files, Path }
+import java.io.{InputStream, OutputStream}
+import java.nio.file.{Files, Path}
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore._
@@ -47,6 +47,26 @@ trait BagStoresComponent {
             .map(_.get(itemId, output))
             .find(_.isSuccess)
             .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
+        }
+    }
+
+    def getStream(itemId: ItemId, output: => OutputStream, fromStore: Option[Path] = None): Try[Unit] = {
+      fromStore
+        .flatMap(baseDir => stores.collectFirst {
+          case (_, store) if store.baseDir == baseDir => store.get(itemId, output)
+        })
+        .getOrElse {
+          stores.values.toStream
+            .map(_.get(itemId, output))
+            .find(_.isSuccess)
+            //            .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
+            .getOrElse(
+            itemId match {
+              case id @ BagId(_) => Failure(NoSuchBagException(id))
+              case id @ FileId(_, _) => Failure(NoSuchFileException(id))
+            }
+          )
+
         }
     }
 

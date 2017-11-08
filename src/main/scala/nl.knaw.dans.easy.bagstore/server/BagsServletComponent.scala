@@ -15,6 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstore.server
 
+import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.BagStoresComponent
 import nl.knaw.dans.easy.bagstore.{ ItemId, NoSuchBagException }
 import nl.knaw.dans.lib.error._
@@ -22,7 +23,9 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 import org.scalatra._
 
-import scala.util.Failure
+//import scala.util.Failure
+import scala.util.control.NonFatal
+import scala.util.{ Failure, Try }
 
 trait BagsServletComponent extends DebugEnhancedLogging {
   this: BagStoresComponent =>
@@ -42,6 +45,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
         })
     }
 
+
     get("/:uuid") {
       contentType = "text/plain"
       val uuidStr = params("uuid")
@@ -49,9 +53,18 @@ trait BagsServletComponent extends DebugEnhancedLogging {
         .recoverWith {
           case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
         }
-        .flatMap(_.toBagId)
-        .flatMap(bagStores.enumFiles(_))
-        .map(bagIds => Ok(bagIds.mkString("\n")))
+        .flatMap{
+          case bagId: BagId =>
+            debug(s"Retrieving item $bagId")
+            request.getHeader("Accept") match {
+              case "application/zip" => bagStores.getStream(bagId, response.outputStream).map(_ => Ok())
+              case "text/plain" | "*/*" | null => bagStores.enumFiles(bagId).map(files => Ok(files.toList.mkString("\n")))
+              case _ => Try { NotAcceptable() }
+            }
+          case id =>
+            logger.error(s"Asked for a bag-id but got something else: $id")
+            Try { InternalServerError() }
+        }
         .getOrRecover {
           case e: IllegalArgumentException => BadRequest(e.getMessage)
           case e: NoSuchBagException => NotFound(e.getMessage)
@@ -60,5 +73,31 @@ trait BagsServletComponent extends DebugEnhancedLogging {
             InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
         }
     }
+
+    get("/:uuid/*") {
+      val uuidStr = params("uuid")
+      multiParams("splat") match {
+        case Seq(path) =>
+          ItemId.fromString(s"""$uuidStr/${ path }""")
+            .recoverWith {
+              case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
+            }
+            .flatMap(itemId => {
+              debug(s"Retrieving item $itemId")
+              bagStores.getStream(itemId, response.outputStream)
+            })
+            .map(_ => Ok())
+            .getOrRecover {
+              case e: IllegalArgumentException => BadRequest(e.getMessage)
+              case e: NoSuchBagException => NotFound(e.getMessage)
+              case e: NoSuchFileException => NotFound(e.getMessage)
+              case NonFatal(e) =>
+                logger.error("Error retrieving bag", e)
+                InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
+            }
+      }
+    }
+
+
   }
 }
