@@ -219,7 +219,7 @@ Note that there is no <del>`MODIFY`</del>. By making the bag store "add-only"&md
 it were&mdash;we make it easier to guarantee the authenticity of the recorded data, at least at the bit level. We might
 set the permissions on the archived files to read-only and even flag them as immutable.   
 
-This *does* mean, however, that iff we should happen to add an invalid bag, we corrupt the bag store. So, 
+This *does* mean, however, that if we should happen to add an invalid bag, we corrupt the bag store. So, 
 while manual operation is feasible in theory, in practise you would soon be developing some scripts to:
 
 * verify that the bag you are about to add is (virtually) valid;
@@ -294,7 +294,7 @@ We can use `easy-bag-store` to find an item for us.
           8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/file1.txt
           OK: Done enumerating
           
-    Notice that the Chinese characters and spaces appear percent-encoded. Als note that the bag
+    Notice that the Chinese characters and spaces appear percent-encoded. Also note that the bag
     name ("sample" in this case) is not part of the identifier.      
             
 2. Select one of the item-ids from the output and:
@@ -320,17 +320,19 @@ How do we deal with that? The answer is: in the simplest possible way; by adding
 
 Keeping track of the versions is not built in to the bag store, but here is were **modular** design comes in:
 you can add that capability by simply adding appropriate metadata. That could be something as simple
-as a "version" metadata field, or something a bit more sophisticated. Our [`easy-bag-index`] module takes a
+as a "version" metadata field, or something a bit more sophisticated. Our [`easy-bag-index`] module 
 records both a timestamp and a pointer to the base revision, the combination of which is always enough 
 to reconstruct the version history.
 
 [`easy-bag-index`]: https://github.com/DANS-KNAW/easy-bag-index
 
 #### Virtually-valid
-However, an objection to such an approach could be that you would be storing a lot of files 
-redundantly. After all, a package update may leave many files unchanged. The bag store supports  
-a way to storage fairly storage **efficient**. Instead of requiring every bag to be valid according to 
-[the BagIt definition of valid], it must be "virtually" valid. A bag is virtually-valid when:
+An objection to such an approach could be that you would be storing a lot of files 
+redundantly. After all, a package update may leave many files unchanged. The bag store supports 
+the **efficient** storage of collections of bags with common files. Instead of requiring 
+every bag to be valid according to [the BagIt definition of valid], it must be only "virtually" valid. 
+
+A bag is virtually-valid when:
 
 * it is valid, *or*...
 * it is incomplete, but has a [`fetch.txt`] with references to the missing files.
@@ -344,7 +346,7 @@ The idea is that the only things we need to do to make the bag valid are:
 If we can prove that this would be enough to make the bag valid, then it is virtually-valid. Note that
 this term was introduced by us and is nowhere to be found in the BagIt specifications document.
 
-So, now we can store a new version of a archival package, but for all the files that haven't been
+So, now we can store a new version of an archival package, but for all the files that haven't been
 updated, we include a fetch reference to the already archived file. 
 
 [the BagIt definition of valid]: https://tools.ietf.org/html/draft-kunze-bagit#section-3
@@ -383,7 +385,7 @@ a command to help you strip your updated bag of unnecessary files.
         > OK: Done pruning
         
    Note that we provided as the second argument the bag-id of the bag in which the unchanged files 
-   where located. You append as many bag-ids as you like. We call these reference bags or **ref-bag**s.
+   where located. You may append as many bag-ids as you like. We call these reference bags or **ref-bag**s.
    
 4. Now let's have a look at `sample-updated`:
 
@@ -421,7 +423,7 @@ That makes resolving the local-item-uri trivial, as leaving off `http://localhos
 The local-item-uris must never point to anything else, even if we set up the web server to give back the correct 
 file. The reason for this rule is that we want to keep the bag store self contained. This supports **authenticity** of 
 the archival packages. Being able to find all the files in a packages obviously is a sine qua non for guaranteeing its
-authenticity. If we cannot even do that, we should up all claims of being a functioning archive.
+authenticity. If we cannot even do that, we should give up all claims of being a functioning archive.
 
 Note, that fetching items with *non-local* URLs is still sound practice, however, it is essential to consider how the 
 persistence of these URLs is guaranteed (and by whom). It does pose more challenges than keeping all the packages 
@@ -434,16 +436,13 @@ full content.
 1. Add the updated bag:
 
         easy-bag-store add sample-updated
-        
-        
-        
 
 2. Retrieve it again from the bag store:
 
         easy-bag-store get <bag-id of my-example-bag-v2> out2
         
 3. Note that the retrieved bag is still only virtually-valid, and not valid. We will use the 
-   `easy-bag-store complete` for that.
+   `easy-bag-store complete` command for that.
    
         easy-bag-store complete out2
 
@@ -451,9 +450,22 @@ full content.
 
         diff -r my-example-bag-v2 out2
 
- 
-### Using the HTTP service
 
+#### Other operations and commands
+You have now seen the most important bag store operations in action: `ADD`, `ENUM` and `GET`. The command line
+tool implemented these as the subcommands `add`, `enum` and `get`. Futhermore, you have seen the utility subcommands
+`prune` and `complete` that help you convert between virtuall-valid and valid bags. 
+
+For more exceptional situations the bag store allows you to `DEACTIVATE` a bag. This will mark it as hidden, while
+you can still reference files in it. The main use case for this operation is, when you turn out to have created an
+incorrect version history for a sequence of bags, which can of course not be amended by adding more versions. A planned
+tutorial in [`easy-bag-index`] will explain this feature. It should probably not be used for anything else.
+
+
+### Using the HTTP service
+For simple scenarios working with the command line interface of the bag store tool is quite sufficient. However, 
+when building a complete archival system on the bag store it may be more convenient to have an HTTP based interface.
+Fortunately, such an interface exists.
 
 
 
