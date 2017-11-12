@@ -16,8 +16,8 @@
 package nl.knaw.dans.easy.bagstore.component
 
 import java.net.URI
-import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.{ FileVisitOption, Files, Path, Paths }
+import java.nio.file._
+import java.nio.file.attribute.{ BasicFileAttributes, PosixFilePermission }
 import java.util.UUID
 import java.util.function.{ Predicate => JPredicate }
 import java.util.stream.{ Stream => JStream }
@@ -25,6 +25,7 @@ import java.util.stream.{ Stream => JStream }
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
 
 import scala.collection.JavaConverters._
@@ -195,7 +196,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
         path <- toLocation(fileId)
         realPath <- if (Files.exists(path)) Success(path)
                     else getFetchUri(fileId)
-                      .flatMap(_.map(fromUri).getOrElse(Failure(NoSuchFileException(fileId))))
+                      .flatMap(_.map(fromUri).getOrElse(Failure(NoSuchFileItemException(fileId))))
                       .flatMap { case fileId: FileId => toRealLocation(fileId) }
       } yield realPath
     }
@@ -232,21 +233,45 @@ trait FileSystemComponent extends DebugEnhancedLogging {
       val fetchTxt = bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)
       if (Files.exists(fetchTxt))
         for {
-          mappings <- projectedToRealLocation(bagDir)
-          extraDirs <- getExtraDirectories(bagDir, mappings.map { case (link, _) => link })
-          validTagManifests <- bagFacade.hasValidTagManifests(bagDir)
+          tempDir <- Try { Files.createTempDirectory("virtual-bag") }
+          workBag <- symlinkCopy(bagDir, tempDir.resolve(bagDir.getFileName))
+          mappings <- projectedToRealLocation(workBag)
+          extraDirs <- getExtraDirectories(workBag, mappings.map { case (link, _) => link })
+          validTagManifests <- bagFacade.hasValidTagManifests(workBag)
           _ = debug(s"valid tagmanifests: $validTagManifests")
-          tempLocFetch <- moveFetchTxtAndTagmanifestsToTempdir(bagDir)
-          _ <- createLinks(mappings)
-          valid <- bagFacade.isValid(bagDir)
+          _ <- Try { Files.delete(workBag.resolve(bagFacade.FETCH_TXT_FILENAME)) }
+          _ <- createSymLinks(mappings)
+          valid <- bagFacade.isValid(workBag)
           _ = debug(s"valid bag: $valid")
-          _ <- removeLinks(mappings)
-          _ <- removeDirectories(extraDirs)
-          _ <- moveFetchTxtAndTagmanifestsBack(bagDir, tempLocFetch)
+          _ <- Try { FileUtils.deleteDirectory(tempDir.toFile) }
         } yield validTagManifests && valid
       else
         bagFacade.isValid(bagDir)
     }
+
+    /**
+     * Creates a copy of a directory tree, in which every regular file is a symlink back tot he source tree
+     *
+     * @param src the root of the tree to copy
+     * @param target the root of the copy
+     * @return
+     */
+    def symlinkCopy(src: Path, target: Path): Try[Path] = Try {
+      Files.walkFileTree(src, new SimpleFileVisitor[Path] {
+        override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
+          Files.createSymbolicLink(target.resolve(src.relativize(file)), file.toAbsolutePath)
+          FileVisitResult.CONTINUE
+        }
+
+        override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult = {
+          Files.createDirectory(target.resolve(src.relativize(dir)))
+          FileVisitResult.CONTINUE
+        }
+      })
+      target
+    }
+
+
 
     private def getExtraDirectories(bagDir: Path, links: Seq[Path]): Try[Seq[Path]] = Try {
       val dirs = for {
@@ -281,11 +306,11 @@ trait FileSystemComponent extends DebugEnhancedLogging {
       Files.delete(path)
     }
 
-    private def createLinks(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
+    private def createSymLinks(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
       mappings.foreach { case (link, to) =>
         if (!Files.exists(link.getParent))
           Files.createDirectories(link.getParent)
-        Files.createLink(link, to)
+        Files.createSymbolicLink(link, to)
       }
     }
 
