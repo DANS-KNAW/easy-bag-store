@@ -45,7 +45,7 @@ package object bagstore {
   case class CorruptBagStoreException(reason: String) extends Exception(s"BagStore seems to be corrupt: $reason")
   case class OutputAlreadyExists(path: Path) extends Exception(s"Output path already exists; not overwriting $path")
   case class NoBagException(cause: Throwable) extends Exception("The provided input did not contain a bag", cause)
-  case class InvalidBagException(bagId: BagId) extends Exception(s"Bag $bagId is not a valid bag")
+  case class InvalidBagException(bagId: BagId, msg: String) extends Exception(s"Bag $bagId is not a valid bag: $msg")
 
   type BaseDir = Path
 

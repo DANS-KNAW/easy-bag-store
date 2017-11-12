@@ -125,7 +125,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
             store.baseDir
         }
       }
-      fileSystem.isVirtuallyValid2(cmd.bagDir()).map {
+      fileSystem.isVirtuallyValid(cmd.bagDir()).map {
         case (valid, msg) => s"Done validating. Result: virtually-valid = $valid" + (if (valid) "" else s"; Messages: '$msg'")
       }
     case Some(_ @ commandLine.runService) => runAsService()

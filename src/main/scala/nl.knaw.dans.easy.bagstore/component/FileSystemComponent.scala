@@ -229,30 +229,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
       } yield mapping
     }
 
-    def isVirtuallyValid(bagDir: Path)(implicit baseDir: BaseDir): Try[Boolean] = {
-      val fetchTxt = bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)
-      if (Files.exists(fetchTxt))
-        /*
-         *
-         */
-        for {
-          tempDir <- Try { Files.createTempDirectory("virtual-bag-") }
-          workBag <- symlinkCopy(bagDir, tempDir.resolve(bagDir.getFileName))
-          mappings <- projectedToRealLocation(workBag)
-          extraDirs <- getExtraDirectories(workBag, mappings.map { case (link, _) => link })
-          validTagManifests <- bagFacade.hasValidTagManifests(workBag)
-          _ = debug(s"valid tagmanifests: $validTagManifests")
-          _ <- removeFetchTxtAndTagManifests(workBag)
-          _ <- createSymLinks(mappings)
-          valid <- bagFacade.isValid(workBag)
-          _ = debug(s"valid bag: $valid")
-          _ <- Try { FileUtils.deleteDirectory(tempDir.toFile) }
-        } yield validTagManifests && valid
-      else
-        bagFacade.isValid(bagDir)
-    }
-
-    def isVirtuallyValid2(bagDir: Path)(implicit baseDir: BaseDir): Try[(Boolean, String)] = {
+    def isVirtuallyValid(bagDir: Path)(implicit baseDir: BaseDir): Try[(Boolean, String)] = {
       val fetchTxt = bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)
       if (Files.exists(fetchTxt))
       /*
@@ -262,19 +239,17 @@ trait FileSystemComponent extends DebugEnhancedLogging {
           tempDir <- Try { Files.createTempDirectory("virtual-bag-") }
           workBag <- symlinkCopy(bagDir, tempDir.resolve(bagDir.getFileName))
           mappings <- projectedToRealLocation(workBag)
-          extraDirs <- getExtraDirectories(workBag, mappings.map { case (link, _) => link })
           validTagManifests <- bagFacade.hasValidTagManifests(workBag)
           _ = debug(s"valid tagmanifests: $validTagManifests")
           _ <- removeFetchTxtAndTagManifests(workBag)
           _ <- createSymLinks(mappings)
-          (valid, msg) <- bagFacade.isValid2(workBag)
+          (valid, msg) <- bagFacade.isValid(workBag)
           _ = debug(s"valid bag: $valid")
           _ <- Try { FileUtils.deleteDirectory(tempDir.toFile) }
         } yield (validTagManifests && valid, msg)
       else
-        bagFacade.isValid2(bagDir)
+        bagFacade.isValid(bagDir)
     }
-
 
     private def removeFetchTxtAndTagManifests(bagDir: Path): Try[Unit] = Try {
       import scala.collection.JavaConverters._
@@ -286,13 +261,13 @@ trait FileSystemComponent extends DebugEnhancedLogging {
     }
 
     /**
-     * Creates a copy of a directory tree, in which every regular file is a symlink back tot he source tree
+     * Creates a copy of a directory tree, in which every 'regular' file is a symlink back to the source tree.
      *
      * @param src the root of the tree to copy
      * @param target the root of the copy
      * @return
      */
-    def symlinkCopy(src: Path, target: Path): Try[Path] = Try {
+    private def symlinkCopy(src: Path, target: Path): Try[Path] = Try {
       Files.walkFileTree(src, new SimpleFileVisitor[Path] {
         override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
           Files.createSymbolicLink(target.resolve(src.relativize(file)), file.toAbsolutePath)
@@ -307,60 +282,12 @@ trait FileSystemComponent extends DebugEnhancedLogging {
       target
     }
 
-
-
-    private def getExtraDirectories(bagDir: Path, links: Seq[Path]): Try[Seq[Path]] = Try {
-      val dirs = for {
-        link <- links
-        comps = link.asScala.toList
-        path <- (bagDir.getNameCount until comps.size)
-          .map(comps.take)
-          .map(comps => Paths.get("/" + comps.mkString("/")))
-          .filterNot(Files.exists(_))
-      } yield path
-      debug(s"extra directories to create: $dirs")
-      dirs
-    }
-
-    private def moveFetchTxtAndTagmanifestsToTempdir(bagDir: Path): Try[Path] = Try {
-      val tempDir = Files.createTempDirectory("fetch-temp-")
-      debug(s"created temporary directory: $tempDir")
-      debug(s"moving ${ bagFacade.FETCH_TXT_FILENAME }")
-      Files.move(bagDir.resolve(bagFacade.FETCH_TXT_FILENAME), tempDir.resolve(bagFacade.FETCH_TXT_FILENAME))
-      // Attention the `toString` after `getFileName` is necessary because Path.startsWith only matches complete path components!
-      val tagmanifests = listFiles(bagDir).withFilter(_.getFileName.toString.startsWith("tagmanifest-"))
-      debug(s"tagmanifests: $tagmanifests")
-      tagmanifests.foreach(t => Files.move(t, tempDir.resolve(t.getFileName)))
-      tempDir
-    }
-
-    private def moveFetchTxtAndTagmanifestsBack(bagDir: Path, path: Path): Try[Unit] = Try {
-      listFiles(path).foreach(f => {
-        debug(s"Moving $f -> ${ bagDir.resolve(f.getFileName) }")
-        Files.move(f, bagDir.resolve(f.getFileName))
-      })
-      Files.delete(path)
-    }
-
     private def createSymLinks(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
       mappings.foreach { case (link, to) =>
         if (!Files.exists(link.getParent))
           Files.createDirectories(link.getParent)
         Files.createSymbolicLink(link, to)
       }
-    }
-
-    private def removeLinks(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
-      debug(s"mappings (link -> real location): $mappings")
-      mappings.foreach { case (link, _) =>
-        debug(s"Deleting: $link")
-        Files.deleteIfExists(link)
-      }
-    }
-
-    private def removeDirectories(dirs: Seq[Path]): Try[Unit] = Try {
-      debug(s"directories: $dirs")
-      dirs.foreach(Files.delete)
     }
 
     def checkBagExists(bagId: BagId)(implicit baseDir: BaseDir): Try[Unit] = {

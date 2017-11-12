@@ -65,7 +65,7 @@ trait CommandLineOptionsComponent {
       descr = "Configured store to use")
     mutuallyExclusive(bagStoreBaseDir, storeName)
 
-    val list = new Subcommand("list") {
+    val list: Subcommand = new Subcommand("list") {
       descr(
         """Lists the bag-stores for which a shortname has been defined. These are the bag-stores
           |that are accessible through the HTTP interface
@@ -73,7 +73,7 @@ trait CommandLineOptionsComponent {
     }
     addSubcommand(list)
 
-    val add = new Subcommand("add") {
+    val add: Subcommand = new Subcommand("add") {
       descr("Adds a bag to the bag-store")
       val bag: ScallopOption[Path] = trailArg[Path](name = "bag",
         descr = "the (unserialized) bag to add")
@@ -85,7 +85,7 @@ trait CommandLineOptionsComponent {
     }
     addSubcommand(add)
 
-    val get = new Subcommand("get") {
+    val get: Subcommand = new Subcommand("get") {
       descr("Retrieves a bag or File in it")
       val itemId: ScallopOption[String] = trailArg[String](name = "item-id",
         descr = "ID of the bag or File to retrieve")
@@ -95,7 +95,7 @@ trait CommandLineOptionsComponent {
     }
     addSubcommand(get)
 
-    val enum = new Subcommand("enum") {
+    val enum: Subcommand = new Subcommand("enum") {
       descr("Enumerates bags or Files")
       val inactive: ScallopOption[Boolean] = opt[Boolean](name = "inactive", short = 'd',
         descr = "only enumerate inactive bags")
@@ -109,7 +109,7 @@ trait CommandLineOptionsComponent {
     }
     addSubcommand(enum)
 
-    val deactivate = new Subcommand("deactivate") {
+    val deactivate: Subcommand = new Subcommand("deactivate") {
       descr("Marks a bag as inactive")
       val bagId: ScallopOption[String] = trailArg[String](name = "<bag-id>",
         descr = "bag to mark as inactive",
@@ -118,7 +118,7 @@ trait CommandLineOptionsComponent {
     }
     addSubcommand(deactivate)
 
-    val reactivate = new Subcommand("reactivate") {
+    val reactivate: Subcommand = new Subcommand("reactivate") {
       descr("Reactivates an inactive bag")
       val bagId: ScallopOption[String] = trailArg[String](name = "<bag-id>",
         descr = "Inactive bag to re-activate",
@@ -127,7 +127,7 @@ trait CommandLineOptionsComponent {
     }
     addSubcommand(reactivate)
 
-    val prune = new Subcommand("prune") {
+    val prune: Subcommand = new Subcommand("prune") {
       descr("Removes Files from bag, that are already found in reference bags, replacing them with fetch.txt references")
       val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
         descr = "bag directory to prune",
@@ -139,7 +139,7 @@ trait CommandLineOptionsComponent {
     }
     addSubcommand(prune)
 
-    val complete = new Subcommand("complete") {
+    val complete: Subcommand = new Subcommand("complete") {
       descr("Resolves fetch.txt references from the bag store and copies them into <bag-dir>")
       val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
         descr = "bag directory to complete",
@@ -148,7 +148,7 @@ trait CommandLineOptionsComponent {
     }
     addSubcommand(complete)
 
-    val locate = new Subcommand("locate") {
+    val locate: Subcommand = new Subcommand("locate") {
       descr("Locates the item with <item-id> on the file system")
       val itemId: ScallopOption[String] = trailArg(name = "<item-id>",
         descr = "the item to locate",
@@ -157,7 +157,7 @@ trait CommandLineOptionsComponent {
     }
     addSubcommand(locate)
 
-    val validate = new Subcommand("validate") {
+    val validate: Subcommand = new Subcommand("validate") {
       descr("Checks that <bag-dir> is a virtually-valid bag")
       val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
         descr = "bag directory to validate",
@@ -166,7 +166,7 @@ trait CommandLineOptionsComponent {
     }
     addSubcommand(validate)
 
-    val runService = new Subcommand("run-service") {
+    val runService: Subcommand = new Subcommand("run-service") {
       descr(
         "Starts the EASY Bag Store as a daemon that services HTTP requests")
       footer(SUBCOMMAND_SEPARATOR)

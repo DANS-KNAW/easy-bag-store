@@ -62,14 +62,7 @@ trait BagFacadeComponent {
 
     def stop(): Try[Unit] = Try { verifier.close() }
 
-    def isValid(bagDir: Path): Try[Boolean] = {
-      getBag(bagDir)
-        .map(bag => Try { verifier.isValid(bag, false) }
-          .map(_ => true)
-          .getOrElse(false))
-    }
-
-    def isValid2(bagDir: Path): Try[(Boolean, String)] = {
+    def isValid(bagDir: Path): Try[(Boolean, String)] = {
       getBag(bagDir)
         .flatMap(bag => Try { verifier.isValid(bag, false) }
           .map(_ => (true, ""))
@@ -77,15 +70,6 @@ trait BagFacadeComponent {
             case NonFatal(e) => (false, e.getMessage)
           }
         )
-    }
-
-    private def getProblems(bag: Bag): Option[String] = {
-      Try {
-        verifier.isValid(bag, false)
-      } match {
-        case Failure(NonFatal(e)) => Option(e.getMessage)
-      }
-      None
     }
 
     def hasValidTagManifests(bagDir: Path): Try[Boolean] = {
