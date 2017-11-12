@@ -211,5 +211,9 @@ trait BagStoreComponent {
         Files.move(path, newPath)
       }
     }
+
+    def locate(itemId: ItemId): Try[Path] = {
+      fileSystem.toLocation(itemId)
+    }
   }
 }

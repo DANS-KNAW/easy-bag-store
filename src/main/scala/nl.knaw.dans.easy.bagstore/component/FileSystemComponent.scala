@@ -232,14 +232,17 @@ trait FileSystemComponent extends DebugEnhancedLogging {
     def isVirtuallyValid(bagDir: Path)(implicit baseDir: BaseDir): Try[Boolean] = {
       val fetchTxt = bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)
       if (Files.exists(fetchTxt))
+        /*
+         *
+         */
         for {
-          tempDir <- Try { Files.createTempDirectory("virtual-bag") }
+          tempDir <- Try { Files.createTempDirectory("virtual-bag-") }
           workBag <- symlinkCopy(bagDir, tempDir.resolve(bagDir.getFileName))
           mappings <- projectedToRealLocation(workBag)
           extraDirs <- getExtraDirectories(workBag, mappings.map { case (link, _) => link })
           validTagManifests <- bagFacade.hasValidTagManifests(workBag)
           _ = debug(s"valid tagmanifests: $validTagManifests")
-          _ <- Try { Files.delete(workBag.resolve(bagFacade.FETCH_TXT_FILENAME)) }
+          _ <- removeFetchTxtAndTagManifests(workBag)
           _ <- createSymLinks(mappings)
           valid <- bagFacade.isValid(workBag)
           _ = debug(s"valid bag: $valid")
@@ -247,6 +250,39 @@ trait FileSystemComponent extends DebugEnhancedLogging {
         } yield validTagManifests && valid
       else
         bagFacade.isValid(bagDir)
+    }
+
+    def isVirtuallyValid2(bagDir: Path)(implicit baseDir: BaseDir): Try[(Boolean, String)] = {
+      val fetchTxt = bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)
+      if (Files.exists(fetchTxt))
+      /*
+       *
+       */
+        for {
+          tempDir <- Try { Files.createTempDirectory("virtual-bag-") }
+          workBag <- symlinkCopy(bagDir, tempDir.resolve(bagDir.getFileName))
+          mappings <- projectedToRealLocation(workBag)
+          extraDirs <- getExtraDirectories(workBag, mappings.map { case (link, _) => link })
+          validTagManifests <- bagFacade.hasValidTagManifests(workBag)
+          _ = debug(s"valid tagmanifests: $validTagManifests")
+          _ <- removeFetchTxtAndTagManifests(workBag)
+          _ <- createSymLinks(mappings)
+          (valid, msg) <- bagFacade.isValid2(workBag)
+          _ = debug(s"valid bag: $valid")
+          _ <- Try { FileUtils.deleteDirectory(tempDir.toFile) }
+        } yield (validTagManifests && valid, msg)
+      else
+        bagFacade.isValid2(bagDir)
+    }
+
+
+    private def removeFetchTxtAndTagManifests(bagDir: Path): Try[Unit] = Try {
+      import scala.collection.JavaConverters._
+      resource.managed(Files.list(bagDir)).acquireAndGet {
+        _.iterator().asScala.filter(
+          f => f.getFileName.toString == bagFacade.FETCH_TXT_FILENAME
+            || f.getFileName.toString.startsWith("tagmanifest-")).foreach(Files.delete)
+      }
     }
 
     /**

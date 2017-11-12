@@ -15,6 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstore
 
+import java.awt.geom.NoninvertibleTransformException
 import java.io.IOException
 import java.net.URI
 import java.nio.file.Path
@@ -66,6 +67,25 @@ trait BagFacadeComponent {
         .map(bag => Try { verifier.isValid(bag, false) }
           .map(_ => true)
           .getOrElse(false))
+    }
+
+    def isValid2(bagDir: Path): Try[(Boolean, String)] = {
+      getBag(bagDir)
+        .flatMap(bag => Try { verifier.isValid(bag, false) }
+          .map(_ => (true, ""))
+          .recover {
+            case NonFatal(e) => (false, e.getMessage)
+          }
+        )
+    }
+
+    private def getProblems(bag: Bag): Option[String] = {
+      Try {
+        verifier.isValid(bag, false)
+      } match {
+        case Failure(NonFatal(e)) => Option(e.getMessage)
+      }
+      None
     }
 
     def hasValidTagManifests(bagDir: Path): Try[Boolean] = {

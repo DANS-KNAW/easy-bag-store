@@ -137,5 +137,17 @@ trait BagStoresComponent {
             .getOrElse(Failure(NoSuchBagException(bagId)))
         }
     }
+
+    def locate(itemId: ItemId, fromStore: Option[Path] = None): Try[Path] = {
+      fromStore
+        .flatMap(baseDir => stores.collectFirst {
+          case (_, store) if store.baseDir == baseDir => store.locate(itemId)
+        })
+        .getOrElse {
+          stores.values.toStream.map(_.locate(itemId)).find(_.isSuccess).getOrElse(
+            Failure(NoSuchItemException(itemId))
+          )
+        }
+    }
   }
 }

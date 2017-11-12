@@ -148,6 +148,15 @@ trait CommandLineOptionsComponent {
     }
     addSubcommand(complete)
 
+    val locate = new Subcommand("locate") {
+      descr("Locates the item with <item-id> on the file system")
+      val itemId: ScallopOption[String] = trailArg(name = "<item-id>",
+        descr = "the item to locate",
+        required = true)
+      footer(SUBCOMMAND_SEPARATOR)
+    }
+    addSubcommand(locate)
+
     val validate = new Subcommand("validate") {
       descr("Checks that <bag-dir> is a virtually-valid bag")
       val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",

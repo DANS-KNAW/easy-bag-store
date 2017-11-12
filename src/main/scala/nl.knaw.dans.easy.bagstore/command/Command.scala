@@ -111,6 +111,11 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
         }
       }
       bagProcessing.complete(cmd.bagDir()).map(_ => s"Done completing ${ cmd.bagDir() }")
+    case Some(cmd @ commandLine.locate) =>
+      for {
+        itemId <- ItemId.fromString(cmd.itemId())
+        location <- bagStores.locate(itemId, bagStoreBaseDir)
+      } yield s"$location"
     case Some(cmd @ commandLine.validate) =>
       implicit val base: BagPath = bagStoreBaseDir.getOrElse {
         bagStores.stores.toList match {
@@ -120,7 +125,9 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
             store.baseDir
         }
       }
-      fileSystem.isVirtuallyValid(cmd.bagDir()).map(valid => s"Done validating. Result: virtually-valid = $valid")
+      fileSystem.isVirtuallyValid2(cmd.bagDir()).map {
+        case (valid, msg) => s"Done validating. Result: virtually-valid = $valid" + (if (valid) "" else s"; Messages: '$msg'")
+      }
     case Some(_ @ commandLine.runService) => runAsService()
     case _ => Try { s"Unknown command: ${ commandLine.subcommand }" }
   }

@@ -35,6 +35,7 @@ package object bagstore {
   case class BagReaderException(bagDir: Path, cause: Throwable) extends Exception(s"The bag at '$bagDir' could not be read: ${ cause.getMessage }", cause)
   case class NoSuchPayloadManifestException(bagDir: Path, algorithm: Algorithm) extends Exception(s"The bag at '$bagDir' did not contain a payload manifest for algorithm $algorithm")
   case class NoSuchFileItemException(fileId: FileId) extends Exception(s"File $fileId does not exist in bag ${ fileId.bagId }")
+  case class NoSuchItemException(itemId: ItemId) extends Exception(s"Item $itemId not found")
   case class BagIdAlreadyAssignedException(bagId: BagId, store: String) extends Exception(s"$bagId already exists in BagStore $store (bag-ids must be globally unique)")
   case class CannotIngestHiddenBagDirectoryException(bagDir: Path) extends Exception(s"Cannot ingest hidden directory $bagDir")
   case class IncorrectNumberOfFilesInBagZipRootException(n: Int) extends Exception(s"There must be exactly one file in the root directory of the zipped bag, found $n")
