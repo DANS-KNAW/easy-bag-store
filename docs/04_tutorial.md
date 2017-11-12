@@ -358,30 +358,28 @@ a command to help you strip your updated bag of unnecessary files.
 
 1. Copy `sample` to `sample-updated`
 
-        cp -r sample /tmp/sample-updated
-        
-   (**Note**: because of a bug it is currently necessary to `sample-updated` on the same partition as the bag store)        
+        cp -r sample sample-updated
         
 2. Make a change to one of the data files in `sample-updated`, let's say the README.TXT
 
-        echo "...and some more text" >> /tmp/sample-updated/data/README.TXT
+        echo "...and some more text" >> sample-updated/data/README.TXT
 
 3. Let's also remove a file
         
-        rm /tmp/sample-updated/data/img/image01.png
+        rm sample-updated/data/img/image01.png
 
 4. ...and add one
 
-        echo "New file content" > /tmp/sample-updated/data/NEW.TXT
+        echo "New file content" > sample-updated/data/NEW.TXT
 
 5. Update the checksums in the new bag:
 
-        bagit update /tmp/sample-updated
+        bagit update sample-updated
 
 5. Now copy the bag-id of the version we stored earlier (use `easy-bag-store enum` if needed) and 
    use it in the following command:
    
-        easy-bag-store prune /tmp/sample-updated 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+        easy-bag-store prune sample-updated 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
         > OK: Done pruning
         
    Note that we provided as the second argument the bag-id of the bag in which the unchanged files 
@@ -454,22 +452,53 @@ full content.
 #### Other operations and commands
 You have now seen the most important bag store operations in action: `ADD`, `ENUM` and `GET`. The command line
 tool implemented these as the subcommands `add`, `enum` and `get`. Futhermore, you have seen the utility subcommands
-`prune` and `complete` that help you convert between virtuall-valid and valid bags. 
+`prune` and `complete` that help you convert between virtually-valid and valid bags. 
 
 For more exceptional situations the bag store allows you to `DEACTIVATE` a bag. This will mark it as hidden, while
 you can still reference files in it. The main use case for this operation is, when you turn out to have created an
 incorrect version history for a sequence of bags, which can of course not be amended by adding more versions. A planned
 tutorial in [`easy-bag-index`] will explain this feature. It should probably not be used for anything else.
 
+Support for an `ERASE` operation, which will overwrite the contents of a file with a tombstone message is also planned.
+This operation is also *not* intended for regular use cases, but rather for situations where there is a strict legal
+obligation to destroy data. However, in such cases a filtering migration might be a better option.
 
 ### Using the HTTP service
 For simple scenarios working with the command line interface of the bag store tool is quite sufficient. However, 
 when building a complete archival system on the bag store it may be more convenient to have an HTTP based interface.
-Fortunately, such an interface exists.
+Fortunately, such an interface exists. We will briefly explore it here. 
+
+The examples work with the command line tool [cURL].
+
+#### Getting the list of bag stores
+1. Check that the service is running:
+
+        curl http://localhost:20110/
+        > EASY Bag Store is running.
+          Available stores at <http://localhost:20110/stores>
+          
+   Even though the current API is rather basic, we have tried to adhere to the [HATEOAS] principle.
+       
+2. Let's see what bag stores are available:
+
+        curl http://localhost:20110/stores
+        > <http://localhost:20110/stores/default>
+        
+   It turns out there is only one store on this VM. It *is* possible to have multple stores. One use case for this could
+   be when some of your archival packages contain sensitive data that must be stored with an added level of security.
+ 
+#### Enumerating bags and files
+1. Enumerate all the bags in your bag store:
+
+        curl http://localhost:20110/stores/default/bags
+        
+   
 
 
 
 
+[cURL]: https://curl.haxx.se/
+[HATEOAS]: https://en.wikipedia.org/wiki/HATEOAS
 
 Appendix I: extended motivation of features
 -------------------------------------------
