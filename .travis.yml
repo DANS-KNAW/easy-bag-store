@@ -3,14 +3,6 @@ matrix:
   - language: java
     sudo: false
     jdk: oraclejdk8
-    deploy:
-      provider: releases
-      api_key:
-        secure: changeMe
-      file: target/easy-bag-store.jar
-      skip_cleanup: true
-      on:
-        tags: true
 
   - language: ruby
     rvm:
