@@ -110,7 +110,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
               .getOrRecover {
                 case e: IllegalArgumentException => BadRequest(e.getMessage)
                 case e: NoSuchBagException => NotFound(e.getMessage)
-                case e: NoSuchFileException => NotFound(e.getMessage)
+                case e: NoSuchFileItemException => NotFound(e.getMessage)
                 case NonFatal(e) =>
                   logger.error("Error retrieving bag", e)
                   InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")

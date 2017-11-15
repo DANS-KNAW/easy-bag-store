@@ -35,7 +35,7 @@ trait CommandLineOptionsComponent {
     version(s"$printedName v${ configuration.version }")
     banner(
       s"""
-         |Manage a BagStore
+         |Manage a bag store
          |
          |Usage:
          |
@@ -60,7 +60,7 @@ trait CommandLineOptionsComponent {
                                                            else s
 
     val bagStoreBaseDir: ScallopOption[Path] = opt[Path](name = "base-dir", short = 'b',
-      descr = "BagStore base-dir to use")
+      descr = "bag store base-dir to use")
     val storeName: ScallopOption[String] = opt[String](name = "store-name", short = 's',
       descr = "Configured store to use")
     mutuallyExclusive(bagStoreBaseDir, storeName)
@@ -76,33 +76,33 @@ trait CommandLineOptionsComponent {
     val add = new Subcommand("add") {
       descr("Adds a bag to the bag-store")
       val bag: ScallopOption[Path] = trailArg[Path](name = "bag",
-        descr = "the (unserialized) Bag to add")
+        descr = "the (unserialized) bag to add")
       validatePathExists(bag)
       val uuid: ScallopOption[String] = opt[String](name = "uuid", short = 'u',
-        descr = "UUID to use as name for the Bag",
+        descr = "UUID to use as name for the bag",
         required = false)
       footer(SUBCOMMAND_SEPARATOR)
     }
     addSubcommand(add)
 
     val get = new Subcommand("get") {
-      descr("Retrieves a Bag or File in it")
+      descr("Retrieves a bag or File in it")
       val itemId: ScallopOption[String] = trailArg[String](name = "item-id",
-        descr = "ID of the Bag or File to retrieve")
+        descr = "ID of the bag or File to retrieve")
       val outputDir: ScallopOption[Path] = trailArg[Path](name = "<output-dir>",
-        descr = "directory in which to put the Bag or File")
+        descr = "directory in which to put the bag or File")
       footer(SUBCOMMAND_SEPARATOR)
     }
     addSubcommand(get)
 
     val enum = new Subcommand("enum") {
-      descr("Enumerates Bags or Files")
+      descr("Enumerates bags or Files")
       val inactive: ScallopOption[Boolean] = opt[Boolean](name = "inactive", short = 'd',
-        descr = "only enumerate inactive Bags")
+        descr = "only enumerate inactive bags")
       val all: ScallopOption[Boolean] = opt[Boolean](name = "all", short = 'a',
-        descr = "enumerate all Bags, including inactive ones")
+        descr = "enumerate all bags, including inactive ones")
       val bagId: ScallopOption[String] = trailArg[String](name = "<bagId>",
-        descr = "Bag of which to enumerate the Files",
+        descr = "bag of which to enumerate the Files",
         required = false)
       mutuallyExclusive(all, inactive)
       footer(SUBCOMMAND_SEPARATOR)
@@ -110,48 +110,57 @@ trait CommandLineOptionsComponent {
     addSubcommand(enum)
 
     val deactivate = new Subcommand("deactivate") {
-      descr("Marks a Bag as inactive")
+      descr("Marks a bag as inactive")
       val bagId: ScallopOption[String] = trailArg[String](name = "<bag-id>",
-        descr = "Bag to mark as inactive",
+        descr = "bag to mark as inactive",
         required = true)
       footer(SUBCOMMAND_SEPARATOR)
     }
     addSubcommand(deactivate)
 
     val reactivate = new Subcommand("reactivate") {
-      descr("Reactivates an inactive Bag")
+      descr("Reactivates an inactive bag")
       val bagId: ScallopOption[String] = trailArg[String](name = "<bag-id>",
-        descr = "Inactive Bag to re-activate",
+        descr = "Inactive bag to re-activate",
         required = true)
       footer(SUBCOMMAND_SEPARATOR)
     }
     addSubcommand(reactivate)
 
     val prune = new Subcommand("prune") {
-      descr("Removes Files from Bag, that are already found in reference Bags, replacing them with fetch.txt references")
+      descr("Removes Files from bag, that are already found in reference bags, replacing them with fetch.txt references")
       val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
-        descr = "Bag directory to prune",
+        descr = "bag directory to prune",
         required = true)
       val referenceBags: ScallopOption[List[String]] = trailArg[List[String]](name = "<ref-bag-id>...",
-        descr = "One or more bag-ids of Bags in the BagStore to check for redundant Files",
+        descr = "One or more bag-ids of bags in the bag store to check for redundant Files",
         required = true)
       footer(SUBCOMMAND_SEPARATOR)
     }
     addSubcommand(prune)
 
     val complete = new Subcommand("complete") {
-      descr("Resolves fetch.txt references from the BagStore and copies them into <bag-dir>")
+      descr("Resolves fetch.txt references from the bag store and copies them into <bag-dir>")
       val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
-        descr = "Bag directory to complete",
+        descr = "bag directory to complete",
         required = true)
       footer(SUBCOMMAND_SEPARATOR)
     }
     addSubcommand(complete)
 
+    val locate = new Subcommand("locate") {
+      descr("Locates the item with <item-id> on the file system")
+      val itemId: ScallopOption[String] = trailArg(name = "<item-id>",
+        descr = "the item to locate",
+        required = true)
+      footer(SUBCOMMAND_SEPARATOR)
+    }
+    addSubcommand(locate)
+
     val validate = new Subcommand("validate") {
-      descr("Checks that <bag-dir> is a virtually-valid Bag")
+      descr("Checks that <bag-dir> is a virtually-valid bag")
       val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
-        descr = "Bag directory to validate",
+        descr = "bag directory to validate",
         required = true)
       footer(SUBCOMMAND_SEPARATOR)
     }

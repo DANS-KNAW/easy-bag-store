@@ -62,7 +62,7 @@ trait BagStoresComponent {
             .getOrElse(
               itemId match {
                 case id @ BagId(_) => Failure(NoSuchBagException(id))
-                case id @ FileId(_, _) => Failure(NoSuchFileException(id))
+                case id @ FileId(_, _) => Failure(NoSuchFileItemException(id))
               })
         }
     }
@@ -104,8 +104,8 @@ trait BagStoresComponent {
     def putBag(inputStream: InputStream, bagStore: BagStore, uuid: UUID): Try[BagId] = {
       for {
         _ <- checkBagDoesNotExist(BagId(uuid))
-        staging <- processor.unzipBag(inputStream)
-        staged <- processor.findBagDir(staging)
+        staging <- bagProcessing.unzipBag(inputStream)
+        staged <- bagProcessing.findBagDir(staging)
         bagId <- bagStore.add(staged, Some(uuid), skipStage = true)
         _ = FileUtils.deleteDirectory(staging.toFile)
       } yield bagId
@@ -152,6 +152,18 @@ trait BagStoresComponent {
               case _ => false
             }
             .getOrElse(Failure(NoSuchBagException(bagId)))
+        }
+    }
+
+    def locate(itemId: ItemId, fromStore: Option[Path] = None): Try[Path] = {
+      fromStore
+        .flatMap(baseDir => stores.collectFirst {
+          case (_, store) if store.baseDir == baseDir => store.locate(itemId)
+        })
+        .getOrElse {
+          stores.values.toStream.map(_.locate(itemId)).find(_.isSuccess).getOrElse(
+            Failure(NoSuchItemException(itemId))
+          )
         }
     }
   }

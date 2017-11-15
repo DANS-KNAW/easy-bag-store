@@ -230,18 +230,18 @@ class FileSystemSpec extends TestSupportFixture
   it should "fail if the file does not exist" in {
     val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000003"), Paths.get("data/not-existing-file"))
 
-    fileSystem.toRealLocation(fileId) should matchPattern { case Failure(NoSuchFileException(`fileId`)) => }
+    fileSystem.toRealLocation(fileId) should matchPattern { case Failure(NoSuchFileItemException(`fileId`)) => }
   }
 
   "isVirtuallyValid" should "return true for a valid bag" in {
     FileUtils.copyDirectory(Paths.get("src/test/resources/bags/valid-bag").toFile, testDir.resolve("valid-bag").toFile)
 
-    fileSystem.isVirtuallyValid(testDir.resolve("valid-bag")) should matchPattern { case Success(true) => }
+    fileSystem.isVirtuallyValid(testDir.resolve("valid-bag")) should matchPattern { case Success((true, _)) => }
   }
 
   it should "return true for a virtually-valid bag" in {
     FileUtils.copyDirectory(Paths.get("src/test/resources/bags/virtually-valid-bag").toFile, testDir.resolve("virtually-valid-bag").toFile)
 
-    fileSystem.isVirtuallyValid(testDir.resolve("virtually-valid-bag")) should matchPattern { case Success(true) => }
+    fileSystem.isVirtuallyValid(testDir.resolve("virtually-valid-bag")) should matchPattern { case Success((true, _)) => }
   }
 }

@@ -36,7 +36,7 @@ class ListStoresServletSpec extends TestSupportFixture
   with FileSystemComponent {
 
   override val fileSystem: FileSystem = mock[FileSystem]
-  override val processor: BagProcessing = mock[BagProcessing]
+  override val bagProcessing: BagProcessing = mock[BagProcessing]
   override val bagStores: BagStores = mock[BagStores]
   override val storesServlet: StoresServlet = new StoresServlet {
     val externalBaseUri: URI = new URI("http://example-archive.org/")

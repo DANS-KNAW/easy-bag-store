@@ -98,7 +98,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
       cmd.referenceBags.toOption
         .map(refBags => refBags.map(ItemId.fromString).map(_.flatMap(_.toBagId))
           .collectResults
-          .flatMap(refBagIds => processor.prune(cmd.bagDir(), refBagIds))
+          .flatMap(refBagIds => bagProcessing.prune(cmd.bagDir(), refBagIds))
           .map(_ => "Done pruning"))
         .getOrElse(Success("No reference Bags specified: nothing to do"))
     case Some(cmd @ commandLine.complete) =>
@@ -110,7 +110,12 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
             store.baseDir
         }
       }
-      processor.complete(cmd.bagDir()).map(_ => s"Done completing ${ cmd.bagDir() }")
+      bagProcessing.complete(cmd.bagDir()).map(_ => s"Done completing ${ cmd.bagDir() }")
+    case Some(cmd @ commandLine.locate) =>
+      for {
+        itemId <- ItemId.fromString(cmd.itemId())
+        location <- bagStores.locate(itemId, bagStoreBaseDir)
+      } yield s"$location"
     case Some(cmd @ commandLine.validate) =>
       implicit val base: BagPath = bagStoreBaseDir.getOrElse {
         bagStores.stores.toList match {
@@ -120,7 +125,9 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
             store.baseDir
         }
       }
-      fileSystem.isVirtuallyValid(cmd.bagDir()).map(valid => s"Done validating. Result: virtually-valid = $valid")
+      fileSystem.isVirtuallyValid(cmd.bagDir()).map {
+        case (valid, msg) => s"Done validating. Result: virtually-valid = $valid" + (if (valid) "" else s"; Messages: '$msg'")
+      }
     case Some(_ @ commandLine.runService) => runAsService()
     case _ => Try { s"Unknown command: ${ commandLine.subcommand }" }
   }

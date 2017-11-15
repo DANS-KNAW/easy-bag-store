@@ -79,10 +79,10 @@ trait BagStoreComponent {
           case bagId: BagId =>
             for {
               location <- fileSystem.toLocation(bagId)
-              stagingDir <- processor.stageBagDir(location)
+              stagingDir <- bagProcessing.stageBagDir(location)
               stagedBag = stagingDir.resolve(location.getFileName)
-              _ <- processor.complete(stagedBag)
-              zipStaging <- processor.stageBagZip(stagedBag)
+              _ <- bagProcessing.complete(stagedBag)
+              zipStaging <- bagProcessing.stageBagZip(stagedBag)
               _ = Files.copy(zipStaging.resolve(location.getFileName), output)
               _ = FileUtils.deleteDirectory(stagingDir.toFile)
               _ = FileUtils.deleteDirectory(zipStaging.toFile)
@@ -115,7 +115,7 @@ trait BagStoreComponent {
                   Files.createDirectory(target)
                   debug(s"Copying bag from $path to $target")
                   FileUtils.copyDirectory(path.toFile, target.toFile)
-                  Files.walk(output).iterator().asScala.foreach(processor.setPermissions(_))
+                  Files.walk(output).iterator().asScala.foreach(bagProcessing.setPermissions(_))
                   baseDir
                 }
               })
@@ -125,7 +125,7 @@ trait BagStoreComponent {
                 val target = if (Files.isDirectory(output)) output.resolve(path.getFileName)
                              else output
                 Files.copy(path, target)
-                processor.setFilePermissions()(target)
+                bagProcessing.setFilePermissions()(target)
                 baseDir
               })
         }
@@ -146,13 +146,13 @@ trait BagStoreComponent {
 
         for {
           staging <- if (skipStage) Try { bagDir.getParent }
-                     else processor.stageBagDir(bagDir)
+                     else bagProcessing.stageBagDir(bagDir)
           path = staging.resolve(bagDir.getFileName)
-          maybeRefbags <- processor.getReferenceBags(path)
+          maybeRefbags <- bagProcessing.getReferenceBags(path)
           _ = debug(s"refbags tempfile: $maybeRefbags")
-          valid <- fileSystem.isVirtuallyValid(path).recover { case _: BagReaderException => false }
+          (valid, msg) <- fileSystem.isVirtuallyValid(path).recover { case _: BagReaderException => (false, "Could not read bag") }
           _ <- if (valid) Success(())
-               else Failure(InvalidBagException(bagId))
+               else Failure(InvalidBagException(bagId, msg))
           _ <- maybeRefbags.map(pruneWithReferenceBags(path)).getOrElse(Success(()))
           _ = debug("bag succesfully pruned")
           container <- fileSystem.toContainer(bagId)
@@ -169,7 +169,7 @@ trait BagStoreComponent {
       trace(bagDir, refbags)
       for {
         refs <- Try { Files.readAllLines(refbags).asScala.map(UUID.fromString _ andThen BagId) }
-        _ <- processor.prune(bagDir, refs)
+        _ <- bagProcessing.prune(bagDir, refs)
         _ <- Try { Files.delete(refbags) }
       } yield ()
     }
@@ -177,7 +177,7 @@ trait BagStoreComponent {
     private def ingest(bagName: Path, staging: Path, container: Path): Try[Unit] = {
       trace(bagName, staging, container)
       val moved = container.resolve(bagName)
-      processor.setPermissions(staging.resolve(bagName))
+      bagProcessing.setPermissions(staging.resolve(bagName))
         .map(Files.move(_, moved))
         .map(_ => ())
         .recoverWith {
@@ -210,6 +210,10 @@ trait BagStoreComponent {
         val newPath = path.getParent.resolve(s"${ path.getFileName.toString.substring(1) }")
         Files.move(path, newPath)
       }
+    }
+
+    def locate(itemId: ItemId): Try[Path] = {
+      fileSystem.toLocation(itemId)
     }
   }
 }

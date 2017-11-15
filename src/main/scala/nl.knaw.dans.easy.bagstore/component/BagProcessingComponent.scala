@@ -35,7 +35,7 @@ import scala.util.{ Failure, Success, Try }
 trait BagProcessingComponent extends DebugEnhancedLogging {
   this: FileSystemComponent with BagFacadeComponent =>
 
-  val processor: BagProcessing
+  val bagProcessing: BagProcessing
 
   trait BagProcessing {
 
@@ -60,23 +60,25 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       }
 
       for {
-        virtuallyValid <- fileSystem.isVirtuallyValid(bagDir)
+        (virtuallyValid, _) <- fileSystem.isVirtuallyValid(bagDir)
         _ = debug(s"input virtually-valid?: $virtuallyValid")
         if virtuallyValid
         mappings <- fileSystem.projectedToRealLocation(bagDir)
         _ <- copyFiles(mappings)
         _ <- bagFacade.removeFetchTxtFromTagManifests(bagDir)
         _ <- Try { Files.deleteIfExists(bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)) }
-        valid <- bagFacade.isValid(bagDir)
+        (valid, _) <- bagFacade.isValid(bagDir)
         _ = debug(s"result valid?: $valid")
         if valid
       } yield ()
     }
 
+    // FIXME: Only called in BagStoreComp
     def setFilePermissions(permissions: String = outputBagPermissions)(path: Path): Try[Path] = Try {
       Files.setPosixFilePermissions(path, PosixFilePermissions.fromString(permissions))
     }
 
+    // FIXME: Only called in BagStoreComp and in previous method
     def setPermissions(bagDir: BaseDir, permissions: String = outputBagPermissions) = Try {
       logger.info(s"Setting bag permissions to: $permissions, bag directory: $bagDir")
       val posixFilePermissions = PosixFilePermissions.fromString(permissions)

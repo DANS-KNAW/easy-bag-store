@@ -53,7 +53,7 @@ class BagProcessingSpec extends TestSupportFixture
     override val localBaseUri: URI = new URI("http://example-archive.org")
   }
 
-  override val processor = new BagProcessing {
+  override val bagProcessing = new BagProcessing {
     override val stagingBaseDir: BagPath = testDir
     override val outputBagPermissions: String = "rwxr-xr-x"
   }
@@ -62,7 +62,7 @@ class BagProcessingSpec extends TestSupportFixture
     implicit val baseDir: BaseDir = store1
   }
 
-  private val stagingBaseDir = processor.stagingBaseDir
+  private val stagingBaseDir = bagProcessing.stagingBaseDir
   private val localBaseUri: URI = fileSystem.localBaseUri
   implicit val baseDir: BaseDir = bagStore.baseDir
 
@@ -73,7 +73,7 @@ class BagProcessingSpec extends TestSupportFixture
     val testDirBagC = testDir.resolve("c")
     FileUtils.copyDirectory(testBagPrunedC.toFile, testDirBagC.toFile)
 
-    processor.complete(testDirBagC) shouldBe a[Success[_]]
+    bagProcessing.complete(testDirBagC) shouldBe a[Success[_]]
 
     pathsEqual(testBagUnprunedC, testDirBagC, "tagmanifest-md5.txt") shouldBe true
     // BagProcessing.complete causes the order in c/tagmanifest-md5.txt to change...
@@ -84,7 +84,7 @@ class BagProcessingSpec extends TestSupportFixture
   "unzipBag" should "unzip zipped file and return the staging directory containing as a child the bag base directory" in {
     FileUtils.copyDirectory(Paths.get("src/test/resources/bag-store").toFile, store1.toFile)
 
-    inside(processor.unzipBag(new FileInputStream("src/test/resources/zips/one-basedir.zip"))) {
+    inside(bagProcessing.unzipBag(new FileInputStream("src/test/resources/zips/one-basedir.zip"))) {
       case Success(staging) => staging.getParent shouldBe stagingBaseDir
     }
   }
@@ -92,15 +92,15 @@ class BagProcessingSpec extends TestSupportFixture
   "findBagDir" should "result in a failure if there are two base directories in the zip file" in {
     FileUtils.copyDirectory(Paths.get("src/test/resources/bag-store").toFile, store1.toFile)
 
-    inside(processor.unzipBag(new FileInputStream("src/test/resources/zips/two-basedirs.zip"))) { case Success(staging) =>
-      processor.findBagDir(staging) should matchPattern { case Failure(IncorrectNumberOfFilesInBagZipRootException(2)) => }
+    inside(bagProcessing.unzipBag(new FileInputStream("src/test/resources/zips/two-basedirs.zip"))) { case Success(staging) =>
+      bagProcessing.findBagDir(staging) should matchPattern { case Failure(IncorrectNumberOfFilesInBagZipRootException(2)) => }
     }
   }
 
   it should "result in a failure if there are no files in the zip file" in {
     FileUtils.copyDirectory(Paths.get("src/test/resources/bag-store").toFile, store1.toFile)
 
-    processor.unzipBag(new FileInputStream("src/test/resources/zips/empty.zip")) shouldBe a[Failure[_]]
+    bagProcessing.unzipBag(new FileInputStream("src/test/resources/zips/empty.zip")) shouldBe a[Failure[_]]
     // Actually, stageBagZip should not end in Failure, but it does because lingala chokes on the empty zip
     // This is the next best thing.
   }
@@ -108,14 +108,14 @@ class BagProcessingSpec extends TestSupportFixture
   it should "result in a failure if there is no base directory in the zip file" in {
     FileUtils.copyDirectory(Paths.get("src/test/resources/bag-store").toFile, store1.toFile)
 
-    inside(processor.unzipBag(new FileInputStream("src/test/resources/zips/one-file.zip"))) { case Success(staging) =>
-      processor.findBagDir(staging) should matchPattern { case Failure(BagBaseNotFoundException()) => }
+    inside(bagProcessing.unzipBag(new FileInputStream("src/test/resources/zips/one-file.zip"))) { case Success(staging) =>
+      bagProcessing.findBagDir(staging) should matchPattern { case Failure(BagBaseNotFoundException()) => }
     }
   }
 
   "prune" should "change files present in ref-bags to fetch.txt entries" in {
     inside(bagStore.add(testBagUnprunedA)) { case Success(resA) =>
-      processor.prune(testBagUnprunedB, resA :: Nil) shouldBe a[Success[_]]
+      bagProcessing.prune(testBagUnprunedB, resA :: Nil) shouldBe a[Success[_]]
 
 
       /*
@@ -170,7 +170,7 @@ class BagProcessingSpec extends TestSupportFixture
        * Adding the now pruned Bag B so that C may reference it
        */
       inside(bagStore.add(testBagUnprunedB)) { case Success(resB) =>
-        processor.prune(testBagUnprunedC, resA :: resB :: Nil)
+        bagProcessing.prune(testBagUnprunedC, resA :: resB :: Nil)
 
         /*
          * Check bag C

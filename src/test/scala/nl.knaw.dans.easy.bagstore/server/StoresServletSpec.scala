@@ -444,7 +444,7 @@ class StoresServletSpec extends TestSupportFixture
     val uuid = "66666666-6666-6666-6666-666666666666"
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(zip)) {
       status shouldBe 400
-      body shouldBe s"Bag $uuid is not a valid bag"
+      body should include(s"Bag $uuid is not a valid bag")
     }
   }
 }

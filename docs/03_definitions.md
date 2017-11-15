@@ -8,6 +8,8 @@ TABLE OF CONTENTS
 - [Introduction](#introduction)
 - [Structure](#structure)
 - [Operations](#operations)
+  * [Core](#core)
+  * [Extra](#extra)
 - [Schematic summary](#schematic-summary)
 - [Migrations](#migrations)
   * [Merge BagStores](#merge-bagstores)
@@ -25,6 +27,18 @@ those classes.
  
 (See [tutorial] for a more hands-on introduction.)
 
+Properties
+----------
+
+* Common **base-dir**
+* Stores **virtually-valid** Bags
+* Stores immutable Bags
+* UUIDs for decentralized **bag-id** minting
+* Trivial translations between **item-id**, **item-location** and **local-item-uri** 
+* 
+
+
+
 Structure
 ---------
 1. **BAG-STORE**: a **BagStore** is a collection of immutable **Bag**s (see [BagIt]) stored on a 
@@ -35,7 +49,8 @@ Structure
     - it is incomplete, but contains a `fetch.txt` file and can be made valid by fetching the files
       listed in it (and removing `fetch.txt` and its checksums from the Bag). If local-item-uris (see
       next point) are used, they must reference Items in the same BagStore.
-3. **ITEM-ID:<a id="item-id" />** an **Item** is a Bag or a **File** in a Bag. Each Item has an **item-id**.
+3. **ITEM-ID:<a id="item-id" />** an **Item** is a Bag, or a **File** in a Bag. Each Item has an **item-id**.
+      A **Directory** is also considered a File.
     - **bag-id** = `<uuid>`, that is a [UUID]
     - **file-id** = `<bag-id>/percent-encoded(path-in-bag)`, where **percent-encoded** means that the 
       path-components are percent encoded as described in [RFC3986] and **path-in-bag** is the relative
@@ -43,7 +58,7 @@ Structure
     
     Each Item also has a locally resolvable URI (i.e. resolvable in the same BagStore):
 
-    - **local-item-uri** = `http://localhost/<item-id>`
+    - **<a id="local-item-uri" />local-item-uri** = `http://localhost/<item-id>`
 
     (Globally resolvable URIs may also be defined for Items. How these are mapped to **item-id**s is
     up to the implementor of the BagStore.)
@@ -65,11 +80,19 @@ Structure
 
 Operations
 ----------
-On a BagStore the following operations are allowed:
+On a BagStore the following operations are allowed. They have been subdivided into two groups. The core
+operations must be supported directly, the extra operations *may* only be supported through [Migration]:
 
+### Core
 * `ADD` - add a new, virtually-valid Bag to the BagStore.
 * `ENUM` - enumerate all the Items in the BagStore or all the items in one Bag.
 * `GET` - copy an Item from the BagStore.
+
+Note that this means that Bags are immutable. To support updates to Bags, add metadata that records 
+that a Bag is part of a sequence of Bags, that together form the revision history of one logical 
+(and mutable) Bag. See for an example implementation the [easy-bag-index] project.
+
+### Extra
 * `DEACTIVATE` - mark a Bag as inactive.
 * `REACTIVATE` - reverse a deactivation.
 * `ERASE` - erase the contents of a particular Bag **payload** File, and update the corresponding 
@@ -83,11 +106,8 @@ this may still require write-privileges on the bag-base-dir.
 The `ERASE` operation is the one exception to the rule that Bags are immutable. It must only be used in cases
 where there is a legal obligation to destroy the data. For other use cases there are better solutions:
 
-* To support updates to Bags, add metadata that records that a Bag is part of a sequence of Bags, that together
-  form the revision history of one logical (and mutable) Bag. See for an example implementation the
-  [easy-bag-index] project.
-
 [easy-bag-index]: https://github.com/DANS-KNAW/easy-bag-index
+[Migration]: #migrations
 
 Schematic summary
 -----------------
@@ -98,19 +118,14 @@ The following diagram summarizes the structure and operations of a BagStore.
 Remarks:
 * The notation `bag-id < item-id` is intended to mean that a bag-id is a special kind of item-id.
 * A slash preceding an attribute signifies that it is derivable from other attributes. (This is actually an existing UML notation.)
-* Note that there are at least two Files in a virtually-valid Bag, namely `bagit.txt` and the `data` directory (unless you do not count
-  directories as Files, of course, in which case it would be one).
-* All Items are ultimately contained in a BagStore, so one could argue that the BagStore should have been pictured to contain Items
-  rather than Bags. I have opted to stress the fact that a BagStore only *directly* contains Bags, leaving the fact that Files are 
-  indirectly contained in a BagStore implicit.
-  
+* Note that there are at least two Files in any virtually-valid Bag, namely `bagit.txt` and the `data`.
+ 
 
 Migrations
 ----------  
 A **Migration** is a BagStore-wide transformation. The input of a Migration is always one or more BagStores. The output
 may in principle be anything depending on the Migration procedure. Below we will define some Migrations whose outputs are also one or
 more BagStores. Migrations are riskier than normal operations and should normally be avoided.
-
 
 ### Merge BagStores
 Merging two BagStores can be done in at most two steps:

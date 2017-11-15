@@ -37,7 +37,7 @@ trait BagStoreWiring extends BagStoresComponent with BagStoreComponent with BagP
     require(uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${ uuidPathComponentSizes.sum }")
     require(Try(PosixFilePermissions.fromString(bagPermissions)).isSuccess, s"Bag file permissions are invalid: '$bagPermissions'")
   }
-  override lazy val processor: BagProcessing = new BagProcessing {
+  override lazy val bagProcessing: BagProcessing = new BagProcessing {
     override val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
     override val stagingBaseDir: BagPath = Paths.get(properties.getString("staging.base-dir"))
 
