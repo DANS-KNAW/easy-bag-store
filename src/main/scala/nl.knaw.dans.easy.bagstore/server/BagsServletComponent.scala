@@ -16,13 +16,14 @@
 package nl.knaw.dans.easy.bagstore.server
 
 import nl.knaw.dans.easy.bagstore.component.BagStoresComponent
-import nl.knaw.dans.easy.bagstore.{ ItemId, NoSuchBagException }
+import nl.knaw.dans.easy.bagstore.{ ItemId, NoSuchBagException, NoSuchFileException }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 import org.scalatra._
 
-import scala.util.Failure
+import scala.util.control.NonFatal
+import scala.util.{ Failure, Try }
 
 trait BagsServletComponent extends DebugEnhancedLogging {
   this: BagStoresComponent =>
@@ -59,6 +60,30 @@ trait BagsServletComponent extends DebugEnhancedLogging {
             logger.error("Unexpected type of failure", e)
             InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
         }
+    }
+
+    get("/:uuid/*") {
+      val uuidStr = params("uuid")
+      multiParams("splat") match {
+        case Seq(path) =>
+          ItemId.fromString(s"""$uuidStr/${ path }""")
+            .recoverWith {
+              case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
+            }
+            .flatMap(itemId => {
+              debug(s"Retrieving item $itemId")
+              bagStores.getStream(itemId, response.outputStream)
+            })
+            .map(_ => Ok())
+            .getOrRecover {
+              case e: IllegalArgumentException => BadRequest(e.getMessage)
+              case e: NoSuchBagException => NotFound(e.getMessage)
+              case e: NoSuchFileException => NotFound(e.getMessage)
+              case NonFatal(e) =>
+                logger.error("Error retrieving bag", e)
+                InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
+            }
+      }
     }
   }
 }
