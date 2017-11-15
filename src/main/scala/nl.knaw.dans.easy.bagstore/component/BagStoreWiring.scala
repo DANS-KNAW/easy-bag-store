@@ -29,7 +29,7 @@ trait BagStoreWiring extends BagStoresComponent with BagStoreComponent with BagP
 
   private val properties = configuration.properties
 
-  val fileSystem: FileSystem = new FileSystem {
+  override lazy val fileSystem: FileSystem = new FileSystem {
     override val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-component-sizes").map(_.toInt).toSeq
     override val bagPermissions: String = properties.getString("bag-store.bag-file-permissions")
     override val localBaseUri: URI = new URI(properties.getString("bag-store.base-uri"))
@@ -37,7 +37,7 @@ trait BagStoreWiring extends BagStoresComponent with BagStoreComponent with BagP
     require(uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${ uuidPathComponentSizes.sum }")
     require(Try(PosixFilePermissions.fromString(bagPermissions)).isSuccess, s"Bag file permissions are invalid: '$bagPermissions'")
   }
-  val bagProcessing: BagProcessing = new BagProcessing {
+  override lazy val bagProcessing: BagProcessing = new BagProcessing {
     override val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
     override val stagingBaseDir: BagPath = Paths.get(properties.getString("staging.base-dir"))
 
@@ -45,7 +45,7 @@ trait BagStoreWiring extends BagStoresComponent with BagStoreComponent with BagP
     require(Files.isWritable(stagingBaseDir), s"Non-existent or non-writable staging base-dir: $stagingBaseDir")
   }
 
-  override val bagStores: BagStores = new BagStores {
+  override lazy val bagStores: BagStores = new BagStores {
     bagStores =>
     override val stores: Map[String, BagStore] = {
       val stores = configuration.stores
