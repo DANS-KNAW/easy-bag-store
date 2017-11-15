@@ -62,7 +62,7 @@ trait BagStoresComponent {
             .getOrElse(
               itemId match {
                 case id @ BagId(_) => Failure(NoSuchBagException(id))
-                case id @ FileId(_, _) => Failure(NoSuchFileException(id))
+                case id @ FileId(_, _) => Failure(NoSuchFileItemException(id))
               })
         }
     }
