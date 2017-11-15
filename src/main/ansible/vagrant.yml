@@ -25,23 +25,6 @@
 - hosts: "test"
   become: yes
   tasks:
-  - name: Ensure /etc/ansible/facts.d exists
-    file:
-      path: /etc/ansible/facts.d
-      recurse: yes
-      state: directory
-
-  - name: Copy facts-scripts to server
-    copy:
-      src: conditions.fact
-      dest: /etc/ansible/facts.d/
-      mode: "u+x"
-    register: result
-
-  - name: Reload ansible_local
-    setup: filter=ansible_local
-    when: result.changed
-
   - name: Install package
     yum:
       name: dans.knaw.nl-easy-bag-store
