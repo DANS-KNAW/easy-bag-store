@@ -1,2 +1,17 @@
-language: java
-jdk: oraclejdk8
+matrix:
+  include:
+  - language: java
+    sudo: false
+    jdk: oraclejdk8
+
+  - language: ruby
+    rvm:
+    - 2.3.3
+    sudo: false
+    env:
+      global:
+      - NOKOGIRI_USE_SYSTEM_LIBRARIES=true
+    install: gem install jekyll html-proofer jekyll-theme-minima jekyll-relative-links
+    script:
+      - jekyll build --source docs
+      - htmlproofer _site --url-swap "\/easy-bag-store\/:/" --url-ignore "#" --disable-external --empty_alt_ignore --assume_extension
