@@ -20,6 +20,8 @@ import java.nio.file.{ Files, Path }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore._
+import org.apache.commons.compress.archivers.ArchiveStreamFactory
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.apache.commons.io.FileUtils
 import resource._
 
@@ -69,6 +71,35 @@ trait BagStoreComponent {
         .map(FileId(bagId, _))
         .toSeq
     }
+
+
+//    def getAsTar(bagId: BagId, output: => OutputStream): Try[Unit] = {
+//      for {
+//        files <- enumFiles(bagId)
+//        // sort
+//        //
+//
+//
+//
+//
+//      }
+//
+//
+//      ???
+//    }
+//
+//    def writeFilesToTarOutputStream(files: Seq[FileId], output: => OutputStream): Try[Unit] = {
+//      for {
+//        tarStream <- createTarOutputStream(output)
+//        file <- files
+//        f <- fileSystem.toRealLocation(file)
+//        _ <- Try { tarStream.createArchiveEntry(f.toFile, file.path.toString) }
+//      } yield ()
+//    }
+//
+//    def createTarOutputStream(output: => OutputStream): Try[TarArchiveOutputStream] = Try {
+//      new ArchiveStreamFactory().createArchiveOutputStream(ArchiveStreamFactory.TAR, output).asInstanceOf[TarArchiveOutputStream]
+//    }
 
     def get(itemId: ItemId, output: => OutputStream): Try[Unit] = {
       trace(itemId)
