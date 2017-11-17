@@ -73,34 +73,6 @@ trait BagStoreComponent {
     }
 
 
-//    def getAsTar(bagId: BagId, output: => OutputStream): Try[Unit] = {
-//      for {
-//        files <- enumFiles(bagId)
-//        // sort
-//        //
-//
-//
-//
-//
-//      }
-//
-//
-//      ???
-//    }
-//
-//    def writeFilesToTarOutputStream(files: Seq[FileId], output: => OutputStream): Try[Unit] = {
-//      for {
-//        tarStream <- createTarOutputStream(output)
-//        file <- files
-//        f <- fileSystem.toRealLocation(file)
-//        _ <- Try { tarStream.createArchiveEntry(f.toFile, file.path.toString) }
-//      } yield ()
-//    }
-//
-//    def createTarOutputStream(output: => OutputStream): Try[TarArchiveOutputStream] = Try {
-//      new ArchiveStreamFactory().createArchiveOutputStream(ArchiveStreamFactory.TAR, output).asInstanceOf[TarArchiveOutputStream]
-//    }
-
     def get(itemId: ItemId, output: => OutputStream): Try[Unit] = {
       trace(itemId)
 
