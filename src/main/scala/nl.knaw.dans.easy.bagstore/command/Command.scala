@@ -18,9 +18,8 @@ package nl.knaw.dans.easy.bagstore.command
 import java.nio.file.Path
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstore.ItemId
+import nl.knaw.dans.easy.bagstore.{ BagId, ItemId, TryExtensions2 }
 import nl.knaw.dans.easy.bagstore.service.ServiceWiring
-import nl.knaw.dans.easy.bagstore.TryExtensions2
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
@@ -61,6 +60,17 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
         store <- bagStores.get(itemId, cmd.outputDir(), bagStoreBaseDir)
         storeName = getStoreName(store)
       } yield s"Retrieved item with item-id: $itemId to ${ cmd.outputDir() } from BagStore: $storeName"
+    case Some(cmd @ commandLine.getTar) =>
+      for {
+        itemId <- ItemId.fromString(cmd.bagId())
+        (name, store) = bagStoreBaseDir.flatMap(getStore).getOrElse {
+          bagStores.stores.toList match {
+            case nameAndStore :: Nil => nameAndStore
+            case _ => promptForStore("Please, select which BagStore to add to.")
+          }
+        }
+        _ <- itemId.toBagId.map(store.getAsTar(_,  System.out))
+      } yield "Retrieved bag as TAR"
     case Some(cmd @ commandLine.enum) =>
       cmd.bagId.toOption
         .map(s => for {

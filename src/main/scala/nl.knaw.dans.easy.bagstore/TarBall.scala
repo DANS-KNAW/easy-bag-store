@@ -28,10 +28,10 @@ import scala.util.Try
 /**
  * Specification for an entry in the TAR file.
  *
- * @param filePath  optional path to an existing file or directory, if None a directory entry will be created
+ * @param sourcePath  optional path to an existing file or directory, if None a directory entry will be created
  * @param entryPath the path of the entry in the TAR file
  */
-case class EntrySpec(filePath: Option[Path], entryPath: String)
+case class EntrySpec(sourcePath: Option[Path], entryPath: String)
 
 /**
  * Object representing a TAR ball, providing a function to write it to an output stream.
@@ -70,9 +70,9 @@ class TarBall(files: Seq[EntrySpec]) {
   }
 
   private def addFileToTarStream(tarStream: TarArchiveOutputStream)(entrySpec: EntrySpec)(implicit buffer: Array[Byte]): Try[Unit] = Try {
-    val entry = tarStream.createArchiveEntry(entrySpec.filePath.map(_.toFile).orNull, entrySpec.entryPath)
+    val entry = tarStream.createArchiveEntry(entrySpec.sourcePath.map(_.toFile).orNull, entrySpec.entryPath)
     tarStream.putArchiveEntry(entry)
-    entrySpec.filePath.foreach(
+    entrySpec.sourcePath.foreach(
       file =>
         if (Files.isRegularFile(file)) copyFileToTarStream(tarStream, file))
     tarStream.closeArchiveEntry()

@@ -95,6 +95,13 @@ trait CommandLineOptionsComponent {
     }
     addSubcommand(get)
 
+    val getTar = new Subcommand("get-tar") {
+      descr("Retrieves a bag as a TAR stream to the standard output")
+      val bagId: ScallopOption[String] = trailArg(name = "bag-id",
+        descr = "The ID of the bag to retrieve")
+    }
+    addSubcommand(getTar)
+
     val enum = new Subcommand("enum") {
       descr("Enumerates bags or Files")
       val inactive: ScallopOption[Boolean] = opt[Boolean](name = "inactive", short = 'd',

@@ -20,8 +20,6 @@ import java.nio.file.{ Files, Path }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore._
-import org.apache.commons.compress.archivers.ArchiveStreamFactory
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.apache.commons.io.FileUtils
 import resource._
 
@@ -29,6 +27,7 @@ import scala.collection.JavaConverters._
 import scala.language.postfixOps
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
+import nl.knaw.dans.lib.error._
 
 trait BagStoreComponent {
   this: FileSystemComponent with BagProcessingComponent with BagFacadeComponent =>
@@ -59,19 +58,22 @@ trait BagStoreComponent {
 
       for {
         _ <- fileSystem.checkBagExists(bagId)
-        path <- fileSystem.toLocation(bagId)
-        payloadPaths <- bagFacade.getPayloadFilePaths(path)
+        bagDir <- fileSystem.toLocation(bagId)
+        payloadPaths <- bagFacade.getPayloadFilePaths(bagDir)
         _ = debug(s"Payload files: $payloadPaths")
-      } yield walkFiles(path)
+      } yield walkFiles(bagDir)
         .filter(p => Files.isRegularFile(p) &&
-          (path.resolve("data").relativize(p).toString startsWith ".."))
+          /*
+           * Disallow paths like ../../path/to/outside and path/to/../../../../../outside, etc
+           * TODO: Is this checked before adding the bag??
+           */
+          bagDir.resolve("data").relativize(p).iterator().asScala.toSet.exists(_.toString == ".."))
         .toSet
         .union(payloadPaths)
-        .map(path.relativize)
+        .map(bagDir.relativize)
         .map(FileId(bagId, _))
         .toSeq
     }
-
 
     def get(itemId: ItemId, output: => OutputStream): Try[Unit] = {
       trace(itemId)
@@ -132,6 +134,30 @@ trait BagStoreComponent {
                 baseDir
               })
         }
+      }
+    }
+
+    def getAsTar(bagId: BagId, outputStream: => OutputStream): Try[Unit] = {
+      trace(bagId, outputStream)
+      fileSystem.checkBagExists(bagId).flatMap { _ =>
+        for {
+          bagDir <- fileSystem.toLocation(bagId)
+          fileIds <- enumFiles(bagId) // TODO: Refactor: create enumItems
+          fileSpecs <-
+              fileIds.map {
+                fileId => fileSystem.toRealLocation(fileId)
+                    .map {
+                      source =>
+                        EntrySpec(Some(source), fileId.path.toString)
+                     }
+              }.collectResults
+          dirs <- Try { calcDirectoriesFromFileSet(fileIds.map(_.path).toSet) }
+          dirSpecs <- Try {
+            dirs.map { dir =>  EntrySpec(None, dir.toString) }
+          }
+          allEntries <- Try { (dirSpecs ++ fileSpecs).toSeq.sortBy(_.entryPath) }
+          _ <- Try { new TarBall(allEntries).writeTo(outputStream) }
+        } yield ()
       }
     }
 
