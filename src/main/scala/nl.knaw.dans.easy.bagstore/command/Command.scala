@@ -76,7 +76,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
         .map(s => for {
           itemId <- ItemId.fromString(s)
           bagId <- itemId.toBagId
-          files <- bagStores.enumFiles(bagId, bagStoreBaseDir)
+          files <- bagStores.enumFiles(bagId, bagStoreBaseDir, !cmd.excludeDirectories())
         } yield files.foreach(println(_)))
         .getOrElse {
           val includeActive = cmd.all() || !cmd.inactive()
@@ -142,9 +142,9 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     case _ => Try { s"Unknown command: ${ commandLine.subcommand }" }
   }
 
-  result.doIfSuccess(msg => println(s"OK: $msg"))
+  result.doIfSuccess(msg => Console.err.println(s"OK: $msg"))
     .doIfFailure { case e => logger.error(e.getMessage, e) }
-    .doIfFailure { case NonFatal(e) => println(s"FAILED: ${ e.getMessage }") }
+    .doIfFailure { case NonFatal(e) => Console.err.println(s"FAILED: ${ e.getMessage }") }
 
   bagFacade.stop().unsafeGetOrThrow
 

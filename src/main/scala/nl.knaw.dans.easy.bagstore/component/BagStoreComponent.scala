@@ -16,10 +16,11 @@
 package nl.knaw.dans.easy.bagstore.component
 
 import java.io.OutputStream
-import java.nio.file.{ Files, Path }
+import java.nio.file.{ Files, Path, Paths }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore._
+import nl.knaw.dans.lib.error._
 import org.apache.commons.io.FileUtils
 import resource._
 
@@ -27,7 +28,6 @@ import scala.collection.JavaConverters._
 import scala.language.postfixOps
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
-import nl.knaw.dans.lib.error._
 
 trait BagStoreComponent {
   this: FileSystemComponent with BagProcessingComponent with BagFacadeComponent =>
@@ -53,26 +53,27 @@ trait BagStoreComponent {
 
     private def isHidden(bagId: BagId): Try[Boolean] = fileSystem.toLocation(bagId).map(Files.isHidden)
 
-    def enumFiles(bagId: BagId): Try[Seq[FileId]] = {
+    def enumFiles(bagId: BagId, includeDirectories: Boolean = true): Try[Seq[FileId]] = {
       trace(bagId)
 
       for {
         _ <- fileSystem.checkBagExists(bagId)
         bagDir <- fileSystem.toLocation(bagId)
-        payloadPaths <- bagFacade.getPayloadFilePaths(bagDir)
-        _ = debug(s"Payload files: $payloadPaths")
-      } yield walkFiles(bagDir)
-        .filter(p => Files.isRegularFile(p) &&
-          /*
-           * Disallow paths like ../../path/to/outside and path/to/../../../../../outside, etc
-           * TODO: Is this checked before adding the bag??
-           */
-          bagDir.resolve("data").relativize(p).iterator().asScala.toSet.exists(_.toString == ".."))
-        .toSet
-        .union(payloadPaths)
-        .map(bagDir.relativize)
-        .map(FileId(bagId, _))
-        .toSeq
+        payloadFiles <- bagFacade.getPayloadFilePaths(bagDir).map(_.map(bagDir.relativize))
+        payloadFileIds <- Try { payloadFiles.map(FileId(bagId, _)) }
+        payloadDirs <- Try {
+          if (includeDirectories) calcDirectoriesFromFileSet(payloadFiles)
+          else Set.empty[Path]
+        }
+        payloadDirIds <- Try { payloadDirs.map(FileId(bagId, _ , isDirectory = true))}
+        nonPayLoadPaths <- Try {
+          walkFiles(bagDir)
+            .filter(f => bagDir.resolve("data") != f
+              && (includeDirectories || Files.isRegularFile(f))).toSet
+        }
+        nonPayloadIds <- Try { nonPayLoadPaths.map(f => FileId(bagId, bagDir.relativize(f), Files.isDirectory(f)))}
+        allIds <- Try { payloadDirIds ++ payloadFileIds ++ nonPayloadIds }
+      } yield allIds.toSeq.sortBy(_.path)
     }
 
     def get(itemId: ItemId, output: => OutputStream): Try[Unit] = {
@@ -142,20 +143,17 @@ trait BagStoreComponent {
       fileSystem.checkBagExists(bagId).flatMap { _ =>
         for {
           bagDir <- fileSystem.toLocation(bagId)
-          fileIds <- enumFiles(bagId) // TODO: Refactor: create enumItems
-          fileSpecs <-
-              fileIds.map {
-                fileId => fileSystem.toRealLocation(fileId)
-                    .map {
-                      source =>
-                        EntrySpec(Some(source), fileId.path.toString)
-                     }
-              }.collectResults
-          dirs <- Try { calcDirectoriesFromFileSet(fileIds.map(_.path).toSet) }
-          dirSpecs <- Try {
-            dirs.map { dir =>  EntrySpec(None, dir.toString) }
-          }
-          allEntries <- Try { (dirSpecs ++ fileSpecs).toSeq.sortBy(_.entryPath) }
+          fileIds <- enumFiles(bagId)
+          fileSpecs <- fileIds.filter(!_.isDirectory).map {
+            fileId =>
+              fileSystem.toRealLocation(fileId)
+                .map {
+                  source =>
+                    EntrySpec(Some(source), Paths.get(bagDir.getFileName.toString, fileId.path.toString).toString)
+                }
+          }.collectResults
+          dirSpecs <- Try { fileIds.filter(_.isDirectory).map { dir => EntrySpec(None, Paths.get(bagDir.getFileName.toString, dir.toString).toString) } }
+          allEntries <- Try { (dirSpecs ++ fileSpecs).sortBy(_.entryPath) }
           _ <- Try { new TarBall(allEntries).writeTo(outputStream) }
         } yield ()
       }

@@ -108,6 +108,8 @@ trait CommandLineOptionsComponent {
         descr = "only enumerate inactive bags")
       val all: ScallopOption[Boolean] = opt[Boolean](name = "all", short = 'a',
         descr = "enumerate all bags, including inactive ones")
+      val excludeDirectories: ScallopOption[Boolean] = opt(name = "exclude-directories",
+        descr = "enumerate only regular files, not directories")
       val bagId: ScallopOption[String] = trailArg[String](name = "<bagId>",
         descr = "bag of which to enumerate the Files",
         required = false)

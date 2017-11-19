@@ -96,7 +96,7 @@ class FileSystemSpec extends TestSupportFixture
     val bagPath = Paths.get(parentDir, childDir, "bag-name", "filename")
 
     inside(fileSystem.fromLocation(store1.toAbsolutePath.resolve(bagPath))) {
-      case Success(FileId(BagId(foundUuid), filepath)) =>
+      case Success(FileId(BagId(foundUuid), filepath, _)) =>
         foundUuid shouldBe uuid
         filepath shouldBe Paths.get("filename")
     }
@@ -108,7 +108,7 @@ class FileSystemSpec extends TestSupportFixture
     val bagPath = Paths.get(parentDir, childDir, "bag-name", "a", "longer", "path")
 
     inside(fileSystem.fromLocation(store1.toAbsolutePath.resolve(bagPath))) {
-      case Success(FileId(BagId(foundUuid), filepath)) =>
+      case Success(FileId(BagId(foundUuid), filepath, _)) =>
         foundUuid shouldBe uuid
         filepath shouldBe Paths.get("a", "longer", "path")
     }
@@ -149,7 +149,7 @@ class FileSystemSpec extends TestSupportFixture
     val uuid = UUID.randomUUID()
 
     inside(fileSystem.fromUri(new URI(s"$localBaseUri/$uuid/"))) {
-      case Success(FileId(BagId(foundUuid), path)) =>
+      case Success(FileId(BagId(foundUuid), path, _)) =>
         foundUuid shouldBe uuid
         path shouldBe Paths.get("")
     }
@@ -159,7 +159,7 @@ class FileSystemSpec extends TestSupportFixture
     val uuid = UUID.randomUUID()
 
     inside(fileSystem.fromUri(new URI(s"$localBaseUri/$uuid/filename"))) {
-      case Success(FileId(BagId(foundUuid), filepath)) =>
+      case Success(FileId(BagId(foundUuid), filepath, _)) =>
         foundUuid shouldBe uuid
         filepath shouldBe Paths.get("filename")
     }
@@ -169,7 +169,7 @@ class FileSystemSpec extends TestSupportFixture
     val uuid = UUID.randomUUID()
 
     inside(fileSystem.fromUri(new URI(s"$localBaseUri/$uuid/a/longer/path"))) {
-      case Success(FileId(BagId(foundUuid), filepath)) =>
+      case Success(FileId(BagId(foundUuid), filepath, _)) =>
         foundUuid shouldBe uuid
         filepath shouldBe Paths.get("a", "longer", "path")
     }

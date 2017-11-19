@@ -48,7 +48,7 @@ case class BagId(override val uuid: UUID) extends ItemId(uuid) {
   override def toFileId: Try[FileId] = Failure(NoFileIdException(this))
 }
 
-case class FileId(bagId: BagId, path: Path) extends ItemId(bagId.uuid) {
+case class FileId(bagId: BagId, path: Path, isDirectory: Boolean = false) extends ItemId(bagId.uuid) {
   private val pathEscaper = UrlEscapers.urlPathSegmentEscaper()
 
   override def toString: String = {
@@ -63,3 +63,4 @@ case class FileId(bagId: BagId, path: Path) extends ItemId(bagId.uuid) {
 object FileId {
   def apply(uuid: UUID, path: Path): FileId = FileId(BagId(uuid), path)
 }
+

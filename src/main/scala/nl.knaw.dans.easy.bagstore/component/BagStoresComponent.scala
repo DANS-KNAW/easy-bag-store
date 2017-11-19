@@ -15,19 +15,20 @@
  */
 package nl.knaw.dans.easy.bagstore.component
 
-import java.io.{InputStream, OutputStream}
+import java.io.{ InputStream, OutputStream }
 import java.nio.file.{ Files, Path }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error._
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
 
 import scala.language.postfixOps
 import scala.util.{ Failure, Success, Try }
 
 trait BagStoresComponent {
-  this: FileSystemComponent with BagProcessingComponent with BagStoreComponent =>
+  this: FileSystemComponent with BagProcessingComponent with BagStoreComponent with DebugEnhancedLogging =>
 
   val bagStores: BagStores
 
@@ -62,7 +63,7 @@ trait BagStoresComponent {
             .getOrElse(
               itemId match {
                 case id @ BagId(_) => Failure(NoSuchBagException(id))
-                case id @ FileId(_, _) => Failure(NoSuchFileItemException(id))
+                case id @ FileId(_, _, _) => Failure(NoSuchFileItemException(id))
               })
         }
     }
@@ -80,19 +81,22 @@ trait BagStoresComponent {
         }
     }
 
-    def enumFiles(bagId: BagId, fromStore: Option[Path] = None): Try[Seq[FileId]] = {
+    def enumFiles(bagId: BagId, fromStore: Option[Path] = None, includeDirectories: Boolean = true): Try[Seq[FileId]] = {
       fromStore
         .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.baseDir == baseDir => store.enumFiles(bagId)
+          case (_, store) if store.baseDir == baseDir => store.enumFiles(bagId, includeDirectories)
         })
         .getOrElse {
           def recurse(storesToSearch: List[BagStore]): Try[Seq[FileId]] = {
             storesToSearch match {
               case Nil => Failure(NoSuchBagException(bagId))
               case store :: remainingStores =>
-                store.enumFiles(bagId) match {
+                store.enumFiles(bagId, includeDirectories) match {
                   case s @ Success(_) => s
-                  case Failure(_) => recurse(remainingStores)
+                  case Failure(e) =>
+                    debug(s"Failure returned from store $store: ${e.getMessage}")
+                    logger.error("Exception", e)
+                    recurse(remainingStores)
                 }
             }
           }

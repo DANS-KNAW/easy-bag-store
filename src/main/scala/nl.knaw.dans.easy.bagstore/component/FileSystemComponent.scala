@@ -179,7 +179,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
 
           id match {
             case _: BagId => bagDir
-            case FileId(_, path) => bagDir.resolve(path)
+            case FileId(_, path, _) => bagDir.resolve(path)
           }
         }
         _ = debug(s"Item $id located at $path")
@@ -188,10 +188,13 @@ trait FileSystemComponent extends DebugEnhancedLogging {
 
     /**
      * Returns the path at which the File with the specified file-id is actually stored in the BagStore.
+     * The file-id must refer to a regular file and not a directory. (Directories may have many "real"
+     * locations, so it is not clear which one to return.)
      *
      * @param fileId id of the file to look for
      */
     def toRealLocation(fileId: FileId)(implicit baseDir: BaseDir): Try[Path] = {
+      require(!fileId.isDirectory, "file-id must refer to a regular file")
       for {
         path <- toLocation(fileId)
         realPath <- if (Files.exists(path)) Success(path)
