@@ -320,17 +320,17 @@ How do we deal with that? The answer is: in the simplest possible way; by adding
 
 Keeping track of the versions is not built in to the bag store, but here is were **modular** design comes in:
 you can add that capability by simply adding appropriate metadata. That could be something as simple
-as a "version" metadata field, or something a bit more sophisticated. Our [`easy-bag-index`] module 
-records both a timestamp and a pointer to the base revision, the combination of which is always enough 
-to reconstruct the version history.
+as a "version" metadata field to the `bag-info.txt` file, or something a bit more sophisticated. 
+Our [`easy-bag-index`] module records both a timestamp and a pointer to the base revision, the combination 
+of which is always enough to reconstruct the version history.
 
 [`easy-bag-index`]: https://github.com/DANS-KNAW/easy-bag-index
 
 #### Virtually-valid
-An objection to such an approach could be that you would be storing a lot of files 
+An objection to such an approach could be, that you would be storing a lot of files 
 redundantly. After all, a package update may leave many files unchanged. The bag store supports 
 the **efficient** storage of collections of bags with common files. Instead of requiring 
-every bag to be valid according to [the BagIt definition of valid], it must be only "virtually" valid. 
+every bag to be valid according to [the BagIt definition of valid], it must only be "virtually" valid. 
 
 A bag is virtually-valid when:
 
@@ -356,19 +356,19 @@ updated, we include a fetch reference to the already archived file.
 OK, enough theory, let's try to create an update for our sample bag. The `easy-bag-store` tool has
 a command to help you strip your updated bag of unnecessary files.
 
-1. Copy `sample` to `sample-updated`
+1. Copy `sample` to `sample-updated`:
 
         cp -r sample sample-updated
         
-2. Make a change to one of the data files in `sample-updated`, let's say the README.TXT
+2. Make a change to one of the data files in `sample-updated`, let's say the `README.TXT`:
 
         echo "...and some more text" >> sample-updated/data/README.TXT
 
-3. Let's also remove a file
+3. Let's also remove a file:
         
         rm sample-updated/data/img/image01.png
 
-4. ...and add one
+4. ...and add one:
 
         echo "New file content" > sample-updated/data/NEW.TXT
 
@@ -383,7 +383,7 @@ a command to help you strip your updated bag of unnecessary files.
         > OK: Done pruning
         
    Note that we provided as the second argument the bag-id of the bag in which the unchanged files 
-   where located. You may append as many bag-ids as you like. We call these reference bags or **ref-bag**s.
+   where located. You may append as many bag-ids as you like. We call these bags reference bags or **ref-bag**s.
    
 4. Now let's have a look at `sample-updated`:
 
@@ -408,7 +408,7 @@ a command to help you strip your updated bag of unnecessary files.
           http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/file1.txt  0  data/path/with a/space/file1.txt
           http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02.jpeg  13829  data/img/image02.jpeg
           
-   All the payload files from `sample` should be included in `fetch.txt`, except `README.TXT` (which was
+   All the payload files from `sample` are included in `fetch.txt`, except `README.TXT` (which was
    changed), `NEW.TXT` (which was added) and `image01.png` (which was removed).
    
    
@@ -419,12 +419,12 @@ the local-item-uris are intended to do is point back into the same bag store tha
 That makes resolving the local-item-uri trivial, as leaving off `http://localhost/` gives you the item-id.
 
 The local-item-uris must never point to anything else, even if we set up the web server to give back the correct 
-file. The reason for this rule is that we want to keep the bag store self contained. This supports **authenticity** of 
-the archival packages. Being able to find all the files in a packages obviously is a sine qua non for guaranteeing its
-authenticity. If we cannot even do that, we should give up all claims of being a functioning archive.
+file. The reason for this rule is that we want to keep the bag store self-contained. This supports **authenticity** of 
+the archival packages. Being able to find all the files in a packages obviously is a *sine qua non* for guaranteeing its
+authenticity. If we cannot even do that, we should give up all claims of being a reliable archive.
 
-Note, that fetching items with *non-local* URLs is still sound practice, however, it is essential to consider how the 
-persistence of these URLs is guaranteed (and by whom). It does pose more challenges than keeping all the packages 
+Note, that fetching items with *non-local* URLs is still sound practice. However, it is essential to consider how the 
+persistence of these URLs is guaranteed (and by whom). It *does* pose more challenges than keeping all the packages 
 locally in a common base directory.
  
 #### Round-trip: adding, retrieving, completing
@@ -437,7 +437,7 @@ full content.
 
 2. Retrieve it again from the bag store:
 
-        easy-bag-store get <bag-id of my-example-bag-v2> out2
+        easy-bag-store get <bag-id of sample-updated> out2
         
 3. Note that the retrieved bag is still only virtually-valid, and not valid. We will use the 
    `easy-bag-store complete` command for that.
@@ -448,6 +448,8 @@ full content.
 
         diff -r my-example-bag-v2 out2
 
+   Again, if you see any output from the last command, that means the directories are different and something 
+   went wrong.
 
 #### Other operations and commands
 You have now seen the most important bag store operations in action: `ADD`, `ENUM` and `GET`. The command line
