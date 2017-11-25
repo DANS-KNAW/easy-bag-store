@@ -37,10 +37,9 @@ Summary
 -------
 
 ### In two sentences
-A [**BagStore**](#bagstore) is a collection of immutable, **virtually-valid** **Bag**s stored under 
-a common **base-dir**. Each **Item** (Bag, **File**, **Directory**) in the BagStore has an 
-**item-id**, **item-location** and **local-item-uri** which can easily be mapped onto eachother. 
-**TODO: Mention UUID and decentralized minting.**
+A [**BagStore**](#bagstore) is a collection of immutable, [**virtually-valid** **Bag**s](#bag) stored under 
+a common [**base-dir**](#bagstore). Each [**Item**](#item) in the BagStore has an [**item-id**](#item-id)
+and an [**item-location**](#item-location) with simple mapping rules to translate between them. 
 
 ### In one picture
 ![bag-store](./img/bag-store.svg)   
@@ -52,29 +51,30 @@ a common **base-dir**. Each **Item** (Bag, **File**, **Directory**) in the BagSt
 Objects & attributes
 --------------------
 ### BagStore
-The collection of Bags stored under a common base directory (**base-dir**). It uses a single slash 
-pattern (see [item-location](#item-location)).
+The collection of Bags stored under a common base directory (**base-dir**). It uses a single **slash-pattern**
+(see [item-location](#item-location)).
 
 ### Bag
-The elements of the BagStore are Bags, i.e. directories or archive files adhering to the [BagIt] 
-specifications. The Bags must be virtually-valid. It may be active or inactive.
+The elements of the BagStore are Bags, i.e. directories or archive files conforming to the [BagIt] 
+specifications. The Bags must be virtually-valid. They may be active or inactive.
 
 #### virtually-valid
 A Bag is virtually-valid if:
 
 - it is valid ([as defined by the BagIt specs]), or
 - it is incomplete, but contains a [`fetch.txt`] file and can be made valid by fetching the files
-  listed in it and removing `fetch.txt` and its corresponding checksums from the Bag (**is dat nodig?**). If [local-item-uris](#local-item-uri) 
-  are used, they must reference Items in the same BagStore.
+  listed in it and removing `fetch.txt` and its corresponding checksums from the Bag. If 
+  [local-file-uris](#local-file-uri) are used, they must reference RegularFiles in the same BagStore.
   
 #### (in)active  
-A Bag in a BagStore is inactive if it has a hidden attribute in the file system, or if its name starts with a full stop character
-(which on some file systems is the same thing). It is active otherwise. The BagStore may support transitioning a Bag between active and
-inactive, as an exception to the immutability property.
+A Bag in a BagStore is inactive if it has a hidden attribute in the file system, or if its name starts 
+with a full stop character (which on some file systems is the same thing). It is active otherwise. 
+The BagStore may support transitioning a Bag between active and inactive, as an exception to the 
+immutability property.
   
 ### Item
-An **Item** is a Bag, or a **File** in a Bag. Each Item has an **item-id**. A **Directory** is considered a 
-special case of File.
+An **Item** is a Bag, or a **File** in a Bag. A File may be a **RegularFile** or a **Directory**. 
+Each Item has an **item-id**. 
 
 #### item-id
 The item-ids are defined as follows:
@@ -84,21 +84,31 @@ The item-ids are defined as follows:
   path-components are percent encoded as described in [RFC3986] and **path-in-bag** is the relative
   path of the File in the bag, after `fetch.txt` has been resolved.
   
-#### local-item-uri
-
-**<a id="local-item-uri" />local-item-uri** = `http://localhost/<item-id>`
- 
-
 #### item-location
 The item-locations are defined as follows:
 
-- **bag-location** = `<base-dir>/slashed(<uuid>)/[.]<bag>`, where **slashed** means that
-  the UUID is stripped of hyphens and then subdivided into several groups of characters, with the
-  slash as separator. The sizes of the groups of characters must be consistent throughout the
-  BagStore. The dot is inserted if the Bag is inactive (see point 5). **bag** is the Bag's base directory,
-  in the case of an unserialized bag, or the filename of the [serialization].
+- **bag-location** = `<base-dir>/slashed(<uuid>)/[.]<bag>`, where:
+ 
+    - **slashed** means that the UUID is stripped of hyphens and then subdivided into several groups 
+      of characters, with the slash as separator, forming a file path. The number of slashes to insert 
+      and where to insert them is specified by the **slash-pattern**.
+  
+    - **bag** is the Bag's base directory (in the case of an unserialized bag),
+      or the filename of the [serialization].
+      
+    - the dot, if present, means that the bag is [inactive](#inactive).
+      
 - **file-location** = `<bag-location>/<path-in-bag>`. If a File is included through the `fetch.txt`
   file, its actual location can be obtained by resolving its URL in `fetch.txt`.
+  
+  
+#### local-file-uri
+
+**<a id="local-item-uri" />local-file-uri** = `http://localhost/<file-id>`
+
+#### file-data-location
+
+
 
 [BagIt]: https://tools.ietf.org/html/draft-kunze-bagit
 [as defined by the BagIt specs]: https://tools.ietf.org/html/draft-kunze-bagit#section-3
