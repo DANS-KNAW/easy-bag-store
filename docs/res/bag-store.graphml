@@ -138,7 +138,7 @@ slash-pattern
       <data key="d4"/>
       <data key="d6">
         <y:UMLNoteNode>
-          <y:Geometry height="101.0" width="330.0" x="863.5" y="141.8671875"/>
+          <y:Geometry height="101.0" width="361.0" x="863.5" y="141.8671875"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="88.796875" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tl" textColor="#000000" verticalTextPosition="bottom" visible="true" width="302.72265625" x="4.0" y="4.0">IDENTIFIERS
@@ -154,15 +154,16 @@ local-file-uri = "http://localhost/" + file-id</y:NodeLabel>
       <data key="d4"/>
       <data key="d6">
         <y:UMLNoteNode>
-          <y:Geometry height="90.0" width="330.0" x="863.5" y="261.8671875"/>
+          <y:Geometry height="114.265625" width="361.0" x="863.5" y="261.8671875"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="88.796875" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tl" textColor="#000000" verticalTextPosition="bottom" visible="true" width="313.65625" x="4.0" y="4.0">LOCATIONS
+          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="102.9296875" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tl" textColor="#000000" verticalTextPosition="bottom" visible="true" width="343.357421875" x="4.0" y="4.0">LOCATIONS
 
 item-location = bag-location | file-location
 bag-location = base-dir / slashed ( bag-id ) / [.] bag
 file-location = bag-location / path-in-bag
-
+file-data-location = 
+  completed ( unserialized ( bag-location ) ) / path-in-bag
 </y:NodeLabel>
         </y:UMLNoteNode>
       </data>
@@ -171,7 +172,7 @@ file-location = bag-location / path-in-bag
       <data key="d4"/>
       <data key="d6">
         <y:UMLNoteNode>
-          <y:Geometry height="154.1328125" width="330.0" x="863.5" y="370.8671875"/>
+          <y:Geometry height="154.1328125" width="361.0" x="863.5" y="395.1328125"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="173.59375" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tl" textColor="#000000" verticalTextPosition="bottom" visible="true" width="220.169921875" x="4.0" y="4.0">OPERATIONS

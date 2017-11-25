@@ -17,6 +17,7 @@ TABLE OF CONTENTS
 - [Operations](#operations)
   * [Core](#core)
   * [Extra](#extra)
+- [Examples](#examples)
 - [Migrations](#migrations)
   * [Merge BagStores](#merge-bagstores)
   * [Split BagStore](#split-bagstore)
@@ -61,7 +62,7 @@ specifications. The Bags must be virtually-valid. They may be active or inactive
 #### virtually-valid
 A Bag is virtually-valid if:
 
-- it is valid ([as defined by the BagIt specs]), or
+- it is [valid], or
 - it is incomplete, but contains a [`fetch.txt`] file and can be made valid by fetching the files
   listed in it and removing `fetch.txt` and its corresponding checksums from the Bag. If 
   [local-file-uris](#local-file-uri) are used, they must reference RegularFiles in the same BagStore.
@@ -93,25 +94,34 @@ The item-locations are defined as follows:
       of characters, with the slash as separator, forming a file path. The number of slashes to insert 
       and where to insert them is specified by the **slash-pattern**.
   
-    - **bag** is the Bag's base directory (in the case of an unserialized bag),
-      or the filename of the [serialization].
+    - **bag** is the Bag's base directory.  
       
     - the dot, if present, means that the bag is [inactive](#inactive).
       
-- **file-location** = `<bag-location>/<path-in-bag>`. If a File is included through the `fetch.txt`
-  file, its actual location can be obtained by resolving its URL in `fetch.txt`.
+- **file-location** = `<bag-location>/<path-in-bag>`. A RegularFile may have a [**file-data-location**](#file-data-location)
+  and a Directory may not have one unique location that contains all the Files in it.
   
-  
-#### local-file-uri
-
-**<a id="local-item-uri" />local-file-uri** = `http://localhost/<file-id>`
 
 #### file-data-location
+The file-data-location is the location where the RegularFile's data is actually stored (in the
+case of an unserialized Bag), or where it *would* be stored if a serialized Bag were unserialized and
+completed in-place. (Note the conditional, however, as actually performing unserialization and completion
+in-place is not permitted.) 
 
+- **file-data-location** = `completed(unserialized(<bag-location>))/path-in-bag`, where:
 
+    - **unserialized** means the Bag after unserializing it in-place.
+    - **completed** means the Bag after fetching the Items in `fetch.txt`, if present.
+   
+#### local-file-uri
+For RegularFile we define a local-file-uri. This may, but does not need to be resolvable through a web server.
+It is intended to be used in `fetch.txt`, to obviate the need for storing the exact same file multiple times in the same 
+BagStore.
+
+ - **local-file-uri** = `http://localhost/<file-id>`
 
 [BagIt]: https://tools.ietf.org/html/draft-kunze-bagit
-[as defined by the BagIt specs]: https://tools.ietf.org/html/draft-kunze-bagit#section-3
+[valid]: https://tools.ietf.org/html/draft-kunze-bagit#section-3
 [serialization]: https://tools.ietf.org/html/draft-kunze-bagit#section-4
 [UUID]: https://en.wikipedia.org/wiki/Universally_unique_identifier
 [RFC3986]: https://tools.ietf.org/html/rfc3986#section-2.1
@@ -120,7 +130,7 @@ The item-locations are defined as follows:
 Operations
 ----------
 On a BagStore the following operations are allowed. They have been subdivided into two groups. The core
-operations must be supported directly, the extra operations *may* only be supported through [Migration]:
+operations must be supported directly, the extra operations *may* be supported only through [Migration]:
 
 ### Core
 * `ADD` - add a new, virtually-valid Bag to the BagStore.
@@ -148,8 +158,60 @@ where there is a legal obligation to destroy the data. For other use cases there
 [easy-bag-index]: https://github.com/DANS-KNAW/easy-bag-index
 [Migration]: #migrations
 
- 
+Examples
+--------
+Given are a bag store with a base-dir of `/srv/dans.knaw.nl/bag-store/`, and slash-pattern (2,30).
 
+1. If we store a bag named `example` in the store under UUID `75444957-009d-4289-aae7-270342ce27d4`,
+   bag-location will be: 
+ 
+       /srv/dans.knaw.nl/bag-store/75/444957009d4289aae7270342ce27d4/example/
+
+2. If we store it unserialized this bag-location will be an actual directory on the file system, if
+   we store it serialized as a TAR archive, the bag will be stored as the file: 
+   
+       /srv/dans.knaw.nl/bag-store/75/444957009d4289aae7270342ce27d4/example.tar
+
+   (Note that bag-location in example 1 and 2 is the same.)
+   
+3. If `example` contains a regular file at `data/my document.txt`, relative to the bag's base directory,
+   its file-id will be:
+
+       75444957-009d-4289-aae7-270342ce27d4/data/my%20document.txt
+   
+   and its local-file-uri:
+   
+       http://localhost/75444957-009d-4289-aae7-270342ce27d4/data/my%20document.txt
+   
+4. Now the other way around. Suppose we know the bag-id of a bag to be `5489c18e-324b-4873-92b8-5d324775c183`.
+   To look for it in our bag store, we should look in the following directory:
+   
+       /srv/dans.knaw.nl/bag-store/54/89c18e324b487392b85d324775c183/
+       
+   There may only be one file in this directory, which may be either a directory or an archive file. In the 
+   former case it is an unserialized bag in the latter a [serialization].
+   
+5. To look up the file-id `5489c18e-324b-4873-92b8-5d324775c183/data/is/here.txt` we can follow the following
+   procedure:
+   
+     1. Find the file or directory in 
+     
+            /srv/dans.knaw.nl/bag-store/54/89c18e324b487392b85d324775c183/
+            
+     2. Let's say it is a directory named `my-bag`. Now look at the location:
+     
+            /srv/dans.knaw.nl/bag-store/54/89c18e324b487392b85d324775c183/my-bag/data/is/here.txt
+            
+     3. If it there, you are done, otherwise check for the existence of the file:
+            
+            /srv/dans.knaw.nl/bag-store/54/89c18e324b487392b85d324775c183/my-bag/fetch.txt
+           
+     4. If there is no `fetch.txt` the file is not present in the bag store. If there is, find the entry
+        that fetches the file for the local path `data/is/here.txt`. If it is  local-file-uri, resolve it
+        to a file-id and repeat this same procedure for the file. If it is a non-local URL, dereference 
+        that URL using the protocol specified in its scheme-part.
+        
+ 
 Migrations
 ----------  
 A **Migration** is a BagStore-wide transformation. The input of a Migration is always one or more BagStores. The output
