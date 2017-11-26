@@ -183,6 +183,33 @@ trait BagStoreComponent {
       }
     }
 
+    def getAsTar2(itemId: ItemId, outputStream: => OutputStream, startByte: Long = 0L, endByte: Long = Long.MaxValue): Try[Unit] = {
+      trace(itemId, outputStream)
+      val bagId = BagId(itemId.uuid)
+
+      fileSystem.checkBagExists(bagId).flatMap { _ =>
+        for {
+          bagDir <- fileSystem.toLocation(bagId)
+          itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
+          fileIds <- enumFiles(itemId)
+          fileSpecs <- fileIds.filter(!_.isDirectory).map {
+            fileId =>
+              fileSystem
+                .toRealLocation(fileId)
+                .map(source => createEntrySpec(Some(source), bagDir, itemPath, fileId))
+          }.collectResults
+          dirSpecs <- Try {
+            fileIds.filter(_.isDirectory).map {
+              dir =>
+                createEntrySpec(None, bagDir, itemPath, dir)
+            }
+          }
+          allEntries <- Try { (dirSpecs ++ fileSpecs).sortBy(_.entryPath) }
+          _ <- Try { new TarBall(allEntries).writeTo(outputStream) }
+        } yield ()
+      }
+    }
+
     private def createEntrySpec(source: Option[Path], bagDir: Path, itemPath: Path, fileId: FileId): EntrySpec = {
       if (itemPath == bagDir) EntrySpec(source, Paths.get(bagDir.getFileName.toString, fileId.path.toString).toString)
       else EntrySpec(source, Paths.get(itemPath.getFileName.toString, bagDir.relativize(itemPath).relativize(fileId.path).toString).toString)
