@@ -53,7 +53,7 @@ trait BagStoreComponent {
 
     private def isHidden(bagId: BagId): Try[Boolean] = fileSystem.toLocation(bagId).map(Files.isHidden)
 
-    def enumFiles2(itemId: ItemId, includeDirectories: Boolean = true): Try[Seq[FileId]] = {
+    def enumFiles(itemId: ItemId, includeDirectories: Boolean = true): Try[Seq[FileId]] = {
       trace(itemId)
       val bagId = BagId(itemId.uuid)
 
@@ -164,7 +164,7 @@ trait BagStoreComponent {
         for {
           bagDir <- fileSystem.toLocation(bagId)
           itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
-          fileIds <- enumFiles2(itemId)
+          fileIds <- enumFiles(itemId)
           fileSpecs <- fileIds.filter(!_.isDirectory).map {
             fileId =>
               fileSystem

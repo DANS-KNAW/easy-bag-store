@@ -94,17 +94,17 @@ trait BagStoresComponent {
         }
     }
 
-    def enumFiles2(itemId: ItemId, fromStore: Option[Path] = None, includeDirectories: Boolean = true): Try[Seq[FileId]] = {
+    def enumFiles(itemId: ItemId, fromStore: Option[Path] = None, includeDirectories: Boolean = true): Try[Seq[FileId]] = {
       fromStore
         .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.baseDir == baseDir => store.enumFiles2(itemId, includeDirectories)
+          case (_, store) if store.baseDir == baseDir => store.enumFiles(itemId, includeDirectories)
         })
         .getOrElse {
           def recurse(storesToSearch: List[BagStore]): Try[Seq[FileId]] = {
             storesToSearch match {
               case Nil => Failure(NoSuchBagException(BagId(itemId.uuid)))
               case store :: remainingStores =>
-                store.enumFiles2(itemId, includeDirectories) match {
+                store.enumFiles(itemId, includeDirectories) match {
                   case s @ Success(_) => s
                   case Failure(e) =>
                     debug(s"Failure returned from store $store: ${e.getMessage}")
