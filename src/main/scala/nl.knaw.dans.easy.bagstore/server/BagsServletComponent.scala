@@ -51,7 +51,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
           case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
         }
         .flatMap(_.toBagId)
-        .flatMap(bagStores.enumFiles(_, None, includeDirectories = false))
+        .flatMap(bagStores.enumFiles2(_, None, includeDirectories = false))
         .map(bagIds => Ok(bagIds.mkString("\n")))
         .getOrRecover {
           case e: IllegalArgumentException => BadRequest(e.getMessage)

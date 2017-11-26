@@ -53,8 +53,14 @@ trait BagStoreComponent {
 
     private def isHidden(bagId: BagId): Try[Boolean] = fileSystem.toLocation(bagId).map(Files.isHidden)
 
-    def enumFiles(bagId: BagId, includeDirectories: Boolean = true): Try[Seq[FileId]] = {
-      trace(bagId)
+    def enumFiles2(itemId: ItemId, includeDirectories: Boolean = true): Try[Seq[FileId]] = {
+      trace(itemId)
+      val bagId = BagId(itemId.uuid)
+
+      val queriedPath = itemId match {
+        case fileId: FileId => fileId.path
+        case bagId: BagId => Paths.get("")
+      }
 
       for {
         _ <- fileSystem.checkBagExists(bagId)
@@ -73,7 +79,8 @@ trait BagStoreComponent {
         }
         nonPayloadIds <- Try { nonPayLoadPaths.map(f => FileId(bagId, bagDir.relativize(f), Files.isDirectory(f)))}
         allIds <- Try { payloadDirIds ++ payloadFileIds ++ nonPayloadIds }
-      } yield allIds.toSeq.sortBy(_.path)
+        filteredIds <- Try { if (queriedPath == Paths.get("")) allIds else allIds.filter(_.path.startsWith(queriedPath)) }
+      } yield filteredIds.toSeq.sortBy(_.path)
     }
 
     def get(itemId: ItemId, output: => OutputStream): Try[Unit] = {
@@ -138,25 +145,47 @@ trait BagStoreComponent {
       }
     }
 
-    def getAsTar(bagId: BagId, outputStream: => OutputStream): Try[Unit] = {
-      trace(bagId, outputStream)
+    /**
+     * Writes the item pointed to by `itemId` as a TAR-stream to `outputStream`. The entry paths in
+     * the TAR-stream will be relative to the item requested, including the item's file name. So if
+     * a complete bag is requested, the entry paths will start with the name of the bag, if a directory
+     * is requested they will start with that directory's  name, and if a single file is requested,
+     * ''no'' directory entry will be created in the TAR.
+     *
+     * @param itemId the requested item
+     * @param outputStream the output stream to write to
+     * @return whether the call was successful
+     */
+    def getAsTar(itemId: ItemId, outputStream: => OutputStream): Try[Unit] = {
+      trace(itemId, outputStream)
+      val bagId = BagId(itemId.uuid)
+
       fileSystem.checkBagExists(bagId).flatMap { _ =>
         for {
           bagDir <- fileSystem.toLocation(bagId)
-          fileIds <- enumFiles(bagId)
+          itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
+          fileIds <- enumFiles2(itemId)
           fileSpecs <- fileIds.filter(!_.isDirectory).map {
             fileId =>
-              fileSystem.toRealLocation(fileId)
-                .map {
-                  source =>
-                    EntrySpec(Some(source), Paths.get(bagDir.getFileName.toString, fileId.path.toString).toString)
-                }
+              fileSystem
+                .toRealLocation(fileId)
+                .map(source => createEntrySpec(Some(source), bagDir, itemPath, fileId))
           }.collectResults
-          dirSpecs <- Try { fileIds.filter(_.isDirectory).map { dir => EntrySpec(None, Paths.get(bagDir.getFileName.toString, dir.toString).toString) } }
+          dirSpecs <- Try {
+            fileIds.filter(_.isDirectory).map {
+              dir =>
+                createEntrySpec(None, bagDir, itemPath, dir)
+            }
+          }
           allEntries <- Try { (dirSpecs ++ fileSpecs).sortBy(_.entryPath) }
           _ <- Try { new TarBall(allEntries).writeTo(outputStream) }
         } yield ()
       }
+    }
+
+    private def createEntrySpec(source: Option[Path], bagDir: Path, itemPath: Path, fileId: FileId): EntrySpec = {
+      if (itemPath == bagDir) EntrySpec(source, Paths.get(bagDir.getFileName.toString, fileId.path.toString).toString)
+      else EntrySpec(source, Paths.get(itemPath.getFileName.toString, bagDir.relativize(itemPath).relativize(fileId.path).toString).toString)
     }
 
     def add(bagDir: Path, uuid: Option[UUID] = None, skipStage: Boolean = false): Try[BagId] = {

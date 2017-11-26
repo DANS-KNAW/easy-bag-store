@@ -51,6 +51,19 @@ trait BagStoresComponent {
         }
     }
 
+    def getAsTar(itemId: ItemId, outputStream: => OutputStream, fromStore: Option[Path] = None): Try[Unit] = {
+      fromStore
+        .flatMap(baseDir => stores.collectFirst {
+          case (_, store) if store.baseDir == baseDir => store.getAsTar(itemId, outputStream)
+        })
+        .getOrElse {
+          stores.values.toStream
+            .map(_.getAsTar(itemId, outputStream))
+            .find(_.isSuccess)
+            .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
+        }
+    }
+
     def getStream(itemId: ItemId, output: => OutputStream, fromStore: Option[Path] = None): Try[Unit] = {
       fromStore
         .flatMap(baseDir => stores.collectFirst {
@@ -81,17 +94,17 @@ trait BagStoresComponent {
         }
     }
 
-    def enumFiles(bagId: BagId, fromStore: Option[Path] = None, includeDirectories: Boolean = true): Try[Seq[FileId]] = {
+    def enumFiles2(itemId: ItemId, fromStore: Option[Path] = None, includeDirectories: Boolean = true): Try[Seq[FileId]] = {
       fromStore
         .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.baseDir == baseDir => store.enumFiles(bagId, includeDirectories)
+          case (_, store) if store.baseDir == baseDir => store.enumFiles2(itemId, includeDirectories)
         })
         .getOrElse {
           def recurse(storesToSearch: List[BagStore]): Try[Seq[FileId]] = {
             storesToSearch match {
-              case Nil => Failure(NoSuchBagException(bagId))
+              case Nil => Failure(NoSuchBagException(BagId(itemId.uuid)))
               case store :: remainingStores =>
-                store.enumFiles(bagId, includeDirectories) match {
+                store.enumFiles2(itemId, includeDirectories) match {
                   case s @ Success(_) => s
                   case Failure(e) =>
                     debug(s"Failure returned from store $store: ${e.getMessage}")
@@ -104,6 +117,7 @@ trait BagStoresComponent {
           recurse(stores.values.toList)
         }
     }
+
 
     def putBag(inputStream: InputStream, bagStore: BagStore, uuid: UUID): Try[BagId] = {
       for {

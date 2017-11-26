@@ -25,6 +25,8 @@ import scala.collection.JavaConverters._
 import scala.util.{ Failure, Success, Try }
 
 abstract class ItemId(val uuid: UUID) {
+  def getBagId = BagId(uuid)
+
   def toBagId: Try[BagId]
 
   def toFileId: Try[FileId]

@@ -63,20 +63,13 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     case Some(cmd @ commandLine.getTar) =>
       for {
         itemId <- ItemId.fromString(cmd.bagId())
-        (name, store) = bagStoreBaseDir.flatMap(getStore).getOrElse {
-          bagStores.stores.toList match {
-            case nameAndStore :: Nil => nameAndStore
-            case _ => promptForStore("Please, select which BagStore to add to.")
-          }
-        }
-        _ <- itemId.toBagId.map(store.getAsTar(_,  System.out))
+        _ <- bagStores.getAsTar(itemId,  System.out)
       } yield "Retrieved bag as TAR"
     case Some(cmd @ commandLine.enum) =>
       cmd.bagId.toOption
         .map(s => for {
           itemId <- ItemId.fromString(s)
-          bagId <- itemId.toBagId
-          files <- bagStores.enumFiles(bagId, bagStoreBaseDir, !cmd.excludeDirectories())
+          files <- bagStores.enumFiles2(itemId, bagStoreBaseDir, !cmd.excludeDirectories())
         } yield files.foreach(println(_)))
         .getOrElse {
           val includeActive = cmd.all() || !cmd.inactive()

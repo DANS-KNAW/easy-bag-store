@@ -190,7 +190,7 @@ class BagStoresSpec extends TestSupportFixture
 
   "enumFiles" should "return all FileIds in a valid Bag" in {
     inside(bagStore1.add(testBagUnprunedA)) { case Success(ais) =>
-      inside(bagStores.enumFiles(ais, None, includeDirectories = false).map(_.toList)) { case Success(fileIds) =>
+      inside(bagStores.enumFiles2(ais, None, includeDirectories = false).map(_.toList)) { case Success(fileIds) =>
         fileIds.map(_.path.getFileName.toString) should {
           have size 10 and
             contain only("u", "v", "w", "x", "y", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "tagmanifest-md5.txt")
@@ -206,7 +206,7 @@ class BagStoresSpec extends TestSupportFixture
       inside(bagStore1.add(testBagUnprunedB)) { case Success(bis) =>
         bagProcessing.prune(testBagUnprunedC, bis :: Nil) shouldBe a[Success[_]]
         inside(bagStore1.add(testBagUnprunedC)) { case Success(cis) =>
-          inside(bagStores.enumFiles(cis, None, includeDirectories = false).map(_.toList)) {
+          inside(bagStores.enumFiles2(cis, None, includeDirectories = false).map(_.toList)) {
             case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 13 and
               contain only("q", "w", "u", "p", "x", "y", "y-old", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "tagmanifest-md5.txt", "fetch.txt"))
           }
@@ -224,7 +224,7 @@ class BagStoresSpec extends TestSupportFixture
    */
   it should "return all FileIds even if they are distributed over several payload manifests" in {
     inside(bagStore1.add(testBagComplementary)) { case Success(complementary) =>
-      inside(bagStores.enumFiles(complementary, None, includeDirectories = false).map(_.toList)) {
+      inside(bagStores.enumFiles2(complementary, None, includeDirectories = false).map(_.toList)) {
         case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 11 and
           contain only("u", "v", "w", "x", "y", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "manifest-sha1.txt", "tagmanifest-md5.txt"))
       }
