@@ -60,16 +60,16 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       }
 
       for {
-        (virtuallyValid, _) <- fileSystem.isVirtuallyValid(bagDir)
-        _ = debug(s"input virtually-valid?: $virtuallyValid")
-        if virtuallyValid
+        virtuallyValid <- fileSystem.isVirtuallyValid(bagDir)
+        _ = debug(virtuallyValid.fold(msg => s"input not virtually-valid: $msg", _ => "input virtually-valid"))
+        if virtuallyValid.isRight
         mappings <- fileSystem.projectedToRealLocation(bagDir)
         _ <- copyFiles(mappings)
         _ <- bagFacade.removeFetchTxtFromTagManifests(bagDir)
         _ <- Try { Files.deleteIfExists(bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)) }
-        (valid, _) <- bagFacade.isValid(bagDir)
-        _ = debug(s"result valid?: $valid")
-        if valid
+        valid <- bagFacade.isValid(bagDir)
+        _ = debug(valid.fold(msg => s"result invalid: $msg", _ => s"result valid?: $valid"))
+        if valid.isRight
       } yield ()
     }
 

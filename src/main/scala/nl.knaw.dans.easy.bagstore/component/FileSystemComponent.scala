@@ -229,7 +229,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
       } yield mapping
     }
 
-    def isVirtuallyValid(bagDir: Path)(implicit baseDir: BaseDir): Try[(Boolean, String)] = {
+    def isVirtuallyValid(bagDir: Path)(implicit baseDir: BaseDir): Try[Either[String, Unit]] = {
       val fetchTxt = bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)
       if (Files.exists(fetchTxt))
       /*
@@ -243,10 +243,10 @@ trait FileSystemComponent extends DebugEnhancedLogging {
           _ = debug(s"valid tagmanifests: $validTagManifests")
           _ <- removeFetchTxtAndTagManifests(workBag)
           _ <- createSymLinks(mappings)
-          (valid, msg) <- bagFacade.isValid(workBag)
-          _ = debug(s"valid bag: $valid")
+          validWorkBag <- bagFacade.isValid(workBag)
+          _ = debug(validWorkBag.fold(msg => s"invalid bag: $msg", _ => "valid bag"))
           _ <- Try { FileUtils.deleteDirectory(tempDir.toFile) }
-        } yield (validTagManifests && valid, msg)
+        } yield validWorkBag.fold(msg => Left(msg), _ => if (validTagManifests) Right(()) else Left("tagmanifests are not valid"))
       else
         bagFacade.isValid(bagDir)
     }

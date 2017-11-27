@@ -34,7 +34,7 @@ class FileSystemSpec extends TestSupportFixture
     FileUtils.copyDirectory(Paths.get("src/test/resources/bag-store").toFile, store1.toFile)
   }
 
-  override val fileSystem = new FileSystem {
+  override val fileSystem: FileSystem = new FileSystem {
     override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
     override val bagPermissions: String = "rwxr-xr-x"
     override val localBaseUri: URI = new URI("http://example-archive.org")
@@ -236,12 +236,12 @@ class FileSystemSpec extends TestSupportFixture
   "isVirtuallyValid" should "return true for a valid bag" in {
     FileUtils.copyDirectory(Paths.get("src/test/resources/bags/valid-bag").toFile, testDir.resolve("valid-bag").toFile)
 
-    fileSystem.isVirtuallyValid(testDir.resolve("valid-bag")) should matchPattern { case Success((true, _)) => }
+    fileSystem.isVirtuallyValid(testDir.resolve("valid-bag")) should matchPattern { case Success(Right(())) => }
   }
 
   it should "return true for a virtually-valid bag" in {
     FileUtils.copyDirectory(Paths.get("src/test/resources/bags/virtually-valid-bag").toFile, testDir.resolve("virtually-valid-bag").toFile)
 
-    fileSystem.isVirtuallyValid(testDir.resolve("virtually-valid-bag")) should matchPattern { case Success((true, _)) => }
+    fileSystem.isVirtuallyValid(testDir.resolve("virtually-valid-bag")) should matchPattern { case Success(Right(())) => }
   }
 }
