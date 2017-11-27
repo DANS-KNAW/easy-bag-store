@@ -115,7 +115,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
       for {
         itemId <- ItemId.fromString(cmd.itemId())
         location <- bagStores.locate(itemId, bagStoreBaseDir)
-      } yield s"$location"
+      } yield location.toString
     case Some(cmd @ commandLine.validate) =>
       implicit val base: BagPath = bagStoreBaseDir.getOrElse {
         bagStores.stores.toList match {
