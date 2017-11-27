@@ -232,9 +232,6 @@ trait FileSystemComponent extends DebugEnhancedLogging {
     def isVirtuallyValid(bagDir: Path)(implicit baseDir: BaseDir): Try[Either[String, Unit]] = {
       val fetchTxt = bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)
       if (Files.exists(fetchTxt))
-      /*
-       *
-       */
         for {
           tempDir <- Try { Files.createTempDirectory("virtual-bag-") }
           workBag <- symlinkCopy(bagDir, tempDir.resolve(bagDir.getFileName))
