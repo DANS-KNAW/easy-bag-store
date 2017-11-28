@@ -30,6 +30,7 @@ import gov.loc.repository.bagit.writer.ManifestWriter
 import resource.Using
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable.Stream.Empty
 import scala.language.postfixOps
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
@@ -71,7 +72,7 @@ trait BagFacadeComponent {
         )
     }
 
-    def hasValidTagManifests(bagDir: Path): Try[Boolean] = {
+    def hasValidTagManifests(bagDir: Path): Try[Either[String, Unit]] = {
       def runTasks(tagManifest: BagitManifest)(executor: ExecutorService): Try[Boolean] = {
         val values = tagManifest.getFileToChecksumMap
         val exc = new JArrayList[Exception]()
@@ -92,8 +93,11 @@ trait BagFacadeComponent {
 
       getBag(bagDir)
         .map(_.getTagManifests.asScala.toStream
-          .map(runTasks(_)(verifier.getExecutor).unsafeGetOrThrow)
-          .forall(true ==))
+          .map(manifest => (manifest, runTasks(manifest)(verifier.getExecutor).unsafeGetOrThrow))
+          .collect { case (manifest, false) => manifest.getAlgorithm.getMessageDigestName.toLowerCase } match {
+          case Empty => Right(())
+          case fails => Left("The following tagmanifests were invalid: " + fails.mkString("[", ", ", "]"))
+        })
     }
 
     def getPayloadManifest(bagDir: Path, algorithm: Algorithm): Try[Map[Path, String]] = {
