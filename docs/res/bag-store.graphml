@@ -41,7 +41,7 @@ slash-pattern
       <data key="d4"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="81.0" width="138.0" x="702.0" y="233.0"/>
+          <y:Geometry height="68.0" width="138.0" x="702.0" y="233.0"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.310546875" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="33.80224609375" x="52.098876953125" y="3.0">Item<y:LabelModel>
@@ -52,9 +52,9 @@ slash-pattern
             </y:ModelParameter>
           </y:NodeLabel>
           <y:UML clipContent="true" constraint="" omitDetails="false" stereotype="" use3DEffect="false">
-            <y:AttributeLabel>item-id
-/local-item-uri
-/item-location
+            <y:AttributeLabel>item-location
+/item-id
+
 
 
 </y:AttributeLabel>
@@ -67,10 +67,10 @@ slash-pattern
       <data key="d4"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="63.0" width="177.0" x="528.0" y="375.0"/>
+          <y:Geometry height="81.0" width="187.0" x="528.0" y="375.0"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.310546875" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="28.40673828125" x="74.296630859375" y="3.0">Bag<y:LabelModel>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.310546875" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="28.40673828125" x="79.296630859375" y="3.0">Bag<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
             </y:LabelModel>
             <y:ModelParameter>
@@ -78,8 +78,9 @@ slash-pattern
             </y:ModelParameter>
           </y:NodeLabel>
           <y:UML clipContent="true" constraint="" omitDetails="false" stereotype="" use3DEffect="false">
-            <y:AttributeLabel>bag-id &lt; item-id
-
+            <y:AttributeLabel>bag-location &lt; item-location
+/bag-id &lt; item-id
+/is-active ( = true | false )
 
 
 
@@ -93,7 +94,7 @@ slash-pattern
       <data key="d4"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="63.0" width="177.0" x="617.0" y="521.0"/>
+          <y:Geometry height="95.0" width="177.0" x="617.0" y="521.0"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.310546875" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="27.537109375" x="74.7314453125" y="3.0">File<y:LabelModel>
@@ -104,8 +105,11 @@ slash-pattern
             </y:ModelParameter>
           </y:NodeLabel>
           <y:UML clipContent="true" constraint="" omitDetails="false" stereotype="" use3DEffect="false">
-            <y:AttributeLabel>file-id &lt; item-id
-path-in-bag
+            <y:AttributeLabel>path-in-bag
+/file-location
+/file-id &lt; item-id
+/is-payload ( = true | false )
+
 
 </y:AttributeLabel>
             <y:MethodLabel/>
@@ -117,14 +121,14 @@ path-in-bag
       <data key="d4"/>
       <data key="d6">
         <y:UMLNoteNode>
-          <y:Geometry height="37.0" width="177.0" x="430.0" y="457.0"/>
+          <y:Geometry height="36.0" width="157.0" x="444.716796875" y="298.0"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="18.1328125" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="135.71875" x="20.640625" y="9.43359375">must be virtually-valid<y:LabelModel>
+          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="18.1328125" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="135.71875" x="4.0" y="8.93359375">must be virtually-valid<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
             </y:LabelModel>
             <y:ModelParameter>
-              <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+              <y:SmartNodeLabelModelParameter labelRatioX="-0.5" labelRatioY="0.0" nodeRatioX="-0.5" nodeRatioY="0.0" offsetX="4.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
             </y:ModelParameter>
           </y:NodeLabel>
         </y:UMLNoteNode>
@@ -134,15 +138,15 @@ path-in-bag
       <data key="d4"/>
       <data key="d6">
         <y:UMLNoteNode>
-          <y:Geometry height="101.0" width="383.0" x="897.5" y="141.8671875"/>
+          <y:Geometry height="101.0" width="361.0" x="863.5" y="141.8671875"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="88.796875" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tl" textColor="#000000" verticalTextPosition="bottom" visible="true" width="302.72265625" x="4.0" y="4.0">IDENTIFIERS &amp; URIS
+          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="88.796875" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tl" textColor="#000000" verticalTextPosition="bottom" visible="true" width="302.72265625" x="4.0" y="4.0">IDENTIFIERS
 
 item-id = bag-id | file-id
 bag-id = UUID
 file-id = bag-id / percent-encoded ( path-in-bag )
-local-item-uri = "http://localhost/" + item-id</y:NodeLabel>
+local-file-uri = "http://localhost/" + file-id</y:NodeLabel>
         </y:UMLNoteNode>
       </data>
     </node>
@@ -150,15 +154,16 @@ local-item-uri = "http://localhost/" + item-id</y:NodeLabel>
       <data key="d4"/>
       <data key="d6">
         <y:UMLNoteNode>
-          <y:Geometry height="101.0" width="383.0" x="897.5" y="261.8671875"/>
+          <y:Geometry height="114.265625" width="361.0" x="863.5" y="261.8671875"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="88.796875" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tl" textColor="#000000" verticalTextPosition="bottom" visible="true" width="352.5625" x="4.0" y="4.0">LOCATIONS
+          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="102.9296875" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tl" textColor="#000000" verticalTextPosition="bottom" visible="true" width="343.357421875" x="4.0" y="4.0">LOCATIONS
 
 item-location = bag-location | file-location
-bag-location = base-dir / slashed ( bag-id ) / [.] bag-name
+bag-location = base-dir / slashed ( bag-id ) / [.] bag
 file-location = bag-location / path-in-bag
-
+file-data-location = 
+  completed ( unserialized ( bag-location ) ) / path-in-bag
 </y:NodeLabel>
         </y:UMLNoteNode>
       </data>
@@ -167,15 +172,15 @@ file-location = bag-location / path-in-bag
       <data key="d4"/>
       <data key="d6">
         <y:UMLNoteNode>
-          <y:Geometry height="154.1328125" width="383.0" x="897.5" y="381.8671875"/>
+          <y:Geometry height="154.1328125" width="361.0" x="863.5" y="395.1328125"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="173.59375" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tl" textColor="#000000" verticalTextPosition="bottom" visible="true" width="249.912109375" x="4.0" y="4.0">OPERATIONS
+          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="173.59375" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="tl" textColor="#000000" verticalTextPosition="bottom" visible="true" width="220.169921875" x="4.0" y="4.0">OPERATIONS
 
 Core:
 ADD ( bag, uuid )
 GET ( item-id )
-ENUM ( filter=active|inactive|all, [bag-id] )
+ENUM
 
 Extra:
 DEACTIVATE | REACTIVATE ( bag-id )
@@ -212,7 +217,7 @@ ERASE ( file-id, eraser, reason )
       <data key="d4"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="37.0" width="177.0" x="617.0" y="625.0"/>
+          <y:Geometry height="63.0" width="177.0" x="497.0" y="659.0"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.310546875" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="66.0419921875" x="55.47900390625" y="3.0">Directory<y:LabelModel>
@@ -229,11 +234,36 @@ ERASE ( file-id, eraser, reason )
         </y:UMLClassNode>
       </data>
     </node>
+    <node id="n11">
+      <data key="d4"/>
+      <data key="d6">
+        <y:UMLClassNode>
+          <y:Geometry height="63.0" width="177.0" x="737.0" y="659.0"/>
+          <y:Fill hasColor="false" transparent="false"/>
+          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.310546875" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="79.0166015625" x="48.99169921875" y="3.0">RegularFile<y:LabelModel>
+              <y:SmartNodeLabelModel distance="4.0"/>
+            </y:LabelModel>
+            <y:ModelParameter>
+              <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="-0.03703090122767855" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+            </y:ModelParameter>
+          </y:NodeLabel>
+          <y:UML clipContent="true" constraint="" omitDetails="false" stereotype="" use3DEffect="false">
+            <y:AttributeLabel>/local-file-uri
+/file-data-location
+
+
+</y:AttributeLabel>
+            <y:MethodLabel/>
+          </y:UML>
+        </y:UMLClassNode>
+      </data>
+    </node>
     <edge id="e0" source="n2" target="n1">
       <data key="d10">
         <y:PolyLineEdge>
-          <y:Path sx="51.5" sy="9.5" tx="-23.08646616541355" ty="21.5">
-            <y:Point x="668.0" y="349.0"/>
+          <y:Path sx="54.409604519774" sy="12.214285714285717" tx="-23.08646616541355" ty="18.04938271604939">
+            <y:Point x="675.909604519774" y="349.0"/>
             <y:Point x="747.9135338345865" y="349.0"/>
           </y:Path>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
@@ -255,7 +285,7 @@ ERASE ( file-id, eraser, reason )
     <edge id="e2" source="n2" target="n3">
       <data key="d10">
         <y:PolyLineEdge>
-          <y:Path sx="35.5" sy="1.5" tx="-53.5" ty="6.5"/>
+          <y:Path sx="30.5" sy="6.3" tx="-53.5" ty="9.801587301587302"/>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
           <y:Arrows source="diamond" target="none"/>
           <y:BendStyle smoothed="false"/>
@@ -265,7 +295,7 @@ ERASE ( file-id, eraser, reason )
     <edge id="e3" source="n1" target="n3">
       <data key="d10">
         <y:PolyLineEdge>
-          <y:Path sx="0.0" sy="21.5" tx="65.5" ty="2.5"/>
+          <y:Path sx="0.0" sy="18.04938271604939" tx="65.5" ty="3.7698412698412707"/>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
           <y:Arrows source="white_delta" target="none"/>
           <y:BendStyle smoothed="false"/>
@@ -275,10 +305,10 @@ ERASE ( file-id, eraser, reason )
     <edge id="e4" source="n0" target="n2">
       <data key="d10">
         <y:PolyLineEdge>
-          <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
+          <y:Path sx="0.0" sy="0.0" tx="-5.0" ty="0.9"/>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
-          <y:Arrows source="white_diamond" target="none"/>
-          <y:EdgeLabel alignment="center" configuration="AutoFlippingLabel" distance="2.0" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" horizontalTextPosition="center" iconTextGap="4" modelName="custom" preferredPlacement="anywhere" ratio="0.5" textColor="#000000" verticalTextPosition="bottom" visible="true" width="4.0" x="-32.0" y="83.062744140625">
+          <y:Arrows source="diamond" target="none"/>
+          <y:EdgeLabel alignment="center" configuration="AutoFlippingLabel" distance="2.0" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" horizontalTextPosition="center" iconTextGap="4" modelName="custom" preferredPlacement="anywhere" ratio="0.5" textColor="#000000" verticalTextPosition="bottom" visible="true" width="4.0" x="-32.0" y="83.08961486816406">
             <y:LabelModel>
               <y:SmartEdgeLabelModel autoRotationEnabled="false" defaultAngle="0.0" defaultDistance="10.0"/>
             </y:LabelModel>
@@ -292,6 +322,18 @@ ERASE ( file-id, eraser, reason )
       </data>
     </edge>
     <edge id="e5" source="n10" target="n3">
+      <data key="d9"/>
+      <data key="d10">
+        <y:PolyLineEdge>
+          <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
+          <y:LineStyle color="#000000" type="line" width="1.0"/>
+          <y:Arrows source="none" target="white_delta"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e6" source="n11" target="n3">
+      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
