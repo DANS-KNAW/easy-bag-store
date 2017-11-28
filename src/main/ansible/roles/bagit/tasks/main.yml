@@ -1,0 +1,56 @@
+#
+# Copyright (C) 2016 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+- name: Download bagit command line tool
+  get_url:
+    url: "https://github.com/LibraryOfCongress/bagit-java/releases/download/v4.12.3/bagit-v4.12.3.zip"
+    dest: "{{ ansible_user_dir }}"
+    checksum: "sha512:c3b422b2cf0b6bf73f189521e7796406cb98a2e9bf8b40ae82719bd5d3111a31ec91127aed541e38383f029d2c050ca4352d8475ea64214f51076f43cb4b5048"
+
+- name: Install unzip
+  yum:
+    name: unzip
+
+- name: Create a provider dir for gov.loc
+  file:
+    path: "/opt/gov.loc/"
+    state: directory
+
+- name: Unzip to /opt
+  unarchive:
+    src: "{{ ansible_user_dir }}/bagit-v4.12.3.zip"
+    remote_src: yes
+    dest: "/opt/gov.loc/"
+    creates: "/opt/gov.loc/bagit-v4.12.3"
+
+- name: Create directory for bagit logging
+  file:
+    path: "/var/opt/gov.loc/log/bagit"
+    state: directory
+    mode: "0777"
+
+- name: Configure logging for bagit
+  replace:
+    path: "/opt/gov.loc/bagit-v4.12.3/conf/log4j.properties"
+    regexp: 'log4j.appender.R.File=.*$'
+    replace: "log4j.appender.R.File=/var/opt/gov.loc/log/bagit/bagit.log"
+
+
+- name: Put bagit on path
+  file:
+    src: "/opt/gov.loc/bagit-v4.12.3/bin/bagit"
+    dest: "/opt/bin/bagit"
+    state: link

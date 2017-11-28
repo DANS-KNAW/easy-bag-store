@@ -150,9 +150,8 @@ trait BagStoreComponent {
           path = staging.resolve(bagDir.getFileName)
           maybeRefbags <- bagProcessing.getReferenceBags(path)
           _ = debug(s"refbags tempfile: $maybeRefbags")
-          (valid, msg) <- fileSystem.isVirtuallyValid(path).recover { case _: BagReaderException => (false, "Could not read bag") }
-          _ <- if (valid) Success(())
-               else Failure(InvalidBagException(bagId, msg))
+          valid <- fileSystem.isVirtuallyValid(path).recover { case _: BagReaderException => Left("Could not read bag") }
+          _ <- valid.fold(msg => Failure(InvalidBagException(bagId, msg)), _ => Success(()))
           _ <- maybeRefbags.map(pruneWithReferenceBags(path)).getOrElse(Success(()))
           _ = debug("bag succesfully pruned")
           container <- fileSystem.toContainer(bagId)

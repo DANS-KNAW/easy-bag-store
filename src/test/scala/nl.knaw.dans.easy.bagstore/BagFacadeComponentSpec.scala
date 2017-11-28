@@ -27,21 +27,12 @@ class BagFacadeComponentSpec extends TestSupportFixture with BagFacadeComponent 
 
   "isValid" should "return true when passed a valid bag-dir" in {
     FileUtils.copyDirectory(testResourcesDir.resolve("bags/valid-bag").toFile, testDir.resolve("valid-bag").toFile)
-    val result = bagFacade.isValid(testDir.resolve("valid-bag"))
-    result shouldBe a[Success[_]]
-    inside(result) {
-      case Success((s, _)) => s shouldBe true
-
-    }
+    bagFacade.isValid(testDir.resolve("valid-bag")) should matchPattern { case Success(Right(())) => }
   }
 
   it should "return false when passed a bag-dir that is not valid" in {
     FileUtils.copyDirectory(testResourcesDir.resolve("bags/incomplete-bag").toFile, testDir.resolve("incomplete-bag").toFile)
-    val result = bagFacade.isValid(testDir.resolve("incomplete-bag"))
-    result shouldBe a[Success[_]]
-    inside(result) {
-      case Success((s, _)) => s shouldBe false
-    }
+    bagFacade.isValid(testDir.resolve("incomplete-bag")) should matchPattern { case Success(Left(_)) => }
   }
 
   it should "return a failure when passed a non-existent directory" in {

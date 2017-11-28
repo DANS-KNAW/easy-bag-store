@@ -115,7 +115,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
       for {
         itemId <- ItemId.fromString(cmd.itemId())
         location <- bagStores.locate(itemId, bagStoreBaseDir)
-      } yield s"$location"
+      } yield location.toString
     case Some(cmd @ commandLine.validate) =>
       implicit val base: BagPath = bagStoreBaseDir.getOrElse {
         bagStores.stores.toList match {
@@ -125,9 +125,8 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
             store.baseDir
         }
       }
-      fileSystem.isVirtuallyValid(cmd.bagDir()).map {
-        case (valid, msg) => s"Done validating. Result: virtually-valid = $valid" + (if (valid) "" else s"; Messages: '$msg'")
-      }
+      fileSystem.isVirtuallyValid(cmd.bagDir())
+        .map(res => s"Done validating. Result: " + res.fold(msg => s"not virtually valid; Messages: '$msg'", _ => "virtually-valid"))
     case Some(_ @ commandLine.runService) => runAsService()
     case _ => Try { s"Unknown command: ${ commandLine.subcommand }" }
   }
