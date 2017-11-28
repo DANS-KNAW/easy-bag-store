@@ -37,3 +37,6 @@
 
   - include_role:
       name: bagit
+
+  - include_role:
+      name: testdata
