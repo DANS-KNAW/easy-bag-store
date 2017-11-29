@@ -1,7 +1,0 @@
-#!/usr/bin/python
-#
-import os, json
-
-print json.dumps({
-    'test_zips_do_not_exist': not os.path.exists('/home/vagrant/test-zips')
-})

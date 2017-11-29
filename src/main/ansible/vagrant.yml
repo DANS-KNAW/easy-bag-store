@@ -38,5 +38,8 @@
   - include_role:
       name: bagit
 
-  - include_role:
-      name: testdata
+  - name: Create link to test data
+    file:
+      src: /vagrant/src/test/resources/bags
+      dest: /home/vagrant/test-data
+      state: link
