@@ -179,9 +179,10 @@ trait BagStoresComponent {
           case (_, store) if store.baseDir == baseDir => store.locate(itemId)
         })
         .getOrElse {
-          stores.values.toStream.map(_.locate(itemId)).find(_.isSuccess).getOrElse(
-            Failure(NoSuchItemException(itemId))
-          )
+          stores.values.toStream
+            .map(_.locate(itemId))
+            .find(_.isSuccess)
+            .getOrElse(Failure(NoSuchItemException(itemId)))
         }
     }
   }
