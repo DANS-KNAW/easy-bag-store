@@ -20,6 +20,7 @@ import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore._
+import nl.knaw.dans.lib.error.CompositeException
 import org.apache.commons.io.FileUtils
 
 import scala.util.{ Failure, Success }
@@ -56,7 +57,7 @@ class BagStoreSpec extends TestSupportFixture
   override val fileSystem = new FileSystem {
     override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
     override val bagPermissions: String = "rwxr-xr-x"
-    override val localBaseUri: URI = new URI("http://example-archive.org")
+    override val localBaseUri: URI = new URI("http://localhost")
   }
 
   override val bagProcessing = new BagProcessing {
@@ -73,6 +74,7 @@ class BagStoreSpec extends TestSupportFixture
   def testSuccessfulAdd(path: Path, uuid: UUID): Unit = {
     inside(bagStore.add(path, Some(uuid))) {
       case Success(bagId) => bagId.uuid shouldBe uuid
+      case Failure(e) => fail(e.getMessage)
     }
   }
 

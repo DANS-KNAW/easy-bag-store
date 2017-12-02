@@ -30,7 +30,7 @@ trait BagStoresFixture extends BagStoreFixture {
   override val fileSystem = new FileSystem {
     override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
     override val bagPermissions: String = "rwxr-xr-x"
-    override val localBaseUri: URI = new URI("http://example-archive.org")
+    override val localBaseUri: URI = new URI("http://localhost")
   }
 
   override val bagProcessing = new BagProcessing {

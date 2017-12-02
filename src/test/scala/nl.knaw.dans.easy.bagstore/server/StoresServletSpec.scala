@@ -70,15 +70,15 @@ class StoresServletSpec extends TestSupportFixture
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    FileUtils.copyDirectoryToDirectory(Paths.get("src/test/resources/bag-store/00").toFile, store1.toFile)
-    FileUtils.copyDirectoryToDirectory(Paths.get("src/test/resources/bag-store/00").toFile, store2.toFile)
-    Files.move(store2.resolve("00/000000000000000000000000000001"), store2.resolve("00/000000000000000000000000000004"))
-    Files.move(store2.resolve("00/000000000000000000000000000002"), store2.resolve("00/000000000000000000000000000005"))
-    Files.move(store2.resolve("00/000000000000000000000000000003"), store2.resolve("00/000000000000000000000000000006"))
+    FileUtils.copyDirectoryToDirectory(Paths.get("src/test/resources/bag-store/01").toFile, store1.toFile)
+    FileUtils.copyDirectoryToDirectory(Paths.get("src/test/resources/bag-store/01").toFile, store2.toFile)
+    Files.move(store2.resolve("01/000000000000000000000000000001"), store2.resolve("01/000000000000000000000000000004"))
+    Files.move(store2.resolve("01/000000000000000000000000000002"), store2.resolve("01/000000000000000000000000000005"))
+    Files.move(store2.resolve("01/000000000000000000000000000003"), store2.resolve("01/000000000000000000000000000006"))
   }
 
   private def setBag1Hidden(): Unit = {
-    Files.move(store1.resolve("00/000000000000000000000000000001/bag-revision-1"), store1.resolve("00/000000000000000000000000000001/.bag-revision-1"))
+    Files.move(store1.resolve("01/000000000000000000000000000001/bag-revision-1"), store1.resolve("01/000000000000000000000000000001/.bag-revision-1"))
   }
 
   private def makeBagstore1Invalid(): Unit = {
@@ -143,7 +143,7 @@ class StoresServletSpec extends TestSupportFixture
   }
 
   it should "return an empty string when all bag-stores are empty" in {
-    FileUtils.deleteDirectory(store1.resolve("00").toFile)
+    FileUtils.deleteDirectory(store1.resolve("01").toFile)
     get("/store1/bags") {
       status shouldBe 200
       body shouldBe empty
@@ -263,10 +263,10 @@ class StoresServletSpec extends TestSupportFixture
       }.extractAll(unzip.toAbsolutePath.toString)
       unzip.toFile should exist
 
-      pathsEqual(unzip, store1.resolve("00/000000000000000000000000000001"), "tagmanifest-sha1.txt") shouldBe true
+      pathsEqual(unzip, store1.resolve("01/000000000000000000000000000001"), "tagmanifest-sha1.txt") shouldBe true
       // BagProcessing.complete causes the order in tagmanifest-sha1.txt to change...
       Source.fromFile(unzip.resolve("bag-revision-1/tagmanifest-sha1.txt").toFile).getLines().toList should
-        contain theSameElementsAs Source.fromFile(store1.resolve("00/000000000000000000000000000001/bag-revision-1/tagmanifest-sha1.txt").toFile).getLines().toList
+        contain theSameElementsAs Source.fromFile(store1.resolve("01/000000000000000000000000000001/bag-revision-1/tagmanifest-sha1.txt").toFile).getLines().toList
     }
   }
 
@@ -275,7 +275,7 @@ class StoresServletSpec extends TestSupportFixture
       status shouldBe 200
 
       Source.fromInputStream(response.inputStream).mkString shouldBe
-        Source.fromFile(store1.resolve("00/000000000000000000000000000001/bag-revision-1/data/y").toFile).mkString
+        Source.fromFile(store1.resolve("01/000000000000000000000000000001/bag-revision-1/data/y").toFile).mkString
     }
   }
 
@@ -284,7 +284,7 @@ class StoresServletSpec extends TestSupportFixture
       status shouldBe 200
 
       Source.fromInputStream(response.inputStream).mkString shouldBe
-        Source.fromFile(store1.resolve("00/000000000000000000000000000001/bag-revision-1/metadata/files.xml").toFile).mkString
+        Source.fromFile(store1.resolve("01/000000000000000000000000000001/bag-revision-1/metadata/files.xml").toFile).mkString
     }
   }
 

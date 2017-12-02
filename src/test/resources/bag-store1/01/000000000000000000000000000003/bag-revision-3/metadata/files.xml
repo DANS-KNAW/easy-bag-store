@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files xmlns:dcterms="http://purl.org/dc/terms/">
+    <file filepath="data/x">
+        <dcterms:format>text/plain</dcterms:format>
+    </file>
+    <file filepath="data/y-old">
+        <dcterms:format>text/plain</dcterms:format>
+    </file>
+    <file filepath="data/y">
+        <dcterms:format>text/plain</dcterms:format>
+    </file>
+    <file filepath="data/z">
+        <dcterms:format>text/plain</dcterms:format>
+    </file>
+    <file filepath="data/p">
+        <dcterms:format>text/plain</dcterms:format>
+    </file>
+    <file filepath="data/sub/w">
+        <dcterms:format>text/plain</dcterms:format>
+    </file>
+    <file filepath="data/sub/q">
+        <dcterms:format>text/plain</dcterms:format>
+    </file>
+    <file filepath="data/sub-copy/u">
+        <dcterms:format>text/plain</dcterms:format>
+    </file>
+</files>

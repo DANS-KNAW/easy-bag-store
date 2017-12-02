@@ -157,7 +157,7 @@ trait BagStoreComponent {
      * @return whether the call was successful
      */
     def getAsTar(itemId: ItemId, outputStream: => OutputStream): Try[Unit] = {
-      trace(itemId, outputStream)
+      trace(itemId)
       val bagId = BagId(itemId.uuid)
 
       fileSystem.checkBagExists(bagId).flatMap { _ =>

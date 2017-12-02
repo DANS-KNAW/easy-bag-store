@@ -37,7 +37,7 @@ class FileSystemSpec extends TestSupportFixture
   override val fileSystem: FileSystem = new FileSystem {
     override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
     override val bagPermissions: String = "rwxr-xr-x"
-    override val localBaseUri: URI = new URI("http://example-archive.org")
+    override val localBaseUri: URI = new URI("http://localhost")
   }
 
   implicit val baseDir: BaseDir = store1
@@ -68,7 +68,7 @@ class FileSystemSpec extends TestSupportFixture
     val otherFS = new FileSystem {
       override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
       override val bagPermissions: String = "rwxr-xr-x"
-      override val localBaseUri: URI = new URI("http://example-archive.org")
+      override val localBaseUri: URI = new URI("http://localhost")
     }
 
     val uuid = UUID.randomUUID()
@@ -135,7 +135,7 @@ class FileSystemSpec extends TestSupportFixture
     val otherFS = new FileSystem {
       override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
       override val bagPermissions: String = "rwxr-xr-x"
-      override val localBaseUri: URI = new URI("http://example-archive.org")
+      override val localBaseUri: URI = new URI("http://localhost")
     }
 
     val uuid = UUID.randomUUID()
@@ -183,7 +183,7 @@ class FileSystemSpec extends TestSupportFixture
     val bagId = BagId(UUID.fromString("00000000-0000-0000-0000-000000000001"))
 
     inside(fileSystem.toLocation(bagId)) {
-      case Success(p) => p shouldBe store1.resolve("00/000000000000000000000000000001/bag-revision-1")
+      case Success(p) => p shouldBe store1.resolve("01/000000000000000000000000000001/bag-revision-1")
     }
   }
 
@@ -199,7 +199,7 @@ class FileSystemSpec extends TestSupportFixture
     val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000001"), Paths.get("data/x"))
 
     inside(fileSystem.toLocation(fileId)) {
-      case Success(p) => p shouldBe store1.resolve("00/000000000000000000000000000001/bag-revision-1/data/x")
+      case Success(p) => p shouldBe store1.resolve("01/000000000000000000000000000001/bag-revision-1/data/x")
     }
   }
 
@@ -207,7 +207,7 @@ class FileSystemSpec extends TestSupportFixture
     val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000001"), Paths.get("non-existent/file"))
 
     inside(fileSystem.toLocation(fileId)) {
-      case Success(p) => p shouldBe store1.resolve("00/000000000000000000000000000001/bag-revision-1/non-existent/file")
+      case Success(p) => p shouldBe store1.resolve("01/000000000000000000000000000001/bag-revision-1/non-existent/file")
     }
   }
 
@@ -215,7 +215,7 @@ class FileSystemSpec extends TestSupportFixture
     val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000003"), Paths.get("data/sub-copy/u"))
 
     inside(fileSystem.toRealLocation(fileId)) {
-      case Success(path) => path shouldBe store1.resolve("00/000000000000000000000000000001/bag-revision-1/data/sub/u")
+      case Success(path) => path shouldBe store1.resolve("01/000000000000000000000000000001/bag-revision-1/data/sub/u")
     }
   }
 
@@ -223,7 +223,7 @@ class FileSystemSpec extends TestSupportFixture
     val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000003"), Paths.get("data/x"))
 
     inside(fileSystem.toRealLocation(fileId)) {
-      case Success(path) => path shouldBe store1.resolve("00/000000000000000000000000000001/bag-revision-1/data/x")
+      case Success(path) => path shouldBe store1.resolve("01/000000000000000000000000000001/bag-revision-1/data/x")
     }
   }
 

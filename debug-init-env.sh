@@ -18,10 +18,10 @@
 DATADIR=data
 
 echo -n "Copying test bag stores to $DATADIR..."
-mkdir -p $DATADIR/bag-store1
-cp -r src/test/resources/bag-store/00 $DATADIR/bag-store1/01
-mkdir -p $DATADIR/bag-store2
-cp -r src/test/resources/bag-store/00 $DATADIR/bag-store2/02
+cp -r src/test/resources/bag-store1 $DATADIR/
+cp -r src/test/resources/bag-store2 $DATADIR/
+
+
 echo "OK"
 
 echo -n "Copying test bag-sequence to $DATADIR..."

@@ -43,15 +43,15 @@ class BagsServletSpec extends TestSupportFixture
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    FileUtils.copyDirectoryToDirectory(Paths.get("src/test/resources/bag-store/00").toFile, store1.toFile)
-    FileUtils.copyDirectoryToDirectory(Paths.get("src/test/resources/bag-store/00").toFile, store2.toFile)
-    Files.move(store2.resolve("00/000000000000000000000000000001"), store2.resolve("00/000000000000000000000000000004"))
-    Files.move(store2.resolve("00/000000000000000000000000000002"), store2.resolve("00/000000000000000000000000000005"))
-    Files.move(store2.resolve("00/000000000000000000000000000003"), store2.resolve("00/000000000000000000000000000006"))
+    FileUtils.copyDirectoryToDirectory(Paths.get("src/test/resources/bag-store/01").toFile, store1.toFile)
+    FileUtils.copyDirectoryToDirectory(Paths.get("src/test/resources/bag-store/01").toFile, store2.toFile)
+    Files.move(store2.resolve("01/000000000000000000000000000001"), store2.resolve("01/000000000000000000000000000004"))
+    Files.move(store2.resolve("01/000000000000000000000000000002"), store2.resolve("01/000000000000000000000000000005"))
+    Files.move(store2.resolve("01/000000000000000000000000000003"), store2.resolve("01/000000000000000000000000000006"))
   }
 
   private def setBag1Hidden(): Unit = {
-    Files.move(store1.resolve("00/000000000000000000000000000001/bag-revision-1"), store1.resolve("00/000000000000000000000000000001/.bag-revision-1"))
+    Files.move(store1.resolve("01/000000000000000000000000000001/bag-revision-1"), store1.resolve("01/000000000000000000000000000001/.bag-revision-1"))
   }
 
   private def makeBagstore1Invalid(): Unit = {
@@ -127,8 +127,8 @@ class BagsServletSpec extends TestSupportFixture
   }
 
   it should "return an empty string when all bag-stores are empty" in {
-    FileUtils.deleteDirectory(store1.resolve("00").toFile)
-    FileUtils.deleteDirectory(store2.resolve("00").toFile)
+    FileUtils.deleteDirectory(store1.resolve("01").toFile)
+    FileUtils.deleteDirectory(store2.resolve("01").toFile)
 
     get("/") {
       status shouldBe 200
