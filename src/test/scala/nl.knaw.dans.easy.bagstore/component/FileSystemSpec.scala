@@ -183,7 +183,7 @@ class FileSystemSpec extends TestSupportFixture
     val bagId = BagId(UUID.fromString("00000000-0000-0000-0000-000000000001"))
 
     inside(fileSystem.toLocation(bagId)) {
-      case Success(p) => p shouldBe store1.resolve("01/000000000000000000000000000001/bag-revision-1")
+      case Success(p) => p shouldBe store1.resolve("00/000000000000000000000000000001/bag-revision-1")
     }
   }
 
@@ -199,7 +199,7 @@ class FileSystemSpec extends TestSupportFixture
     val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000001"), Paths.get("data/x"))
 
     inside(fileSystem.toLocation(fileId)) {
-      case Success(p) => p shouldBe store1.resolve("01/000000000000000000000000000001/bag-revision-1/data/x")
+      case Success(p) => p shouldBe store1.resolve("00/000000000000000000000000000001/bag-revision-1/data/x")
     }
   }
 
@@ -207,7 +207,7 @@ class FileSystemSpec extends TestSupportFixture
     val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000001"), Paths.get("non-existent/file"))
 
     inside(fileSystem.toLocation(fileId)) {
-      case Success(p) => p shouldBe store1.resolve("01/000000000000000000000000000001/bag-revision-1/non-existent/file")
+      case Success(p) => p shouldBe store1.resolve("00/000000000000000000000000000001/bag-revision-1/non-existent/file")
     }
   }
 
@@ -215,7 +215,7 @@ class FileSystemSpec extends TestSupportFixture
     val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000003"), Paths.get("data/sub-copy/u"))
 
     inside(fileSystem.toRealLocation(fileId)) {
-      case Success(path) => path shouldBe store1.resolve("01/000000000000000000000000000001/bag-revision-1/data/sub/u")
+      case Success(path) => path shouldBe store1.resolve("00/000000000000000000000000000001/bag-revision-1/data/sub/u")
     }
   }
 
@@ -223,7 +223,7 @@ class FileSystemSpec extends TestSupportFixture
     val fileId = FileId(UUID.fromString("00000000-0000-0000-0000-000000000003"), Paths.get("data/x"))
 
     inside(fileSystem.toRealLocation(fileId)) {
-      case Success(path) => path shouldBe store1.resolve("01/000000000000000000000000000001/bag-revision-1/data/x")
+      case Success(path) => path shouldBe store1.resolve("00/000000000000000000000000000001/bag-revision-1/data/x")
     }
   }
 
