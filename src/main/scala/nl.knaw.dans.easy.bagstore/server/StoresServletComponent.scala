@@ -47,10 +47,10 @@ trait StoresServletComponent extends DebugEnhancedLogging {
 
     get("/:bagstore/bags") {
       val bagstore = params("bagstore")
-      bagStores.getStore(bagstore)
-        .map(base => {
+      bagStores.getStore2(bagstore)
+        .map(baseDir => {
           val (includeActive, includeInactive) = includedStates(params.get("state"))
-          base.enumBags(includeActive, includeInactive)
+          bagStores.enumBags(includeActive, includeInactive, Some(baseDir))
             .map(bagIds => Ok(bagIds.mkString("\n")))
             .getOrRecover(e => {
               logger.error(s"Unexpected type of failure: ${ e.getMessage }", e)
@@ -63,33 +63,33 @@ trait StoresServletComponent extends DebugEnhancedLogging {
     get("/:bagstore/bags/:uuid") {
       val bagstore = params("bagstore")
       val uuidStr = params("uuid")
-      bagStores.getStore(bagstore)
-        .map(base => {
-          ItemId.fromString(uuidStr)
-            .recoverWith {
-              case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
-            }
-            .flatMap {
-              case bagId: BagId =>
-                debug(s"Retrieving item $bagId")
-                request.getHeader("Accept") match {
-                  case "application/zip" => base.get(bagId, response.outputStream).map(_ => Ok())
-                  case "application/x-tar" => base.getAsTar(bagId, response.outputStream).map(_ => Ok())
-                  case "text/plain" | "*/*" | null => base.enumFiles(bagId, includeDirectories = false).map(files => Ok(files.toList.mkString("\n")))
-                  case _ => Try { NotAcceptable() }
-                }
-              case id =>
-                logger.error(s"Asked for a bag-id but got something else: $id")
-                Try { InternalServerError() }
-            }
-            .getOrRecover {
-              case e: IllegalArgumentException => BadRequest(e.getMessage)
-              case e: NoSuchBagException => NotFound(e.getMessage)
-              case NonFatal(e) =>
-                logger.error("Unexpected type of failure", e)
-                InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
-            }
-        })
+      val accept = request.getHeader("Accept")
+      bagStores.getStore2(bagstore)
+        .map(baseDir => ItemId.fromString(uuidStr)
+          .recoverWith {
+            // TODO: Is this mapping from IAE to IAE really necessary??
+            case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"Invalid UUID string: $uuidStr"))
+          }
+          .flatMap(_.toBagId)
+          .flatMap(bagId => {
+            if (accept == "text/plain") bagStores
+              .enumFiles(bagId, includeDirectories = false, Some(baseDir))
+              .map(files => Ok(files.toList.mkString("\n")))
+            else bagStores
+              .getToStream(bagId, acceptToArchiveStreamType.get(accept), response.outputStream, Some(baseDir))
+              .map(_ => Ok())
+          })
+          .map(_ => Ok())
+          .getOrRecover {
+            case e: NoBagIdException => InternalServerError(e.getMessage)
+            case e: IllegalArgumentException => BadRequest(e.getMessage)
+            case e: NoRegularFileException => BadRequest(e.getMessage)
+            case e: NoSuchBagException => NotFound(e.getMessage)
+            case e: NoSuchFileItemException => NotFound(e.getMessage)
+            case NonFatal(e) =>
+              logger.error("Error retrieving bag", e)
+              InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
+          })
         .getOrElse(NotFound(s"No such bag-store: $bagstore"))
     }
 
@@ -98,18 +98,19 @@ trait StoresServletComponent extends DebugEnhancedLogging {
       val uuidStr = params("uuid")
       multiParams("splat") match {
         case Seq(path) =>
-          bagStores.getStore(bagstore)
-            .map(base => ItemId.fromString(s"""$uuidStr/${ path }""")
+          bagStores.getStore2(bagstore)
+            .map(baseDir => ItemId.fromString(s"""$uuidStr/${ path }""")
               .recoverWith {
-                case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
+                case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"Invalid UUID string: $uuidStr"))
               }
               .flatMap(itemId => {
                 debug(s"Retrieving item $itemId")
-                base.get(itemId, response.outputStream)
+                bagStores.getToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType.get), response.outputStream, Some(baseDir))
               })
               .map(_ => Ok())
               .getOrRecover {
                 case e: IllegalArgumentException => BadRequest(e.getMessage)
+                case e: NoRegularFileException => BadRequest(e.getMessage)
                 case e: NoSuchBagException => NotFound(e.getMessage)
                 case e: NoSuchFileItemException => NotFound(e.getMessage)
                 case NonFatal(e) =>
@@ -117,6 +118,9 @@ trait StoresServletComponent extends DebugEnhancedLogging {
                   InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
               })
             .getOrElse(NotFound(s"No such bag-store: $bagstore"))
+        case p =>
+          logger.error(s"Unexpected path: $p")
+          InternalServerError("Unexpected path")
       }
     }
 

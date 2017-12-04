@@ -51,5 +51,9 @@ trait BagStoresFixture extends BagStoreFixture {
       "store1" -> bagStore1,
       "store2" -> bagStore2
     )
+    override val stores2: Map[String, BaseDir] = Map(
+      "store1" -> store1,
+      "store2" -> store2
+    )
   }
 }

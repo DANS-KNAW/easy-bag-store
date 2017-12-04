@@ -55,5 +55,11 @@ trait BagStoreWiring extends BagStoresComponent with BagStoreComponent with BagP
         })
         .toMap
     }
+    override val stores2: Map[String, BaseDir] = {
+      val stores = configuration.stores
+      stores.getKeys.asScala
+        .map(name => name -> Paths.get(stores.getString(name)).toAbsolutePath)
+        .toMap
+    }
   }
 }

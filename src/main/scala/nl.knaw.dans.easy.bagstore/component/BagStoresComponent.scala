@@ -19,6 +19,7 @@ import java.io.{ InputStream, OutputStream }
 import java.nio.file.{ Files, Path }
 import java.util.UUID
 
+import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
@@ -34,15 +35,21 @@ trait BagStoresComponent {
 
   trait BagStores {
 
-    def stores: Map[String, BagStore]
+
+    def stores2: Map[String, BaseDir]
 
     def getStore(name: String): Option[BagStore] = stores.get(name)
 
-    def get(itemId: ItemId, output: Path, fromStore: Option[Path] = None): Try[Path] = {
+    def getStore2(name: String): Option[BaseDir] = stores2.get(name)
+
+    def stores: Map[String, BagStore]
+    def getStore(dir: BaseDir): BagStore = stores.values.find(_.baseDir == dir).getOrElse(BagStore(dir))
+
+
+    def getToDirectory(itemId: ItemId, output: Path, fromStore: Option[BaseDir] = None): Try[Path] = {
       fromStore
-        .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.baseDir == baseDir => store.get(itemId, output)
-        })
+        .map(getStore)
+        .map(_.get(itemId, output))
         .getOrElse {
           stores.values.toStream
             .map(_.get(itemId, output))
@@ -51,41 +58,22 @@ trait BagStoresComponent {
         }
     }
 
-    def getAsTar(itemId: ItemId, outputStream: => OutputStream, fromStore: Option[Path] = None): Try[Unit] = {
+    def getToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream, fromStore: Option[BaseDir] = None): Try[Unit] = {
       fromStore
-        .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.baseDir == baseDir => store.getAsTar(itemId, outputStream)
-        })
+        .map(getStore)
+        .map(_.getToStream(itemId, archiveStreamType, outputStream))
         .getOrElse {
           stores.values.toStream
-            .map(_.getAsTar(itemId, outputStream))
+            .map(_.getToStream(itemId, archiveStreamType, outputStream))
             .find(_.isSuccess)
             .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
         }
     }
 
-    def getStream(itemId: ItemId, output: => OutputStream, fromStore: Option[Path] = None): Try[Unit] = {
+    def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false, fromStore: Option[BaseDir] = None): Try[Seq[BagId]] = {
       fromStore
-        .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.baseDir == baseDir => store.get(itemId, output)
-        })
-        .getOrElse {
-          stores.values.toStream
-            .map(_.get(itemId, output))
-            .find(_.isSuccess)
-            .getOrElse(
-              itemId match {
-                case id @ BagId(_) => Failure(NoSuchBagException(id))
-                case id @ FileId(_, _, _) => Failure(NoSuchFileItemException(id))
-              })
-        }
-    }
-
-    def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false, fromStore: Option[Path] = None): Try[Seq[BagId]] = {
-      fromStore
-        .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.baseDir == baseDir => store.enumBags(includeActive, includeInactive)
-        })
+        .map(getStore)
+        .map(_.enumBags(includeActive, includeInactive))
         .getOrElse {
           stores.values
             .map(_.enumBags(includeActive, includeInactive))
@@ -94,7 +82,7 @@ trait BagStoresComponent {
         }
     }
 
-    def enumFiles(itemId: ItemId, fromStore: Option[Path] = None, includeDirectories: Boolean = true): Try[Seq[FileId]] = {
+    def enumFiles(itemId: ItemId, includeDirectories: Boolean = true, fromStore: Option[BaseDir] = None): Try[Seq[FileId]] = {
       fromStore
         .flatMap(baseDir => stores.collectFirst {
           case (_, store) if store.baseDir == baseDir => store.enumFiles(itemId, includeDirectories)

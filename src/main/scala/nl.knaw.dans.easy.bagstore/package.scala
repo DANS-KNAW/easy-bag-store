@@ -47,6 +47,7 @@ package object bagstore {
   case class OutputAlreadyExists(path: Path) extends Exception(s"Output path already exists; not overwriting $path")
   case class NoBagException(cause: Throwable) extends Exception("The provided input did not contain a bag", cause)
   case class InvalidBagException(bagId: BagId, msg: String) extends Exception(s"Bag $bagId is not a valid bag: $msg")
+  case class NoRegularFileException(itemId: ItemId) extends Exception(s"Item $itemId is not a regular file.")
 
   type BaseDir = Path
 

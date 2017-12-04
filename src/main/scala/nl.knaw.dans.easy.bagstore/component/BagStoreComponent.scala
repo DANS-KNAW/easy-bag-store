@@ -19,6 +19,7 @@ import java.io.OutputStream
 import java.nio.file.{ Files, Path, Paths }
 import java.util.UUID
 
+import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error._
 import org.apache.commons.io.FileUtils
@@ -71,15 +72,18 @@ trait BagStoreComponent {
           if (includeDirectories) calcDirectoriesFromFileSet(payloadFiles)
           else Set.empty[Path]
         }
-        payloadDirIds <- Try { payloadDirs.map(FileId(bagId, _ , isDirectory = true))}
+        payloadDirIds <- Try { payloadDirs.map(FileId(bagId, _, isDirectory = true)) }
         nonPayLoadPaths <- Try {
           walkFiles(bagDir)
             .filter(f => bagDir.resolve("data") != f
               && (includeDirectories || Files.isRegularFile(f))).toSet
         }
-        nonPayloadIds <- Try { nonPayLoadPaths.map(f => FileId(bagId, bagDir.relativize(f), Files.isDirectory(f)))}
+        nonPayloadIds <- Try { nonPayLoadPaths.map(f => FileId(bagId, bagDir.relativize(f), Files.isDirectory(f))) }
         allIds <- Try { payloadDirIds ++ payloadFileIds ++ nonPayloadIds }
-        filteredIds <- Try { if (queriedPath == Paths.get("")) allIds else allIds.filter(_.path.startsWith(queriedPath)) }
+        filteredIds <- Try {
+          if (queriedPath == Paths.get("")) allIds
+          else allIds.filter(_.path.startsWith(queriedPath))
+        }
       } yield filteredIds.toSeq.sortBy(_.path)
     }
 
@@ -146,17 +150,18 @@ trait BagStoreComponent {
     }
 
     /**
-     * Writes the item pointed to by `itemId` as a TAR-stream to `outputStream`. The entry paths in
-     * the TAR-stream will be relative to the item requested, including the item's file name. So if
+     * Writes the item pointed to by `itemId` as an archive-stream to `outputStream`. The entry paths in
+     * the archive-stream will be relative to the item requested, including the item's file name. So if
      * a complete bag is requested, the entry paths will start with the name of the bag, if a directory
      * is requested they will start with that directory's  name, and if a single file is requested,
-     * ''no'' directory entry will be created in the TAR.
+     * ''no'' directory entry will be created in the archive.
      *
-     * @param itemId the requested item
-     * @param outputStream the output stream to write to
+     * @param itemId            the requested item
+     * @param archiveStreamType the format of the outputstream (TAR, ZIP, etc)
+     * @param outputStream      the output stream to write to
      * @return whether the call was successful
      */
-    def getAsTar(itemId: ItemId, outputStream: => OutputStream): Try[Unit] = {
+    def getToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream): Try[Unit] = {
       trace(itemId)
       val bagId = BagId(itemId.uuid)
 
@@ -178,34 +183,18 @@ trait BagStoreComponent {
             }
           }
           allEntries <- Try { (dirSpecs ++ fileSpecs).sortBy(_.entryPath) }
-          _ <- Try { new TarBall(allEntries).writeTo(outputStream) }
-        } yield ()
-      }
-    }
-
-    def getAsTar2(itemId: ItemId, outputStream: => OutputStream, startByte: Long = 0L, endByte: Long = Long.MaxValue): Try[Unit] = {
-      trace(itemId, outputStream)
-      val bagId = BagId(itemId.uuid)
-
-      fileSystem.checkBagExists(bagId).flatMap { _ =>
-        for {
-          bagDir <- fileSystem.toLocation(bagId)
-          itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
-          fileIds <- enumFiles(itemId)
-          fileSpecs <- fileIds.filter(!_.isDirectory).map {
-            fileId =>
-              fileSystem
-                .toRealLocation(fileId)
-                .map(source => createEntrySpec(Some(source), bagDir, itemPath, fileId))
-          }.collectResults
-          dirSpecs <- Try {
-            fileIds.filter(_.isDirectory).map {
-              dir =>
-                createEntrySpec(None, bagDir, itemPath, dir)
+          _ <- archiveStreamType.map { st =>
+            new ArchiveStream(st, allEntries).writeTo(outputStream)
+          }.getOrElse {
+            if (allEntries.size == 1) Try {
+              fileSystem.toRealLocation(fileIds.head)
+                .map(path => {
+                  debug(s"Copying $path to outputstream")
+                  Files.copy(path, outputStream)
+                })
             }
+            else Failure(NoRegularFileException(itemId))
           }
-          allEntries <- Try { (dirSpecs ++ fileSpecs).sortBy(_.entryPath) }
-          _ <- Try { new TarBall(allEntries).writeTo(outputStream) }
         } yield ()
       }
     }
@@ -298,4 +287,11 @@ trait BagStoreComponent {
       fileSystem.toLocation(itemId)
     }
   }
+
+  object BagStore {
+    def apply(dir: BaseDir): BagStore = new BagStore {
+      implicit val baseDir: BaseDir = dir
+    }
+  }
 }
+

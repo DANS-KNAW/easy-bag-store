@@ -19,10 +19,10 @@ TABLE OF CONTENTS
 SYNOPSIS
 --------
 
-    easy-bag-store [--base-dir,-b <dir>|--store,-s <name>]
+    easy-bag-store [-b,--base-dir <dir>|-s,--store-name <name>]
                      # operations on bags in a bag store
-                     | add [--uuid,-u] <bag>
-                     | get <item-id> <out-location>
+                     | add [--u,--uuid] <bag>
+                     | get [-t,--tar|-z,--zip] [--skip-completion] <item-id> <out-location>
                      | enum [[--inactive,-i|--all,-a] <bag-id>]
                      | deactivate <bag-id>
                      | reactivate <bag-id>

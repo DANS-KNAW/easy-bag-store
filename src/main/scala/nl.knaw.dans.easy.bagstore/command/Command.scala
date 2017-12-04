@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagstore.command
 import java.nio.file.Path
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstore.{ BagId, ItemId, TryExtensions2 }
+import nl.knaw.dans.easy.bagstore.{ ArchiveStreamType, BagId, BaseDir, ItemId, TryExtensions2 }
 import nl.knaw.dans.easy.bagstore.service.ServiceWiring
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
@@ -37,8 +37,8 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     verify()
   }
 
-  val bagStoreBaseDir: Option[Path] = commandLine.bagStoreBaseDir.toOption
-    .orElse(commandLine.storeName.toOption.flatMap(name => bagStores.getStore(name).map(_.baseDir)))
+  val bagStoreBaseDir: Option[BaseDir] = commandLine.bagStoreBaseDir.toOption
+    .orElse(commandLine.storeName.toOption.flatMap(name => bagStores.getStore2(name)))
 
   debug(s"Selected base-dir = $bagStoreBaseDir")
 
@@ -57,24 +57,24 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     case Some(cmd @ commandLine.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
-        store <- bagStores.get(itemId, cmd.outputDir(), bagStoreBaseDir)
+        store <- bagStores.getToDirectory(itemId, cmd.outputDir(), bagStoreBaseDir)
         storeName = getStoreName(store)
       } yield s"Retrieved item with item-id: $itemId to ${ cmd.outputDir() } from BagStore: $storeName"
     case Some(cmd @ commandLine.getTar) =>
       for {
         itemId <- ItemId.fromString(cmd.bagId())
-        _ <- bagStores.getAsTar(itemId,  System.out)
+        _ <- bagStores.getToStream(itemId,  Some(ArchiveStreamType.TAR), Console.out, bagStoreBaseDir)
       } yield "Retrieved bag as TAR"
     case Some(cmd @ commandLine.enum) =>
       cmd.bagId.toOption
         .map(s => for {
           itemId <- ItemId.fromString(s)
-          files <- bagStores.enumFiles(itemId, bagStoreBaseDir, !cmd.excludeDirectories())
+          files <- bagStores.enumFiles(itemId, !cmd.excludeDirectories(), bagStoreBaseDir)
         } yield files.foreach(println(_)))
         .getOrElse {
           val includeActive = cmd.all() || !cmd.inactive()
           val includeInactive = cmd.all() || cmd.inactive()
-          bagStores.enumBags(includeActive, includeInactive, bagStoreBaseDir).map(_.foreach(println(_)))
+          bagStores.enumBags(includeActive, includeActive, bagStoreBaseDir).map(_.foreach(println(_)))
         }
         .map(_ => "Done enumerating" + bagStoreBaseDir.map(b => s" (limited to BagStore: ${ getStoreName(b) })").getOrElse(""))
     case Some(cmd @ commandLine.deactivate) =>

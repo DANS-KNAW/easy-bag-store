@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagstore.server
+package nl.knaw.dans.easy.bagstore
 
-trait ServletUtils {
-  type IncludeActive = Boolean
-  type IncludeInactive = Boolean
+import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
 
-  def includedStates(state: Option[String]): (IncludeActive, IncludeInactive) = {
-    state match {
-      case Some("all") => (true, true)
-      case Some("inactive") => (false, true)
-      case _ => (true, false)
-    }
-  }
+package object server {
+  import ArchiveStreamType._
+  val acceptToArchiveStreamType = Map(
+    "application/zip" -> ZIP,
+    "application/x-tar" -> TAR)
 }
