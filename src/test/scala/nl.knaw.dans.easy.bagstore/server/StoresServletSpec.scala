@@ -181,7 +181,7 @@ class StoresServletSpec extends TestSupportFixture
   }
 
   "get /:bagstore/bags/:uuid" should "return an overview of the files in a given bag in a certain store" in {
-    get("/store1/bags/01000000-0000-0000-0000-000000000001") {
+    get("/store1/bags/01000000-0000-0000-0000-000000000001", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 200
       body.lines.toList should contain only(
         "01000000-0000-0000-0000-000000000001/data/x",
@@ -210,14 +210,14 @@ class StoresServletSpec extends TestSupportFixture
   it should "fail when the given uuid is not a uuid" in {
     get("/store1/bags/00000000000000000000000000000001") {
       status shouldBe 400
-      body shouldBe "invalid UUID string: 00000000000000000000000000000001"
+      body shouldBe "Invalid UUID string: 00000000000000000000000000000001"
     }
   }
 
   it should "fail when the given uuid is not a well-formatted uuid" in {
     get("/store1/bags/abc-def-ghi-jkl-mno") {
       status shouldBe 400
-      body shouldBe "invalid UUID string: abc-def-ghi-jkl-mno"
+      body shouldBe "Invalid UUID string: abc-def-ghi-jkl-mno"
     }
   }
 
@@ -302,14 +302,14 @@ class StoresServletSpec extends TestSupportFixture
   it should "fail when the given uuid is not a uuid" in {
     get("/store1/bags/00000000000000000000000000000001/data/y") {
       status shouldBe 400
-      body shouldBe "invalid UUID string: 00000000000000000000000000000001"
+      body shouldBe "Invalid UUID string: 00000000000000000000000000000001"
     }
   }
 
   it should "fail when the given uuid is not a well-formatted uuid" in {
     get("/store1/bags/abc-def-ghi-jkl-mno/data/y") {
       status shouldBe 400
-      body shouldBe "invalid UUID string: abc-def-ghi-jkl-mno"
+      body shouldBe "Invalid UUID string: abc-def-ghi-jkl-mno"
     }
   }
 
@@ -324,7 +324,7 @@ class StoresServletSpec extends TestSupportFixture
   it should "fail when the file is not found" in {
     get("/store1/bags/01000000-0000-0000-0000-000000000001/unknown-folder/unknown-file") {
       status shouldBe 404
-      body shouldBe s"File 01000000-0000-0000-0000-000000000001/unknown-folder/unknown-file does not exist in bag 01000000-0000-0000-0000-000000000001"
+      body shouldBe s"Item 01000000-0000-0000-0000-000000000001/unknown-folder/unknown-file not found"
     }
   }
 
@@ -380,7 +380,7 @@ class StoresServletSpec extends TestSupportFixture
         }.extractAll(unzip.toAbsolutePath.toString)
         unzip.toFile should exist
 
-        pathsEqual(unzip.resolve(bagName), testBagsUnpruned.resolve(bagName), "refbags.txt", "tagmanifest-md5.txt") shouldBe true
+        pathsEqual(unzip.resolve(bagName), testBagsUnpruned.resolve(bagName), "refbags.txt", "tagmanifest-md5.txt", "fetch.txt") shouldBe true
         // BagProcessing.complete causes the order in b/tagmanifest-md5.txt to change...
         Source.fromFile(unzip.resolve(s"$bagName/tagmanifest-md5.txt").toFile).getLines().toList should
           contain theSameElementsAs Source.fromFile(testBagsUnpruned.resolve(s"$bagName/tagmanifest-md5.txt").toFile).getLines().toList

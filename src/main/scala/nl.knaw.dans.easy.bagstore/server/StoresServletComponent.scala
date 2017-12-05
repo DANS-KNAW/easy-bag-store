@@ -79,11 +79,11 @@ trait StoresServletComponent extends DebugEnhancedLogging {
               .getToStream(bagId, acceptToArchiveStreamType.get(accept), response.outputStream, Some(baseDir))
               .map(_ => Ok())
           })
-          .map(_ => Ok())
           .getOrRecover {
             case e: NoBagIdException => InternalServerError(e.getMessage)
             case e: IllegalArgumentException => BadRequest(e.getMessage)
             case e: NoRegularFileException => BadRequest(e.getMessage)
+            case e: NoSuchItemException => NotFound(e.getMessage)
             case e: NoSuchBagException => NotFound(e.getMessage)
             case e: NoSuchFileItemException => NotFound(e.getMessage)
             case NonFatal(e) =>
@@ -111,6 +111,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
               .getOrRecover {
                 case e: IllegalArgumentException => BadRequest(e.getMessage)
                 case e: NoRegularFileException => BadRequest(e.getMessage)
+                case e: NoSuchItemException => NotFound(e.getMessage)
                 case e: NoSuchBagException => NotFound(e.getMessage)
                 case e: NoSuchFileItemException => NotFound(e.getMessage)
                 case NonFatal(e) =>

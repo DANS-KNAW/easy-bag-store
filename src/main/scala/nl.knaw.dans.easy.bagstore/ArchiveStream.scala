@@ -32,6 +32,14 @@ object ArchiveStreamType extends Enumeration {
 import nl.knaw.dans.easy.bagstore.ArchiveStreamType._
 
 /**
+ * Specification for an entry in the archive file.
+ *
+ * @param sourcePath  optional path to an existing file or directory, if None a directory entry will be created
+ * @param entryPath the path of the entry in the archive file
+ */
+case class EntrySpec(sourcePath: Option[Path], entryPath: String)
+
+/**
  * Object representing a TAR ball, providing a function to write it to an output stream.
  *
  * @param files the files in the TAR ball

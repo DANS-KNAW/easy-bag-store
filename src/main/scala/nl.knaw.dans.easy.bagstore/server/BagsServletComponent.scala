@@ -53,7 +53,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
         }
         .flatMap(_.toBagId)
         .flatMap(bagId => {
-          if (accept == "text/plain") bagStores
+          if (accept == "text/plain" || accept == null) bagStores
             .enumFiles(bagId, includeDirectories = false)
             .map(files => Ok(files.toList.mkString("\n")))
           else bagStores
@@ -62,6 +62,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
         })
         .getOrRecover {
           case e: IllegalArgumentException => BadRequest(e.getMessage)
+          case e: NoRegularFileException => BadRequest(e.getMessage)
           case e: NoSuchBagException => NotFound(e.getMessage)
           case e =>
             logger.error("Unexpected type of failure", e)

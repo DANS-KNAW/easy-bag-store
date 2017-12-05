@@ -188,11 +188,12 @@ trait BagStoreComponent {
           }.getOrElse {
             if (allEntries.size == 1) Try {
               fileSystem.toRealLocation(fileIds.head)
-                .map(path => {
+                .map(f = path => {
                   debug(s"Copying $path to outputstream")
                   Files.copy(path, outputStream)
                 })
             }
+            else if(allEntries.isEmpty) Failure(NoSuchItemException(itemId))
             else Failure(NoRegularFileException(itemId))
           }
         } yield ()

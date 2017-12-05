@@ -65,8 +65,11 @@ trait BagStoresComponent {
         .getOrElse {
           stores.values.toStream
             .map(_.getToStream(itemId, archiveStreamType, outputStream))
-            .find(_.isSuccess)
-            .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
+            .find {
+              case Success(()) => true
+              case Failure(e: NoSuchBagException) => false
+              case _ => true
+            }.getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
         }
     }
 
@@ -84,28 +87,18 @@ trait BagStoresComponent {
 
     def enumFiles(itemId: ItemId, includeDirectories: Boolean = true, fromStore: Option[BaseDir] = None): Try[Seq[FileId]] = {
       fromStore
-        .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.baseDir == baseDir => store.enumFiles(itemId, includeDirectories)
-        })
+        .map(getStore)
+        .map(_.enumFiles(itemId, includeDirectories))
         .getOrElse {
-          def recurse(storesToSearch: List[BagStore]): Try[Seq[FileId]] = {
-            storesToSearch match {
-              case Nil => Failure(NoSuchBagException(BagId(itemId.uuid)))
-              case store :: remainingStores =>
-                store.enumFiles(itemId, includeDirectories) match {
-                  case s @ Success(_) => s
-                  case Failure(e) =>
-                    debug(s"Failure returned from store $store: ${e.getMessage}")
-                    logger.error("Exception", e)
-                    recurse(remainingStores)
-                }
-            }
-          }
-
-          recurse(stores.values.toList)
+          stores.values.toStream
+            .map(_.enumFiles(itemId, includeDirectories))
+            .find {
+              case Success(_) => true
+              case Failure(e: NoSuchBagException) => false
+              case _ => true
+            }.getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
         }
     }
-
 
     def putBag(inputStream: InputStream, bagStore: BagStore, uuid: UUID): Try[BagId] = {
       for {
