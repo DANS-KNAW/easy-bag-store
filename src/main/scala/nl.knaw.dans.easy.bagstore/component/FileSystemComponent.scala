@@ -243,7 +243,12 @@ trait FileSystemComponent extends DebugEnhancedLogging {
           validWorkBag <- bagFacade.isValid(workBag)
           _ = debug(validWorkBag.fold(msg => s"invalid bag: $msg", _ => "valid bag"))
           _ <- Try { FileUtils.deleteDirectory(tempDir.toFile) }
-        } yield validWorkBag.fold(msg => Left(msg), _ => if (validTagManifests) Right(()) else Left("tagmanifests are not valid"))
+        } yield {
+          validTagManifests.fold(
+            tmMsg => validWorkBag.fold(bagMsg => Left(s"$tmMsg\n$bagMsg"), _ => Left(tmMsg)),
+            _ => validWorkBag.fold(Left(_), Right(_))
+          )
+        }
       else
         bagFacade.isValid(bagDir)
     }
