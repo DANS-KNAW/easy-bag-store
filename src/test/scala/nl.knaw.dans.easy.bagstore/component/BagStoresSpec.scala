@@ -53,7 +53,7 @@ class BagStoresSpec extends TestSupportFixture
   "get" should "return exactly the same Bag as was added" in {
     val output = testDir.resolve("pruned-output")
     inside(bagStore1.add(testBagPrunedA)) { case Success(result) =>
-      bagStores.getToDirectory(result, output) shouldBe a[Success[_]]
+      bagStores.copyToDirectory(result, output) shouldBe a[Success[_]]
       pathsEqual(testBagPrunedA, output) shouldBe true
     }
   }
@@ -61,7 +61,7 @@ class BagStoresSpec extends TestSupportFixture
   it should "create Bag base directory with the name of parameter 'output' if 'output' does not point to existing directory" in {
     val output = testDir.resolve("non-existent-directory-that-will-become-base-dir-of-exported-Bag")
     inside(bagStore1.add(testBagPrunedA)) { case Success(result) =>
-      bagStores.getToDirectory(result, output) shouldBe a[Success[_]]
+      bagStores.copyToDirectory(result, output) shouldBe a[Success[_]]
       pathsEqual(testBagPrunedA, output) shouldBe true
     }
   }
@@ -71,7 +71,7 @@ class BagStoresSpec extends TestSupportFixture
       val fileId = FileId(bagId, Paths.get("data/x"))
       val output = Files.createDirectory(testDir.resolve("single-file-x"))
 
-      bagStores.getToDirectory(fileId, output) shouldBe a[Success[_]]
+      bagStores.copyToDirectory(fileId, output) shouldBe a[Success[_]]
       pathsEqual(testBagPrunedA.resolve("data/x"), output.resolve("x")) shouldBe true
     }
   }
@@ -81,7 +81,7 @@ class BagStoresSpec extends TestSupportFixture
       val fileId = FileId(bagId, Paths.get("data/x"))
       val output = Files.createDirectory(testDir.resolve("single-file-x-renamed"))
 
-      bagStores.getToDirectory(fileId, output.resolve("x-renamed")) shouldBe a[Success[_]]
+      bagStores.copyToDirectory(fileId, output.resolve("x-renamed")) shouldBe a[Success[_]]
       // Attention: pathsEqual cannot be used, as it also compares file names
       FileUtils.contentEquals(testBagPrunedA.resolve("data/x").toFile, output.resolve("x-renamed").toFile) shouldBe true
     }
@@ -90,8 +90,8 @@ class BagStoresSpec extends TestSupportFixture
   it should "find a Bag in any BagStore if no specific BagStore is specified" in {
     inside(bagStore1.add(testBagPrunedA)) { case Success(bagId1) =>
       inside(bagStore2.add(testBagPrunedA)) { case Success(bagId2) =>
-        bagStores.getToDirectory(bagId1, testDir.resolve("bag-from-store1")) should matchPattern { case Success(`store1`) => }
-        bagStores.getToDirectory(bagId2, testDir.resolve("bag-from-store2")) should matchPattern { case Success(`store2`) => }
+        bagStores.copyToDirectory(bagId1, testDir.resolve("bag-from-store1")) should matchPattern { case Success(`store1`) => }
+        bagStores.copyToDirectory(bagId2, testDir.resolve("bag-from-store2")) should matchPattern { case Success(`store2`) => }
       }
     }
   }
@@ -99,11 +99,11 @@ class BagStoresSpec extends TestSupportFixture
   it should "result in failure if Bag is specifically looked for in the wrong BagStore" in {
     inside(bagStore1.add(testBagPrunedA)) { case Success(bagId1) =>
       inside(bagStore2.add(testBagPrunedA)) { case Success(bagId2) =>
-        bagStores.getToDirectory(bagId2, testDir.resolve("bag-from-store1-wrong"), Some(store1)) should matchPattern {
+        bagStores.copyToDirectory(bagId2, testDir.resolve("bag-from-store1-wrong"), Some(store1)) should matchPattern {
           case Failure(NoSuchBagException(_)) =>
         }
 
-        bagStores.getToDirectory(bagId1, testDir.resolve("bag-from-store2-wrong"), Some(store2)) should matchPattern {
+        bagStores.copyToDirectory(bagId1, testDir.resolve("bag-from-store2-wrong"), Some(store2)) should matchPattern {
           case Failure(NoSuchBagException(_)) =>
         }
       }

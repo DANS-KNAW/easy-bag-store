@@ -57,7 +57,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
             .enumFiles(bagId, includeDirectories = false)
             .map(files => Ok(files.toList.mkString("\n")))
           else bagStores
-            .getToStream(bagId, acceptToArchiveStreamType.get(accept), response.outputStream)
+            .copyToStream(bagId, acceptToArchiveStreamType.get(accept), response.outputStream)
             .map(_ => Ok())
         })
         .getOrRecover {
@@ -80,7 +80,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
             }
             .flatMap(itemId => {
               debug(s"Retrieving item $itemId")
-              bagStores.getToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType.get) , response.outputStream)
+              bagStores.copyToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType.get) , response.outputStream)
             })
             .map(_ => Ok())
             .getOrRecover {

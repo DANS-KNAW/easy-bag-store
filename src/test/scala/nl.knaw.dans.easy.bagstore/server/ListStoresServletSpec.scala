@@ -16,8 +16,9 @@
 package nl.knaw.dans.easy.bagstore.server
 
 import java.net.URI
+import java.nio.file.Paths
 
-import nl.knaw.dans.easy.bagstore.{ BagitFixture, ServletFixture, TestSupportFixture }
+import nl.knaw.dans.easy.bagstore.{ BagitFixture, BaseDir, ServletFixture, TestSupportFixture }
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
 import org.scalamock.scalatest.MockFactory
 import org.scalatra.test.scalatest.ScalatraSuite
@@ -48,15 +49,12 @@ class ListStoresServletSpec extends TestSupportFixture
   }
 
   "get /" should "list all stores as urls to be called" in {
-    val mockStore1 = mock[BagStore]
-    val mockStore2 = mock[BagStore]
-
-    val storeMap: Map[String, BagStore] = Map(
-      "store1" -> mockStore1,
-      "store2" -> mockStore2
+    val storeMap: Map[String, BaseDir] = Map(
+      "store1" -> Paths.get("/base/store1"),
+      "store2" -> Paths.get("/base/store2")
     )
 
-    bagStores.stores _ expects() once() returning storeMap
+    bagStores.storeShortnames _ expects() once() returning storeMap
 
     get("/") {
       status shouldBe 200
@@ -65,7 +63,7 @@ class ListStoresServletSpec extends TestSupportFixture
   }
 
   it should "return an empty message when there are no bagstores" in {
-    bagStores.stores _ expects() once() returning Map.empty
+    bagStores.storeShortnames _ expects() once() returning Map.empty
 
     get("/") {
       status shouldBe 200

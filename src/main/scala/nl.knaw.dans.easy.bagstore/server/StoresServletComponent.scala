@@ -39,7 +39,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
 
     get("/") {
       contentType = "text/plain"
-      bagStores.stores
+      bagStores.storeShortnames
         .keys
         .map(store => s"<${ externalBaseUri.resolve(s"stores/$store") }>")
         .mkString("\n")
@@ -47,7 +47,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
 
     get("/:bagstore/bags") {
       val bagstore = params("bagstore")
-      bagStores.getStore2(bagstore)
+      bagStores.getBaseDirByShortname(bagstore)
         .map(baseDir => {
           val (includeActive, includeInactive) = includedStates(params.get("state"))
           bagStores.enumBags(includeActive, includeInactive, Some(baseDir))
@@ -64,7 +64,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
       val bagstore = params("bagstore")
       val uuidStr = params("uuid")
       val accept = request.getHeader("Accept")
-      bagStores.getStore2(bagstore)
+      bagStores.getBaseDirByShortname(bagstore)
         .map(baseDir => ItemId.fromString(uuidStr)
           .recoverWith {
             // TODO: Is this mapping from IAE to IAE really necessary??
@@ -76,7 +76,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
               .enumFiles(bagId, includeDirectories = false, Some(baseDir))
               .map(files => Ok(files.toList.mkString("\n")))
             else bagStores
-              .getToStream(bagId, acceptToArchiveStreamType.get(accept), response.outputStream, Some(baseDir))
+              .copyToStream(bagId, acceptToArchiveStreamType.get(accept), response.outputStream, Some(baseDir))
               .map(_ => Ok())
           })
           .getOrRecover {
@@ -98,14 +98,14 @@ trait StoresServletComponent extends DebugEnhancedLogging {
       val uuidStr = params("uuid")
       multiParams("splat") match {
         case Seq(path) =>
-          bagStores.getStore2(bagstore)
+          bagStores.getBaseDirByShortname(bagstore)
             .map(baseDir => ItemId.fromString(s"""$uuidStr/${ path }""")
               .recoverWith {
                 case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"Invalid UUID string: $uuidStr"))
               }
               .flatMap(itemId => {
                 debug(s"Retrieving item $itemId")
-                bagStores.getToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType.get), response.outputStream, Some(baseDir))
+                bagStores.copyToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType.get), response.outputStream, Some(baseDir))
               })
               .map(_ => Ok())
               .getOrRecover {
@@ -128,14 +128,13 @@ trait StoresServletComponent extends DebugEnhancedLogging {
     put("/:bagstore/bags/:uuid") {
       val bagstore = params("bagstore")
       val uuidStr = params("uuid")
-      bagStores.getStore(bagstore)
+      bagStores.getBaseDirByShortname(bagstore)
         .map(base => {
           Try { UUID.fromString(uuidStr) }
             .recoverWith {
               case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
             }
             .flatMap(uuid => {
-              implicit val baseDir: BaseDir = base.baseDir
               bagStores.putBag(request.getInputStream, base, uuid)
             })
             .map(bagId => Created(headers = Map(

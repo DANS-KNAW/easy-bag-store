@@ -47,11 +47,7 @@ trait BagStoresFixture extends BagStoreFixture {
   }
 
   override val bagStores = new BagStores {
-    override val stores: Map[String, BagStore] = Map(
-      "store1" -> bagStore1,
-      "store2" -> bagStore2
-    )
-    override val stores2: Map[String, BaseDir] = Map(
+    override val storeShortnames: Map[String, BaseDir] = Map(
       "store1" -> store1,
       "store2" -> store2
     )
