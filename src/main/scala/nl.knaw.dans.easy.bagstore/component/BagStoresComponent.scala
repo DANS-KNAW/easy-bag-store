@@ -15,93 +15,88 @@
  */
 package nl.knaw.dans.easy.bagstore.component
 
-import java.io.{InputStream, OutputStream}
+import java.io.{ InputStream, OutputStream }
 import java.nio.file.{ Files, Path }
 import java.util.UUID
 
+import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error._
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
 
 import scala.language.postfixOps
 import scala.util.{ Failure, Success, Try }
 
 trait BagStoresComponent {
-  this: FileSystemComponent with BagProcessingComponent with BagStoreComponent =>
+  this: FileSystemComponent with BagProcessingComponent with BagStoreComponent with DebugEnhancedLogging =>
 
   val bagStores: BagStores
 
   trait BagStores {
+    def storeShortnames: Map[String, BaseDir]
+    def getBaseDirByShortname(name: String): Option[BaseDir] = storeShortnames.get(name)
 
-    def stores: Map[String, BagStore]
-
-    def getStore(name: String): Option[BagStore] = stores.get(name)
-
-    def get(itemId: ItemId, output: Path, fromStore: Option[Path] = None): Try[Path] = {
+    def copyToDirectory(itemId: ItemId, output: Path, skipCompletion: Boolean = false, fromStore: Option[BaseDir] = None): Try[(Path, BaseDir)] = {
       fromStore
-        .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.baseDir == baseDir => store.get(itemId, output)
-        })
+        .map(BagStore(_))
+        .map(_.copyToDirectory(itemId, output, skipCompletion))
         .getOrElse {
-          stores.values.toStream
-            .map(_.get(itemId, output))
+          storeShortnames.values.toStream
+            .map(BagStore(_))
+            .map(_.copyToDirectory(itemId, output, skipCompletion))
             .find(_.isSuccess)
             .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
         }
     }
 
-    def getStream(itemId: ItemId, output: => OutputStream, fromStore: Option[Path] = None): Try[Unit] = {
+    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream, fromStore: Option[BaseDir] = None): Try[Unit] = {
       fromStore
-        .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.baseDir == baseDir => store.get(itemId, output)
-        })
+        .map(BagStore(_))
+        .map(_.copyToStream(itemId, archiveStreamType, outputStream))
         .getOrElse {
-          stores.values.toStream
-            .map(_.get(itemId, output))
-            .find(_.isSuccess)
-            .getOrElse(
-              itemId match {
-                case id @ BagId(_) => Failure(NoSuchBagException(id))
-                case id @ FileId(_, _) => Failure(NoSuchFileItemException(id))
-              })
+          storeShortnames.values.toStream
+            .map(BagStore(_))
+            .map(_.copyToStream(itemId, archiveStreamType, outputStream))
+            .find {
+              case Success(()) => true
+              case Failure(e: NoSuchBagException) => false
+              case _ => true
+            }.getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
         }
     }
 
-    def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false, fromStore: Option[Path] = None): Try[Seq[BagId]] = {
+    def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false, fromStore: Option[BaseDir] = None): Try[Seq[BagId]] = {
       fromStore
-        .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.baseDir == baseDir => store.enumBags(includeActive, includeInactive)
-        })
+        .map(BagStore(_))
+        .map(_.enumBags(includeActive, includeInactive))
         .getOrElse {
-          stores.values
+          storeShortnames.values.toStream
+            .map(BagStore(_))
             .map(_.enumBags(includeActive, includeInactive))
             .collectResults
             .map(_.reduceOption(_ ++ _).getOrElse(Seq.empty))
         }
     }
 
-    def enumFiles(bagId: BagId, fromStore: Option[Path] = None): Try[Seq[FileId]] = {
+    def enumFiles(itemId: ItemId, includeDirectories: Boolean = true, fromStore: Option[BaseDir] = None): Try[Seq[FileId]] = {
       fromStore
-        .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.baseDir == baseDir => store.enumFiles(bagId)
-        })
+        .map(BagStore(_))
+        .map(_.enumFiles(itemId, includeDirectories))
         .getOrElse {
-          def recurse(storesToSearch: List[BagStore]): Try[Seq[FileId]] = {
-            storesToSearch match {
-              case Nil => Failure(NoSuchBagException(bagId))
-              case store :: remainingStores =>
-                store.enumFiles(bagId) match {
-                  case s @ Success(_) => s
-                  case Failure(_) => recurse(remainingStores)
-                }
-            }
-          }
-
-          recurse(stores.values.toList)
+          storeShortnames.values.toStream
+            .map(BagStore(_))
+            .map(_.enumFiles(itemId, includeDirectories))
+            .find {
+              case Success(_) => true
+              case Failure(e: NoSuchBagException) => false
+              case _ => true
+            }.getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
         }
     }
 
-    def putBag(inputStream: InputStream, bagStore: BagStore, uuid: UUID): Try[BagId] = {
+    def putBag(inputStream: InputStream, baseDir: BaseDir, uuid: UUID): Try[BagId] = {
+      val bagStore = BagStore(baseDir)
       for {
         _ <- checkBagDoesNotExist(BagId(uuid))
         staging <- bagProcessing.unzipBag(inputStream)
@@ -112,8 +107,8 @@ trait BagStoresComponent {
     }
 
     private def checkBagDoesNotExist(bagId: BagId): Try[Unit] = {
-      stores.map { case (name, store) =>
-        implicit val baseDir: BaseDir = store.baseDir
+      storeShortnames.map { case (name, store) =>
+        implicit val baseDir: BaseDir = store
         fileSystem.toContainer(bagId)
           .flatMap {
             case file if Files.exists(file) && Files.isDirectory(file) => Failure(BagIdAlreadyAssignedException(bagId, name))
@@ -123,13 +118,13 @@ trait BagStoresComponent {
       }.collectResults.map(_ => ())
     }
 
-    def deactivate(bagId: BagId, fromStore: Option[Path] = None): Try[Unit] = {
+    def deactivate(bagId: BagId, fromStore: Option[BaseDir] = None): Try[Unit] = {
       fromStore
-        .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.baseDir == baseDir => store.deactivate(bagId)
-        })
+        .map(BagStore(_))
+        .map(_.deactivate(bagId))
         .getOrElse {
-          stores.values.toStream
+          storeShortnames.values.toStream
+            .map(BagStore(_))
             .map(_.deactivate(bagId))
             .find {
               case Success(_) | Failure(AlreadyInactiveException(_)) => true
@@ -139,13 +134,13 @@ trait BagStoresComponent {
         }
     }
 
-    def reactivate(bagId: BagId, fromStore: Option[Path] = None): Try[Unit] = {
+    def reactivate(bagId: BagId, fromStore: Option[BaseDir] = None): Try[Unit] = {
       fromStore
-        .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.baseDir == baseDir => store.reactivate(bagId)
-        })
+        .map(BagStore(_))
+        .map(_.reactivate(bagId))
         .getOrElse {
-          stores.values.toStream
+          storeShortnames.values.toStream
+            .map(BagStore(_))
             .map(_.reactivate(bagId))
             .find {
               case Success(_) | Failure(NotInactiveException(_)) => true
@@ -157,11 +152,11 @@ trait BagStoresComponent {
 
     def locate(itemId: ItemId, fromStore: Option[Path] = None): Try[Path] = {
       fromStore
-        .flatMap(baseDir => stores.collectFirst {
-          case (_, store) if store.baseDir == baseDir => store.locate(itemId)
-        })
+        .map(BagStore(_))
+        .map(_.locate(itemId))
         .getOrElse {
-          stores.values.toStream
+          storeShortnames.values.toStream
+            .map(BagStore(_))
             .map(_.locate(itemId))
             .find(_.isSuccess)
             .getOrElse(Failure(NoSuchItemException(itemId)))

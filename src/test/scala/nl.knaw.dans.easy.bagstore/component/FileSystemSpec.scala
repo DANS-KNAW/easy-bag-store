@@ -37,7 +37,7 @@ class FileSystemSpec extends TestSupportFixture
   override val fileSystem: FileSystem = new FileSystem {
     override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
     override val bagPermissions: String = "rwxr-xr-x"
-    override val localBaseUri: URI = new URI("http://example-archive.org")
+    override val localBaseUri: URI = new URI("http://localhost")
   }
 
   implicit val baseDir: BaseDir = store1
@@ -68,7 +68,7 @@ class FileSystemSpec extends TestSupportFixture
     val otherFS = new FileSystem {
       override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
       override val bagPermissions: String = "rwxr-xr-x"
-      override val localBaseUri: URI = new URI("http://example-archive.org")
+      override val localBaseUri: URI = new URI("http://localhost")
     }
 
     val uuid = UUID.randomUUID()
@@ -96,7 +96,7 @@ class FileSystemSpec extends TestSupportFixture
     val bagPath = Paths.get(parentDir, childDir, "bag-name", "filename")
 
     inside(fileSystem.fromLocation(store1.toAbsolutePath.resolve(bagPath))) {
-      case Success(FileId(BagId(foundUuid), filepath)) =>
+      case Success(FileId(BagId(foundUuid), filepath, _)) =>
         foundUuid shouldBe uuid
         filepath shouldBe Paths.get("filename")
     }
@@ -108,7 +108,7 @@ class FileSystemSpec extends TestSupportFixture
     val bagPath = Paths.get(parentDir, childDir, "bag-name", "a", "longer", "path")
 
     inside(fileSystem.fromLocation(store1.toAbsolutePath.resolve(bagPath))) {
-      case Success(FileId(BagId(foundUuid), filepath)) =>
+      case Success(FileId(BagId(foundUuid), filepath, _)) =>
         foundUuid shouldBe uuid
         filepath shouldBe Paths.get("a", "longer", "path")
     }
@@ -135,7 +135,7 @@ class FileSystemSpec extends TestSupportFixture
     val otherFS = new FileSystem {
       override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
       override val bagPermissions: String = "rwxr-xr-x"
-      override val localBaseUri: URI = new URI("http://example-archive.org")
+      override val localBaseUri: URI = new URI("http://localhost")
     }
 
     val uuid = UUID.randomUUID()
@@ -149,7 +149,7 @@ class FileSystemSpec extends TestSupportFixture
     val uuid = UUID.randomUUID()
 
     inside(fileSystem.fromUri(new URI(s"$localBaseUri/$uuid/"))) {
-      case Success(FileId(BagId(foundUuid), path)) =>
+      case Success(FileId(BagId(foundUuid), path, _)) =>
         foundUuid shouldBe uuid
         path shouldBe Paths.get("")
     }
@@ -159,7 +159,7 @@ class FileSystemSpec extends TestSupportFixture
     val uuid = UUID.randomUUID()
 
     inside(fileSystem.fromUri(new URI(s"$localBaseUri/$uuid/filename"))) {
-      case Success(FileId(BagId(foundUuid), filepath)) =>
+      case Success(FileId(BagId(foundUuid), filepath, _)) =>
         foundUuid shouldBe uuid
         filepath shouldBe Paths.get("filename")
     }
@@ -169,7 +169,7 @@ class FileSystemSpec extends TestSupportFixture
     val uuid = UUID.randomUUID()
 
     inside(fileSystem.fromUri(new URI(s"$localBaseUri/$uuid/a/longer/path"))) {
-      case Success(FileId(BagId(foundUuid), filepath)) =>
+      case Success(FileId(BagId(foundUuid), filepath, _)) =>
         foundUuid shouldBe uuid
         filepath shouldBe Paths.get("a", "longer", "path")
     }

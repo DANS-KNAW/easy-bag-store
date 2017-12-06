@@ -18,11 +18,11 @@ package nl.knaw.dans.easy.bagstore.command
 import java.nio.file.Path
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstore.ItemId
 import nl.knaw.dans.easy.bagstore.service.ServiceWiring
-import nl.knaw.dans.easy.bagstore.TryExtensions2
+import nl.knaw.dans.easy.bagstore.{ ArchiveStreamType, BaseDir, ItemId, TryExtensions2 }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import nl.knaw.dans.easy.bagstore.ArchiveStreamType._
 
 import scala.annotation.tailrec
 import scala.io.StdIn
@@ -34,12 +34,17 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
 
   type FeedBackMessage = String
 
+  val formatToArchiveStreamType = Map(
+    "zip" -> ZIP,
+    "tar" -> TAR)
+
+
   override val commandLine: CommandLineOptions = new CommandLineOptions(args) {
     verify()
   }
 
-  val bagStoreBaseDir: Option[Path] = commandLine.bagStoreBaseDir.toOption
-    .orElse(commandLine.storeName.toOption.flatMap(name => bagStores.getStore(name).map(_.baseDir)))
+  val bagStoreBaseDir: Option[BaseDir] = commandLine.bagStoreBaseDir.toOption
+    .orElse(commandLine.storeName.toOption.flatMap(name => bagStores.getBaseDirByShortname(name)))
 
   debug(s"Selected base-dir = $bagStoreBaseDir")
 
@@ -47,31 +52,30 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     case Some(commandLine.list) => Try { s"Configured bag-stores:\n$listStores" }
     case Some(cmd @ commandLine.add) =>
       val bagUuid = cmd.uuid.toOption.map(UUID.fromString)
-
-      val (name, store) = bagStoreBaseDir.flatMap(getStore).getOrElse {
-        bagStores.stores.toList match {
-          case nameAndStore :: Nil => nameAndStore
-          case _ => promptForStore("Please, select which BagStore to add to.")
-        }
-      }
-      store.add(cmd.bag(), bagUuid).map(bagId => s"Added Bag with bag-id: $bagId to BagStore: $name")
+      val baseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select which bag store to add to."))
+      BagStore(baseDir).add(cmd.bag(), bagUuid).map(bagId => s"Added bag with bag-id: $bagId to bag store: $baseDir")
     case Some(cmd @ commandLine.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
-        store <- bagStores.get(itemId, cmd.outputDir(), bagStoreBaseDir)
+        (path, store) <- bagStores.copyToDirectory(itemId, cmd.outputDir(), cmd.skipCompletion(), bagStoreBaseDir)
         storeName = getStoreName(store)
-      } yield s"Retrieved item with item-id: $itemId to ${ cmd.outputDir() } from BagStore: $storeName"
+      } yield s"Retrieved item with item-id: $itemId to ${ path } from bag store: $storeName"
+    case Some(cmd @ commandLine.stream) =>
+      for {
+        itemId <- ItemId.fromString(cmd.itemId())
+        _ <- bagStores.copyToStream(itemId, cmd.format.toOption.flatMap(formatToArchiveStreamType.get), Console.out, bagStoreBaseDir)
+      } yield s"Retrieved item with item-id: $itemId to stream."
+      // TODO: Also report from which bag store, as with get
     case Some(cmd @ commandLine.enum) =>
       cmd.bagId.toOption
         .map(s => for {
           itemId <- ItemId.fromString(s)
-          bagId <- itemId.toBagId
-          files <- bagStores.enumFiles(bagId, bagStoreBaseDir)
+          files <- bagStores.enumFiles(itemId, !cmd.excludeDirectories(), bagStoreBaseDir)
         } yield files.foreach(println(_)))
         .getOrElse {
           val includeActive = cmd.all() || !cmd.inactive()
           val includeInactive = cmd.all() || cmd.inactive()
-          bagStores.enumBags(includeActive, includeInactive, bagStoreBaseDir).map(_.foreach(println(_)))
+          bagStores.enumBags(includeActive, includeActive, bagStoreBaseDir).map(_.foreach(println(_)))
         }
         .map(_ => "Done enumerating" + bagStoreBaseDir.map(b => s" (limited to BagStore: ${ getStoreName(b) })").getOrElse(""))
     case Some(cmd @ commandLine.deactivate) =>
@@ -87,14 +91,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
         _ <- bagStores.reactivate(bagId, bagStoreBaseDir)
       } yield s"Removed inactive mark from ${ cmd.bagId() }"
     case Some(cmd @ commandLine.prune) =>
-      implicit val base: BagPath = bagStoreBaseDir.getOrElse {
-        bagStores.stores.toList match {
-          case (_, store) :: Nil => store.baseDir
-          case _ =>
-            val (_, store) = promptForStore("Please, select the BagStore containing the reference bags.")
-            store.baseDir
-        }
-      }
+      implicit val baseDir: BaseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select which bag store to add to."))
       cmd.referenceBags.toOption
         .map(refBags => refBags.map(ItemId.fromString).map(_.flatMap(_.toBagId))
           .collectResults
@@ -102,14 +99,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
           .map(_ => "Done pruning"))
         .getOrElse(Success("No reference Bags specified: nothing to do"))
     case Some(cmd @ commandLine.complete) =>
-      implicit val base: BagPath = bagStoreBaseDir.getOrElse {
-        bagStores.stores.toList match {
-          case (_, store) :: Nil => store.baseDir
-          case _ =>
-            val (_, store) = promptForStore("Please, select the BagStore containing the reference bags.")
-            store.baseDir
-        }
-      }
+      implicit val baseDir: BaseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select in the context of which bag store to complete."))
       bagProcessing.complete(cmd.bagDir()).map(_ => s"Done completing ${ cmd.bagDir() }")
     case Some(cmd @ commandLine.locate) =>
       for {
@@ -117,43 +107,36 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
         location <- bagStores.locate(itemId, bagStoreBaseDir)
       } yield location.toString
     case Some(cmd @ commandLine.validate) =>
-      implicit val base: BagPath = bagStoreBaseDir.getOrElse {
-        bagStores.stores.toList match {
-          case (_, store) :: Nil => store.baseDir
-          case _ =>
-            val (_, store) = promptForStore("Please, select the BagStore containing the reference bags.")
-            store.baseDir
-        }
-      }
+      implicit val baseDir: BaseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select in the context of which bag store to validate."))
       fileSystem.isVirtuallyValid(cmd.bagDir())
         .map(res => s"Done validating. Result: " + res.fold(msg => s"not virtually valid; Messages: '$msg'", _ => "virtually-valid"))
     case Some(_ @ commandLine.runService) => runAsService()
     case _ => Try { s"Unknown command: ${ commandLine.subcommand }" }
   }
 
-  result.doIfSuccess(msg => println(s"OK: $msg"))
+  result.doIfSuccess(msg => Console.err.println(s"OK: $msg"))
     .doIfFailure { case e => logger.error(e.getMessage, e) }
-    .doIfFailure { case NonFatal(e) => println(s"FAILED: ${ e.getMessage }") }
+    .doIfFailure { case NonFatal(e) => Console.err.println(s"FAILED: ${ e.getMessage }") }
 
   bagFacade.stop().unsafeGetOrThrow
 
   private def listStores: String = {
-    bagStores.stores.map { case (name, base) => s"- $name -> ${ base.baseDir }" }.mkString("\n")
+    bagStores.storeShortnames.map { case (name, base) => s"- $name -> $base" }.mkString("\n")
   }
 
-  private def getStoreName(p: Path): String = {
-    bagStores.stores.collectFirst { case (name, base) if base == p => name }.getOrElse(p.toString)
-  }
-
-  private def getStore(p: Path): Option[(String, BagStore)] = {
-    bagStores.stores.find { case (_, store) => store.baseDir == p }
+  private def getStoreName(p: BaseDir): String = {
+    bagStores.storeShortnames.collectFirst { case (name, base) if base == p => name }.getOrElse(p.toString)
   }
 
   @tailrec
-  private def promptForStore(msg: String): (String, BagStore) = {
-    val name = StdIn.readLine(s"$msg\nAvailable BagStores:\n$listStores\nSelect a name: ")
-    bagStores.getStore(name) match {
-      case Some(store) => (name, store)
+  private def promptForStore(msg: String): BaseDir = {
+    val name = StdIn.readLine(
+      s"""$msg
+         |Available BagStores:
+         |$listStores
+         |Select a name: """.stripMargin)
+    bagStores.getBaseDirByShortname(name) match {
+      case Some(store) => store
       case None => promptForStore(msg)
     }
   }

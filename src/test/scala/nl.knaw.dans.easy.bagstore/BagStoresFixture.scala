@@ -30,7 +30,7 @@ trait BagStoresFixture extends BagStoreFixture {
   override val fileSystem = new FileSystem {
     override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
     override val bagPermissions: String = "rwxr-xr-x"
-    override val localBaseUri: URI = new URI("http://example-archive.org")
+    override val localBaseUri: URI = new URI("http://localhost")
   }
 
   override val bagProcessing = new BagProcessing {
@@ -47,9 +47,9 @@ trait BagStoresFixture extends BagStoreFixture {
   }
 
   override val bagStores = new BagStores {
-    override val stores: Map[String, BagStore] = Map(
-      "store1" -> bagStore1,
-      "store2" -> bagStore2
+    override val storeShortnames: Map[String, BaseDir] = Map(
+      "store1" -> store1,
+      "store2" -> store2
     )
   }
 }

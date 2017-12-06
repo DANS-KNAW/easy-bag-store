@@ -19,22 +19,25 @@ TABLE OF CONTENTS
 SYNOPSIS
 --------
 
-    easy-bag-store [--base-dir,-b <dir>|--store,-s <name>]
-                     # operations on bags in a bag store
-                     | add [--uuid,-u] <bag>
-                     | get <item-id> <out-location>
-                     | enum [[--inactive,-i|--all,-a] <bag-id>]
+    easy-bag-store [-b,--base-dir <dir>|-s,--store-name <name>]
+                     # operations on items in a bag store
+                     | list
+                     | add [-u,--uuid <uuid>] <bag>
+                     | get [-s,--skip-completion] [-d,--directory <dir>] <item-id> 
+                     | stream [-f,--format zip|tar] <item-id>
+                     | enum [[-i,--inactive|-a,--all] <bag-id>]
+                     | locate [<item-id>]
                      | deactivate <bag-id>
                      | reactivate <bag-id>
-                     | verify [<bag-id>]
-                     | erase <file-id>...
+                     | verify [<bag-id>] # Not implemented yet
+                     | erase <file-id>... # Not implemented yet
                      
                      # operations on bags outside a bag store
                      | prune <bag-dir> <ref-bag-id>...
                      | complete <bag-dir>
                      | validate <bag-dir>
                      
-                     # Start as HTTP service
+                     # start as HTTP service
                      | run-service
                           
 

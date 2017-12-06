@@ -16,10 +16,12 @@
 package nl.knaw.dans.easy.bagstore.component
 
 import java.io.OutputStream
-import java.nio.file.{ Files, Path }
+import java.nio.file.{ Files, Path, Paths }
 import java.util.UUID
 
+import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
 import nl.knaw.dans.easy.bagstore._
+import nl.knaw.dans.lib.error._
 import org.apache.commons.io.FileUtils
 import resource._
 
@@ -52,84 +54,121 @@ trait BagStoreComponent {
 
     private def isHidden(bagId: BagId): Try[Boolean] = fileSystem.toLocation(bagId).map(Files.isHidden)
 
-    def enumFiles(bagId: BagId): Try[Seq[FileId]] = {
-      trace(bagId)
+    def enumFiles(itemId: ItemId, includeDirectories: Boolean = true): Try[Seq[FileId]] = {
+      trace(itemId)
+      val bagId = BagId(itemId.uuid)
+
+      val queriedPath = itemId match {
+        case fileId: FileId => fileId.path
+        case bagId: BagId => Paths.get("")
+      }
 
       for {
         _ <- fileSystem.checkBagExists(bagId)
-        path <- fileSystem.toLocation(bagId)
-        payloadPaths <- bagFacade.getPayloadFilePaths(path)
-        _ = debug(s"Payload files: $payloadPaths")
-      } yield walkFiles(path)
-        .filter(p => Files.isRegularFile(p) &&
-          (path.resolve("data").relativize(p).toString startsWith ".."))
-        .toSet
-        .union(payloadPaths)
-        .map(path.relativize)
-        .map(FileId(bagId, _))
-        .toSeq
-    }
-
-    def get(itemId: ItemId, output: => OutputStream): Try[Unit] = {
-      trace(itemId)
-
-      for {
-        _ <- fileSystem.checkBagExists(BagId(itemId.uuid))
-        _ <- itemId match {
-          case bagId: BagId =>
-            for {
-              location <- fileSystem.toLocation(bagId)
-              stagingDir <- bagProcessing.stageBagDir(location)
-              stagedBag = stagingDir.resolve(location.getFileName)
-              _ <- bagProcessing.complete(stagedBag)
-              zipStaging <- bagProcessing.stageBagZip(stagedBag)
-              _ = Files.copy(zipStaging.resolve(location.getFileName), output)
-              _ = FileUtils.deleteDirectory(stagingDir.toFile)
-              _ = FileUtils.deleteDirectory(zipStaging.toFile)
-            } yield ()
-          case fileId: FileId =>
-            fileSystem.toRealLocation(fileId)
-              .map(path => {
-                debug(s"Copying $path to outputstream")
-                Files.copy(path, output)
-              })
+        bagDir <- fileSystem.toLocation(bagId)
+        payloadFiles <- bagFacade.getPayloadFilePaths(bagDir).map(_.map(bagDir.relativize))
+        payloadFileIds <- Try { payloadFiles.map(FileId(bagId, _)) }
+        payloadDirs <- Try {
+          if (includeDirectories) calcDirectoriesFromFileSet(payloadFiles)
+          else Set.empty[Path]
         }
-      } yield ()
+        payloadDirIds <- Try { payloadDirs.map(FileId(bagId, _, isDirectory = true)) }
+        nonPayLoadPaths <- Try {
+          walkFiles(bagDir)
+            .filter(f => bagDir.resolve("data") != f
+              && (includeDirectories || Files.isRegularFile(f))).toSet
+        }
+        nonPayloadIds <- Try { nonPayLoadPaths.map(f => FileId(bagId, bagDir.relativize(f), Files.isDirectory(f))) }
+        allIds <- Try { payloadDirIds ++ payloadFileIds ++ nonPayloadIds }
+        filteredIds <- Try {
+          if (queriedPath == Paths.get("")) allIds
+          else allIds.filter(_.path.startsWith(queriedPath))
+        }
+      } yield filteredIds.toSeq.sortBy(_.path)
     }
 
-    def get(itemId: ItemId, output: Path): Try[Path] = {
+    def copyToDirectory(itemId: ItemId, output: Path, skipCompletion: Boolean = false): Try[(Path, BaseDir)] = {
       trace(itemId, output)
-      fileSystem.checkBagExists(BagId(itemId.uuid)).flatMap { _ =>
-        itemId match {
-          case bagId: BagId =>
-            fileSystem.toLocation(bagId)
-              .map(path => {
-                val target = if (Files.isDirectory(output)) output.resolve(path.getFileName)
-                             else output
-                if (Files.exists(target)) {
-                  debug("Target already exists")
-                  throw OutputAlreadyExists(target)
-                }
-                else {
-                  debug(s"Creating directory for output: $target")
-                  Files.createDirectory(target)
-                  debug(s"Copying bag from $path to $target")
-                  FileUtils.copyDirectory(path.toFile, target.toFile)
+      if (Files.isRegularFile(output)) Failure(OutputAlreadyExists(output))
+      else {
+        if (!Files.exists(output)) Files.createDirectories(output)
+        fileSystem.checkBagExists(BagId(itemId.uuid)).flatMap { _ =>
+          itemId match {
+            case bagId: BagId =>
+              fileSystem.toLocation(bagId)
+                .map(path => {
+                  debug(s"Copying bag from $path to $output")
+                  FileUtils.copyDirectoryToDirectory(path.toFile, output.toFile)
+                  if (!skipCompletion) bagProcessing.complete(output.resolve(path.getFileName))
                   Files.walk(output).iterator().asScala.foreach(bagProcessing.setPermissions(_))
-                  baseDir
-                }
-              })
-          case fileId: FileId =>
-            fileSystem.toRealLocation(fileId)
-              .map(path => {
-                val target = if (Files.isDirectory(output)) output.resolve(path.getFileName)
-                             else output
-                Files.copy(path, target)
-                bagProcessing.setFilePermissions()(target)
-                baseDir
-              })
+                  (output.resolve(path.getFileName), baseDir)
+                })
+            case fileId: FileId =>
+              fileSystem.toRealLocation(fileId)
+                .map(path => {
+                  FileUtils.copyFileToDirectory(path.toFile, output.toFile)
+                  bagProcessing.setFilePermissions()(output.resolve(path.getFileName))
+                  (output.resolve(path.getFileName), baseDir)
+                })
+          }
         }
       }
+    }
+
+    /**
+     * Writes the item pointed to by `itemId` as an archive-stream to `outputStream`. The entry paths in
+     * the archive-stream will be relative to the item requested, including the item's file name. So if
+     * a complete bag is requested, the entry paths will start with the name of the bag, if a directory
+     * is requested they will start with that directory's  name, and if a single file is requested,
+     * ''no'' directory entry will be created in the archive.
+     *
+     * @param itemId            the requested item
+     * @param archiveStreamType the format of the outputstream (TAR, ZIP, etc)
+     * @param outputStream      the output stream to write to
+     * @return whether the call was successful
+     */
+    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream): Try[Unit] = {
+      trace(itemId)
+      val bagId = BagId(itemId.uuid)
+
+      fileSystem.checkBagExists(bagId).flatMap { _ =>
+        for {
+          bagDir <- fileSystem.toLocation(bagId)
+          itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
+          fileIds <- enumFiles(itemId)
+          fileSpecs <- fileIds.filter(!_.isDirectory).map {
+            fileId =>
+              fileSystem
+                .toRealLocation(fileId)
+                .map(source => createEntrySpec(Some(source), bagDir, itemPath, fileId))
+          }.collectResults
+          dirSpecs <- Try {
+            fileIds.filter(_.isDirectory).map {
+              dir =>
+                createEntrySpec(None, bagDir, itemPath, dir)
+            }
+          }
+          allEntries <- Try { (dirSpecs ++ fileSpecs).sortBy(_.entryPath) }
+          _ <- archiveStreamType.map { st =>
+            new ArchiveStream(st, allEntries).writeTo(outputStream)
+          }.getOrElse {
+            if (allEntries.size == 1) Try {
+              fileSystem.toRealLocation(fileIds.head)
+                .map(f = path => {
+                  debug(s"Copying $path to outputstream")
+                  Files.copy(path, outputStream)
+                })
+            }
+            else if(allEntries.isEmpty) Failure(NoSuchItemException(itemId))
+            else Failure(NoRegularFileException(itemId))
+          }
+        } yield ()
+      }
+    }
+
+    private def createEntrySpec(source: Option[Path], bagDir: Path, itemPath: Path, fileId: FileId): EntrySpec = {
+      if (itemPath == bagDir) EntrySpec(source, Paths.get(bagDir.getFileName.toString, fileId.path.toString).toString)
+      else EntrySpec(source, Paths.get(itemPath.getFileName.toString, bagDir.relativize(itemPath).relativize(fileId.path).toString).toString)
     }
 
     def add(bagDir: Path, uuid: Option[UUID] = None, skipStage: Boolean = false): Try[BagId] = {
@@ -215,4 +254,11 @@ trait BagStoreComponent {
       fileSystem.toLocation(itemId)
     }
   }
+
+  object BagStore {
+    def apply(dir: BaseDir): BagStore = new BagStore {
+      implicit val baseDir: BaseDir = dir
+    }
+  }
 }
+

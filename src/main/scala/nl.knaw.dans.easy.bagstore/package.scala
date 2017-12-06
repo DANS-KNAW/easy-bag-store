@@ -23,6 +23,7 @@ import resource._
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ListBuffer
 import scala.util.{ Failure, Success, Try }
 
 package object bagstore {
@@ -46,6 +47,7 @@ package object bagstore {
   case class OutputAlreadyExists(path: Path) extends Exception(s"Output path already exists; not overwriting $path")
   case class NoBagException(cause: Throwable) extends Exception("The provided input did not contain a bag", cause)
   case class InvalidBagException(bagId: BagId, msg: String) extends Exception(s"Bag $bagId is not a valid bag: $msg")
+  case class NoRegularFileException(itemId: ItemId) extends Exception(s"Item $itemId is not a regular file.")
 
   type BaseDir = Path
 
@@ -100,5 +102,46 @@ package object bagstore {
 
   def walkFiles(dir: Path): Seq[Path] = {
     managed(Files.walk(dir)).acquireAndGet(_.iterator().asScala.toList)
+  }
+
+  /**
+   * Gets the complete set of files, including implicit directories from
+   * a set paths that only list regular files.
+   *
+   * Example use: the payload manifest of a virtually-valid bag contains all the regular files but
+   * does not contain lines for the directories. Use this function to get all the files and
+   * directories implied by the paths in the manifest.
+   *
+   * @param files the set of regular files
+   * @return the set of regular files, extended with the directories implied in the paths
+   */
+  def getCompleteFileSet(files: Set[Path]): Set[Path] = {
+    files ++ calcDirectoriesFromFileSet(files)
+  }
+
+  /**
+   * Finds the directories implied by a list of file paths.
+   *
+   * @param files the list of file paths
+   * @return a list of directory paths
+   */
+  def calcDirectoriesFromFileSet(files: Set[Path]): Set[Path] = {
+    files.collect {
+      case f => pathToParentDirectoriesSet(f)
+    }.flatten
+  }
+
+  /**
+   * Calculates the set of parent directories for a given path
+   *
+   * @param path the path to get the parent directories from
+   * @return the set of parent directories
+   */
+  def pathToParentDirectoriesSet(path: Path): Set[Path] = {
+    val list = new ListBuffer[Path]()
+    for (i <- 1 until path.getNameCount) {
+      list += path.subpath(0, i)
+    }
+    list.toSet
   }
 }

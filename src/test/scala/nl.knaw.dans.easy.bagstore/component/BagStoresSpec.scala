@@ -53,16 +53,16 @@ class BagStoresSpec extends TestSupportFixture
   "get" should "return exactly the same Bag as was added" in {
     val output = testDir.resolve("pruned-output")
     inside(bagStore1.add(testBagPrunedA)) { case Success(result) =>
-      bagStores.get(result, output) shouldBe a[Success[_]]
-      pathsEqual(testBagPrunedA, output) shouldBe true
+      bagStores.copyToDirectory(result, output, skipCompletion = true) shouldBe a[Success[_]]
+      pathsEqual(testBagPrunedA, output.resolve("a")) shouldBe true
     }
   }
 
   it should "create Bag base directory with the name of parameter 'output' if 'output' does not point to existing directory" in {
     val output = testDir.resolve("non-existent-directory-that-will-become-base-dir-of-exported-Bag")
     inside(bagStore1.add(testBagPrunedA)) { case Success(result) =>
-      bagStores.get(result, output) shouldBe a[Success[_]]
-      pathsEqual(testBagPrunedA, output) shouldBe true
+      bagStores.copyToDirectory(result, output, skipCompletion = true) shouldBe a[Success[_]]
+      pathsEqual(testBagPrunedA, output.resolve("a")) shouldBe true
     }
   }
 
@@ -71,27 +71,16 @@ class BagStoresSpec extends TestSupportFixture
       val fileId = FileId(bagId, Paths.get("data/x"))
       val output = Files.createDirectory(testDir.resolve("single-file-x"))
 
-      bagStores.get(fileId, output) shouldBe a[Success[_]]
+      bagStores.copyToDirectory(fileId, output) shouldBe a[Success[_]]
       pathsEqual(testBagPrunedA.resolve("data/x"), output.resolve("x")) shouldBe true
-    }
-  }
-
-  it should "rename a File to name specified in 'output' if 'output' does not point to an existing directory" in {
-    inside(bagStore1.add(testBagPrunedA)) { case Success(bagId) =>
-      val fileId = FileId(bagId, Paths.get("data/x"))
-      val output = Files.createDirectory(testDir.resolve("single-file-x-renamed"))
-
-      bagStores.get(fileId, output.resolve("x-renamed")) shouldBe a[Success[_]]
-      // Attention: pathsEqual cannot be used, as it also compares file names
-      FileUtils.contentEquals(testBagPrunedA.resolve("data/x").toFile, output.resolve("x-renamed").toFile) shouldBe true
     }
   }
 
   it should "find a Bag in any BagStore if no specific BagStore is specified" in {
     inside(bagStore1.add(testBagPrunedA)) { case Success(bagId1) =>
       inside(bagStore2.add(testBagPrunedA)) { case Success(bagId2) =>
-        bagStores.get(bagId1, testDir.resolve("bag-from-store1")) should matchPattern { case Success(`store1`) => }
-        bagStores.get(bagId2, testDir.resolve("bag-from-store2")) should matchPattern { case Success(`store2`) => }
+        bagStores.copyToDirectory(bagId1, testDir.resolve("bag-from-store1")) should matchPattern { case Success((_, `store1`)) => }
+        bagStores.copyToDirectory(bagId2, testDir.resolve("bag-from-store2")) should matchPattern { case Success((_, `store2`)) => }
       }
     }
   }
@@ -99,11 +88,11 @@ class BagStoresSpec extends TestSupportFixture
   it should "result in failure if Bag is specifically looked for in the wrong BagStore" in {
     inside(bagStore1.add(testBagPrunedA)) { case Success(bagId1) =>
       inside(bagStore2.add(testBagPrunedA)) { case Success(bagId2) =>
-        bagStores.get(bagId2, testDir.resolve("bag-from-store1-wrong"), Some(store1)) should matchPattern {
+        bagStores.copyToDirectory(bagId2, testDir.resolve("bag-from-store1-wrong"), skipCompletion = false,  Some(store1)) should matchPattern {
           case Failure(NoSuchBagException(_)) =>
         }
 
-        bagStores.get(bagId1, testDir.resolve("bag-from-store2-wrong"), Some(store2)) should matchPattern {
+        bagStores.copyToDirectory(bagId1, testDir.resolve("bag-from-store2-wrong"), skipCompletion = false, Some(store2)) should matchPattern {
           case Failure(NoSuchBagException(_)) =>
         }
       }
@@ -190,7 +179,7 @@ class BagStoresSpec extends TestSupportFixture
 
   "enumFiles" should "return all FileIds in a valid Bag" in {
     inside(bagStore1.add(testBagUnprunedA)) { case Success(ais) =>
-      inside(bagStores.enumFiles(ais).map(_.toList)) { case Success(fileIds) =>
+      inside(bagStores.enumFiles(ais, includeDirectories = false, None).map(_.toList)) { case Success(fileIds) =>
         fileIds.map(_.path.getFileName.toString) should {
           have size 10 and
             contain only("u", "v", "w", "x", "y", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "tagmanifest-md5.txt")
@@ -206,7 +195,7 @@ class BagStoresSpec extends TestSupportFixture
       inside(bagStore1.add(testBagUnprunedB)) { case Success(bis) =>
         bagProcessing.prune(testBagUnprunedC, bis :: Nil) shouldBe a[Success[_]]
         inside(bagStore1.add(testBagUnprunedC)) { case Success(cis) =>
-          inside(bagStores.enumFiles(cis).map(_.toList)) {
+          inside(bagStores.enumFiles(cis, includeDirectories = false, None).map(_.toList)) {
             case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 13 and
               contain only("q", "w", "u", "p", "x", "y", "y-old", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "tagmanifest-md5.txt", "fetch.txt"))
           }
@@ -224,7 +213,7 @@ class BagStoresSpec extends TestSupportFixture
    */
   it should "return all FileIds even if they are distributed over several payload manifests" in {
     inside(bagStore1.add(testBagComplementary)) { case Success(complementary) =>
-      inside(bagStores.enumFiles(complementary).map(_.toList)) {
+      inside(bagStores.enumFiles(complementary, includeDirectories = false, None).map(_.toList)) {
         case Success(fileIds) => fileIds.map(_.path.getFileName.toString) should (have size 11 and
           contain only("u", "v", "w", "x", "y", "z", "bag-info.txt", "bagit.txt", "manifest-md5.txt", "manifest-sha1.txt", "tagmanifest-md5.txt"))
       }

@@ -16,7 +16,6 @@
 package nl.knaw.dans.easy.bagstore.server
 
 trait ServletUtils {
-
   type IncludeActive = Boolean
   type IncludeInactive = Boolean
 

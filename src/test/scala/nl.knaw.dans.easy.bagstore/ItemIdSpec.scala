@@ -45,7 +45,7 @@ class ItemIdSpec extends TestSupportFixture {
     val uuid = UUID.randomUUID()
 
     inside(fromString(s"$uuid/path/to/file")) {
-      case Success(FileId(BagId(id), path)) =>
+      case Success(FileId(BagId(id), path, _)) =>
         id shouldBe uuid
         path shouldBe Paths.get("path/to/file")
     }
@@ -54,7 +54,7 @@ class ItemIdSpec extends TestSupportFixture {
   it should "return a file-id (NOT bag-id) if empty path found after revision" in {
     val uuid = UUID.randomUUID()
     inside(fromString(s"$uuid/")) {
-      case Success(FileId(BagId(id), path)) =>
+      case Success(FileId(BagId(id), path, _)) =>
         id shouldBe uuid
         path shouldBe Paths.get("")
     }
@@ -64,7 +64,7 @@ class ItemIdSpec extends TestSupportFixture {
     val uuid = UUID.randomUUID()
 
     inside(fromString(s"$uuid/path/to/file%20with%20spaces")) {
-      case Success(FileId(BagId(id), path)) =>
+      case Success(FileId(BagId(id), path, _)) =>
         id shouldBe uuid
         path shouldBe Paths.get("path/to/file with spaces")
     }

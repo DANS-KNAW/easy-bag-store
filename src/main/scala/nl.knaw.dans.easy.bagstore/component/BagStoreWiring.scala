@@ -47,12 +47,10 @@ trait BagStoreWiring extends BagStoresComponent with BagStoreComponent with BagP
 
   override lazy val bagStores: BagStores = new BagStores {
     bagStores =>
-    override val stores: Map[String, BagStore] = {
+    override val storeShortnames: Map[String, BaseDir] = {
       val stores = configuration.stores
       stores.getKeys.asScala
-        .map(name => name -> new BagStore {
-          implicit val baseDir: BaseDir = Paths.get(stores.getString(name)).toAbsolutePath
-        })
+        .map(name => name -> Paths.get(stores.getString(name)).toAbsolutePath)
         .toMap
     }
   }

@@ -16,7 +16,7 @@
 package nl.knaw.dans.easy.bagstore.server
 
 import nl.knaw.dans.easy.bagstore.component.BagStoresComponent
-import nl.knaw.dans.easy.bagstore.{ ItemId, NoSuchBagException, NoSuchFileItemException }
+import nl.knaw.dans.easy.bagstore.{ ItemId, NoRegularFileException, NoSuchBagException, NoSuchFileItemException }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
@@ -44,17 +44,24 @@ trait BagsServletComponent extends DebugEnhancedLogging {
     }
 
     get("/:uuid") {
-      contentType = "text/plain"
       val uuidStr = params("uuid")
+      val accept = request.getHeader("Accept")
       ItemId.fromString(uuidStr)
         .recoverWith {
           case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
         }
         .flatMap(_.toBagId)
-        .flatMap(bagStores.enumFiles(_))
-        .map(bagIds => Ok(bagIds.mkString("\n")))
+        .flatMap(bagId => {
+          if (accept == "text/plain") bagStores
+            .enumFiles(bagId, includeDirectories = false)
+            .map(files => Ok(files.toList.mkString("\n")))
+          else bagStores
+            .copyToStream(bagId, acceptToArchiveStreamType.get(accept), response.outputStream)
+            .map(_ => Ok())
+        })
         .getOrRecover {
           case e: IllegalArgumentException => BadRequest(e.getMessage)
+          case e: NoRegularFileException => BadRequest(e.getMessage)
           case e: NoSuchBagException => NotFound(e.getMessage)
           case e =>
             logger.error("Unexpected type of failure", e)
@@ -72,17 +79,21 @@ trait BagsServletComponent extends DebugEnhancedLogging {
             }
             .flatMap(itemId => {
               debug(s"Retrieving item $itemId")
-              bagStores.getStream(itemId, response.outputStream)
+              bagStores.copyToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType.get) , response.outputStream)
             })
             .map(_ => Ok())
             .getOrRecover {
               case e: IllegalArgumentException => BadRequest(e.getMessage)
+              case e: NoRegularFileException => BadRequest(e.getMessage)
               case e: NoSuchBagException => NotFound(e.getMessage)
               case e: NoSuchFileItemException => NotFound(e.getMessage)
               case NonFatal(e) =>
                 logger.error("Error retrieving bag", e)
                 InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
             }
+        case p =>
+          logger.error(s"Unexpected path: $p")
+          InternalServerError("Unexpected path")
       }
     }
   }

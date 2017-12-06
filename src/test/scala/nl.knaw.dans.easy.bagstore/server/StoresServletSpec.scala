@@ -28,6 +28,7 @@ import org.apache.commons.io.FileUtils
 import org.scalatra.test.scalatest.ScalatraSuite
 
 import scala.io.Source
+import scala.util.{ Success, Try }
 
 class StoresServletSpec extends TestSupportFixture
   with BagitFixture
@@ -70,15 +71,15 @@ class StoresServletSpec extends TestSupportFixture
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    FileUtils.copyDirectoryToDirectory(Paths.get("src/test/resources/bag-store/00").toFile, store1.toFile)
-    FileUtils.copyDirectoryToDirectory(Paths.get("src/test/resources/bag-store/00").toFile, store2.toFile)
-    Files.move(store2.resolve("00/000000000000000000000000000001"), store2.resolve("00/000000000000000000000000000004"))
-    Files.move(store2.resolve("00/000000000000000000000000000002"), store2.resolve("00/000000000000000000000000000005"))
-    Files.move(store2.resolve("00/000000000000000000000000000003"), store2.resolve("00/000000000000000000000000000006"))
+    FileUtils.copyDirectory(Paths.get("src/test/resources/bag-store1").toFile, store1.toFile)
+    FileUtils.copyDirectory(Paths.get("src/test/resources/bag-store2").toFile, store2.toFile)
+    Files.move(store2.resolve("02/000000000000000000000000000001"), store2.resolve("02/000000000000000000000000000004"))
+    Files.move(store2.resolve("02/000000000000000000000000000002"), store2.resolve("02/000000000000000000000000000005"))
+    Files.move(store2.resolve("02/000000000000000000000000000003"), store2.resolve("02/000000000000000000000000000006"))
   }
 
   private def setBag1Hidden(): Unit = {
-    Files.move(store1.resolve("00/000000000000000000000000000001/bag-revision-1"), store1.resolve("00/000000000000000000000000000001/.bag-revision-1"))
+    Files.move(store1.resolve("01/000000000000000000000000000001/bag-revision-1"), store1.resolve("01/000000000000000000000000000001/.bag-revision-1"))
   }
 
   private def makeBagstore1Invalid(): Unit = {
@@ -93,9 +94,9 @@ class StoresServletSpec extends TestSupportFixture
     get("/store1/bags") {
       status shouldBe 200
       body.lines.toList should contain allOf(
-        "00000000-0000-0000-0000-000000000001",
-        "00000000-0000-0000-0000-000000000002",
-        "00000000-0000-0000-0000-000000000003"
+        "01000000-0000-0000-0000-000000000001",
+        "01000000-0000-0000-0000-000000000002",
+        "01000000-0000-0000-0000-000000000003"
       )
     }
   }
@@ -104,7 +105,7 @@ class StoresServletSpec extends TestSupportFixture
     setBag1Hidden()
     get("/store1/bags", "state" -> "inactive") {
       status shouldBe 200
-      body.lines.toList should contain only "00000000-0000-0000-0000-000000000001"
+      body.lines.toList should contain only "01000000-0000-0000-0000-000000000001"
     }
   }
 
@@ -113,8 +114,8 @@ class StoresServletSpec extends TestSupportFixture
     get("/store1/bags") {
       status shouldBe 200
       body.lines.toList should contain allOf(
-        "00000000-0000-0000-0000-000000000002",
-        "00000000-0000-0000-0000-000000000003"
+        "01000000-0000-0000-0000-000000000002",
+        "01000000-0000-0000-0000-000000000003"
       )
     }
   }
@@ -124,9 +125,9 @@ class StoresServletSpec extends TestSupportFixture
     get("/store1/bags", "state" -> "all") {
       status shouldBe 200
       body.lines.toList should contain allOf(
-        "00000000-0000-0000-0000-000000000001",
-        "00000000-0000-0000-0000-000000000002",
-        "00000000-0000-0000-0000-000000000003"
+        "01000000-0000-0000-0000-000000000001",
+        "01000000-0000-0000-0000-000000000002",
+        "01000000-0000-0000-0000-000000000003"
       )
     }
   }
@@ -135,15 +136,15 @@ class StoresServletSpec extends TestSupportFixture
     get("/store1/bags", "state" -> "invalid value") {
       status shouldBe 200
       body.lines.toList should contain allOf(
-        "00000000-0000-0000-0000-000000000001",
-        "00000000-0000-0000-0000-000000000002",
-        "00000000-0000-0000-0000-000000000003"
+        "01000000-0000-0000-0000-000000000001",
+        "01000000-0000-0000-0000-000000000002",
+        "01000000-0000-0000-0000-000000000003"
       )
     }
   }
 
   it should "return an empty string when all bag-stores are empty" in {
-    FileUtils.deleteDirectory(store1.resolve("00").toFile)
+    FileUtils.deleteDirectory(store1.resolve("01").toFile)
     get("/store1/bags") {
       status shouldBe 200
       body shouldBe empty
@@ -165,9 +166,9 @@ class StoresServletSpec extends TestSupportFixture
     get("/store1/bags") {
       status shouldBe 200
       body.lines.toList should contain allOf(
-        "00000000-0000-0000-0000-000000000001",
-        "00000000-0000-0000-0000-000000000002",
-        "00000000-0000-0000-0000-000000000003"
+        "01000000-0000-0000-0000-000000000001",
+        "01000000-0000-0000-0000-000000000002",
+        "01000000-0000-0000-0000-000000000003"
       )
     }
   }
@@ -180,27 +181,27 @@ class StoresServletSpec extends TestSupportFixture
   }
 
   "get /:bagstore/bags/:uuid" should "return an overview of the files in a given bag in a certain store" in {
-    get("/store1/bags/00000000-0000-0000-0000-000000000001") {
+    get("/store1/bags/01000000-0000-0000-0000-000000000001", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 200
       body.lines.toList should contain only(
-        "00000000-0000-0000-0000-000000000001/data/x",
-        "00000000-0000-0000-0000-000000000001/data/y",
-        "00000000-0000-0000-0000-000000000001/data/z",
-        "00000000-0000-0000-0000-000000000001/data/sub/u",
-        "00000000-0000-0000-0000-000000000001/data/sub/v",
-        "00000000-0000-0000-0000-000000000001/data/sub/w",
-        "00000000-0000-0000-0000-000000000001/metadata/dataset.xml",
-        "00000000-0000-0000-0000-000000000001/metadata/files.xml",
-        "00000000-0000-0000-0000-000000000001/bagit.txt",
-        "00000000-0000-0000-0000-000000000001/bag-info.txt",
-        "00000000-0000-0000-0000-000000000001/manifest-sha1.txt",
-        "00000000-0000-0000-0000-000000000001/tagmanifest-sha1.txt"
+        "01000000-0000-0000-0000-000000000001/data/x",
+        "01000000-0000-0000-0000-000000000001/data/y",
+        "01000000-0000-0000-0000-000000000001/data/z",
+        "01000000-0000-0000-0000-000000000001/data/sub/u",
+        "01000000-0000-0000-0000-000000000001/data/sub/v",
+        "01000000-0000-0000-0000-000000000001/data/sub/w",
+        "01000000-0000-0000-0000-000000000001/metadata/dataset.xml",
+        "01000000-0000-0000-0000-000000000001/metadata/files.xml",
+        "01000000-0000-0000-0000-000000000001/bagit.txt",
+        "01000000-0000-0000-0000-000000000001/bag-info.txt",
+        "01000000-0000-0000-0000-000000000001/manifest-sha1.txt",
+        "01000000-0000-0000-0000-000000000001/tagmanifest-sha1.txt"
       )
     }
   }
 
   it should "fail when the store is unknown" in {
-    get("/unknown-store/bags/00000000-0000-0000-0000-000000000001") {
+    get("/unknown-store/bags/01000000-0000-0000-0000-000000000001") {
       status shouldBe 404
       body shouldBe "No such bag-store: unknown-store"
     }
@@ -209,14 +210,14 @@ class StoresServletSpec extends TestSupportFixture
   it should "fail when the given uuid is not a uuid" in {
     get("/store1/bags/00000000000000000000000000000001") {
       status shouldBe 400
-      body shouldBe "invalid UUID string: 00000000000000000000000000000001"
+      body shouldBe "Invalid UUID string: 00000000000000000000000000000001"
     }
   }
 
   it should "fail when the given uuid is not a well-formatted uuid" in {
     get("/store1/bags/abc-def-ghi-jkl-mno") {
       status shouldBe 400
-      body shouldBe "invalid UUID string: abc-def-ghi-jkl-mno"
+      body shouldBe "Invalid UUID string: abc-def-ghi-jkl-mno"
     }
   }
 
@@ -228,63 +229,66 @@ class StoresServletSpec extends TestSupportFixture
     }
   }
 
-  it should "return an overview when text/plain is specified for content negotiation" in {
-    get("/store1/bags/00000000-0000-0000-0000-000000000001", params = Map.empty, headers = Map("Accept" -> "text/plain")) {
+  it should "return an overview when text/plain is specified in content negotiation" in {
+    get("/store1/bags/01000000-0000-0000-0000-000000000001", params = Map.empty, headers = Map("Accept" -> "text/plain")) {
       status shouldBe 200
       body.lines.toList should contain only(
-        "00000000-0000-0000-0000-000000000001/data/x",
-        "00000000-0000-0000-0000-000000000001/data/y",
-        "00000000-0000-0000-0000-000000000001/data/z",
-        "00000000-0000-0000-0000-000000000001/data/sub/u",
-        "00000000-0000-0000-0000-000000000001/data/sub/v",
-        "00000000-0000-0000-0000-000000000001/data/sub/w",
-        "00000000-0000-0000-0000-000000000001/metadata/dataset.xml",
-        "00000000-0000-0000-0000-000000000001/metadata/files.xml",
-        "00000000-0000-0000-0000-000000000001/bagit.txt",
-        "00000000-0000-0000-0000-000000000001/bag-info.txt",
-        "00000000-0000-0000-0000-000000000001/manifest-sha1.txt",
-        "00000000-0000-0000-0000-000000000001/tagmanifest-sha1.txt"
+        "01000000-0000-0000-0000-000000000001/data/x",
+        "01000000-0000-0000-0000-000000000001/data/y",
+        "01000000-0000-0000-0000-000000000001/data/z",
+        "01000000-0000-0000-0000-000000000001/data/sub/u",
+        "01000000-0000-0000-0000-000000000001/data/sub/v",
+        "01000000-0000-0000-0000-000000000001/data/sub/w",
+        "01000000-0000-0000-0000-000000000001/metadata/dataset.xml",
+        "01000000-0000-0000-0000-000000000001/metadata/files.xml",
+        "01000000-0000-0000-0000-000000000001/bagit.txt",
+        "01000000-0000-0000-0000-000000000001/bag-info.txt",
+        "01000000-0000-0000-0000-000000000001/manifest-sha1.txt",
+        "01000000-0000-0000-0000-000000000001/tagmanifest-sha1.txt"
       )
     }
   }
 
   it should "return the bag itself when application/zip is specified for content negotiation" in {
-    get("/store1/bags/00000000-0000-0000-0000-000000000001", params = Map.empty, headers = Map("Accept" -> "application/zip")) {
+    get("/store1/bags/01000000-0000-0000-0000-000000000001", params = Map.empty, headers = Map("Accept" -> "application/zip")) {
       status shouldBe 200
 
-      val zip = testDir.resolve("bag-output/00000000-0000-0000-0000-000000000001.zip")
-      val unzip = testDir.resolve("bag-output/00000000-0000-0000-0000-000000000001")
+      val zip = testDir.resolve("bag-output/01000000-0000-0000-0000-000000000001.zip")
+      val unzipped = testDir.resolve("bag-output/01000000-0000-0000-0000-000000000001")
       Files.createDirectories(zip.getParent)
       Files.copy(response.inputStream, zip)
       zip.toFile should exist
 
-      new ZipFile(zip.toFile) {
-        setFileNameCharset(StandardCharsets.UTF_8.name)
-      }.extractAll(unzip.toAbsolutePath.toString)
-      unzip.toFile should exist
+      val unzip = Try {
+        new ZipFile(zip.toFile) {
+          setFileNameCharset(StandardCharsets.UTF_8.name)
+        }.extractAll(unzipped.toAbsolutePath.toString)
+      }
+      unzipped.toFile should exist
+      unzip shouldBe a[Success[_]] // It is actually a zip-file
 
-      pathsEqual(unzip, store1.resolve("00/000000000000000000000000000001"), "tagmanifest-sha1.txt") shouldBe true
+      pathsEqual(unzipped, store1.resolve("01/000000000000000000000000000001"), "tagmanifest-sha1.txt") shouldBe true
       // BagProcessing.complete causes the order in tagmanifest-sha1.txt to change...
-      Source.fromFile(unzip.resolve("bag-revision-1/tagmanifest-sha1.txt").toFile).getLines().toList should
-        contain theSameElementsAs Source.fromFile(store1.resolve("00/000000000000000000000000000001/bag-revision-1/tagmanifest-sha1.txt").toFile).getLines().toList
+      Source.fromFile(unzipped.resolve("bag-revision-1/tagmanifest-sha1.txt").toFile).getLines().toList should
+        contain theSameElementsAs Source.fromFile(store1.resolve("01/000000000000000000000000000001/bag-revision-1/tagmanifest-sha1.txt").toFile).getLines().toList
     }
   }
 
   "get /:bagstore/bags/:uuid/*" should "return a specific file in the bag indicated by the path" in {
-    get("/store1/bags/00000000-0000-0000-0000-000000000001/data/y") {
+    get("/store1/bags/01000000-0000-0000-0000-000000000001/data/y") {
       status shouldBe 200
 
       Source.fromInputStream(response.inputStream).mkString shouldBe
-        Source.fromFile(store1.resolve("00/000000000000000000000000000001/bag-revision-1/data/y").toFile).mkString
+        Source.fromFile(store1.resolve("01/000000000000000000000000000001/bag-revision-1/data/y").toFile).mkString
     }
   }
 
   it should "return a metadata file in the bag indicated by the path" in {
-    get("/store1/bags/00000000-0000-0000-0000-000000000001/metadata/files.xml") {
+    get("/store1/bags/01000000-0000-0000-0000-000000000001/metadata/files.xml") {
       status shouldBe 200
 
       Source.fromInputStream(response.inputStream).mkString shouldBe
-        Source.fromFile(store1.resolve("00/000000000000000000000000000001/bag-revision-1/metadata/files.xml").toFile).mkString
+        Source.fromFile(store1.resolve("01/000000000000000000000000000001/bag-revision-1/metadata/files.xml").toFile).mkString
     }
   }
 
@@ -298,14 +302,14 @@ class StoresServletSpec extends TestSupportFixture
   it should "fail when the given uuid is not a uuid" in {
     get("/store1/bags/00000000000000000000000000000001/data/y") {
       status shouldBe 400
-      body shouldBe "invalid UUID string: 00000000000000000000000000000001"
+      body shouldBe "Invalid UUID string: 00000000000000000000000000000001"
     }
   }
 
   it should "fail when the given uuid is not a well-formatted uuid" in {
     get("/store1/bags/abc-def-ghi-jkl-mno/data/y") {
       status shouldBe 400
-      body shouldBe "invalid UUID string: abc-def-ghi-jkl-mno"
+      body shouldBe "Invalid UUID string: abc-def-ghi-jkl-mno"
     }
   }
 
@@ -318,9 +322,9 @@ class StoresServletSpec extends TestSupportFixture
   }
 
   it should "fail when the file is not found" in {
-    get("/store1/bags/00000000-0000-0000-0000-000000000001/unknown-folder/unknown-file") {
+    get("/store1/bags/01000000-0000-0000-0000-000000000001/unknown-folder/unknown-file") {
       status shouldBe 404
-      body shouldBe s"File 00000000-0000-0000-0000-000000000001/unknown-folder/unknown-file does not exist in bag 00000000-0000-0000-0000-000000000001"
+      body shouldBe s"Item 01000000-0000-0000-0000-000000000001/unknown-folder/unknown-file not found"
     }
   }
 
@@ -376,7 +380,7 @@ class StoresServletSpec extends TestSupportFixture
         }.extractAll(unzip.toAbsolutePath.toString)
         unzip.toFile should exist
 
-        pathsEqual(unzip.resolve(bagName), testBagsUnpruned.resolve(bagName), "refbags.txt", "tagmanifest-md5.txt") shouldBe true
+        pathsEqual(unzip.resolve(bagName), testBagsUnpruned.resolve(bagName), "refbags.txt", "tagmanifest-md5.txt", "fetch.txt") shouldBe true
         // BagProcessing.complete causes the order in b/tagmanifest-md5.txt to change...
         Source.fromFile(unzip.resolve(s"$bagName/tagmanifest-md5.txt").toFile).getLines().toList should
           contain theSameElementsAs Source.fromFile(testBagsUnpruned.resolve(s"$bagName/tagmanifest-md5.txt").toFile).getLines().toList
