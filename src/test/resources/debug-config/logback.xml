@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>[%date{ISO8601}] %-5level %msg %n</pattern>
-        </encoder>
-    </appender>
-
     <appender name="FILE"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>data/easy-bag-store.log</file>
@@ -19,7 +13,6 @@
     </appender>
     <root level="warn">
         <appender-ref ref="FILE"/>
-        <appender-ref ref="STDOUT"/>
     </root>
     <logger name="nl.knaw.dans.easy" level="trace"/>
 </configuration>

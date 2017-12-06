@@ -22,6 +22,7 @@ import nl.knaw.dans.easy.bagstore.service.ServiceWiring
 import nl.knaw.dans.easy.bagstore.{ ArchiveStreamType, BaseDir, ItemId, TryExtensions2 }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import nl.knaw.dans.easy.bagstore.ArchiveStreamType._
 
 import scala.annotation.tailrec
 import scala.io.StdIn
@@ -32,6 +33,11 @@ import scala.util.{ Success, Try }
 object Command extends App with CommandLineOptionsComponent with ServiceWiring with DebugEnhancedLogging {
 
   type FeedBackMessage = String
+
+  val formatToArchiveStreamType = Map(
+    "zip" -> ZIP,
+    "tar" -> TAR)
+
 
   override val commandLine: CommandLineOptions = new CommandLineOptions(args) {
     verify()
@@ -51,14 +57,15 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     case Some(cmd @ commandLine.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
-        store <- bagStores.copyToDirectory(itemId, cmd.outputDir(), bagStoreBaseDir)
+        (path, store) <- bagStores.copyToDirectory(itemId, cmd.outputDir(), cmd.skipCompletion(), bagStoreBaseDir)
         storeName = getStoreName(store)
-      } yield s"Retrieved item with item-id: $itemId to ${ cmd.outputDir() } from bag store: $storeName"
-    case Some(cmd @ commandLine.getTar) =>
+      } yield s"Retrieved item with item-id: $itemId to ${ path } from bag store: $storeName"
+    case Some(cmd @ commandLine.stream) =>
       for {
-        itemId <- ItemId.fromString(cmd.bagId())
-        _ <- bagStores.copyToStream(itemId,  Some(ArchiveStreamType.TAR), Console.out, bagStoreBaseDir)
-      } yield "Retrieved bag as TAR"
+        itemId <- ItemId.fromString(cmd.itemId())
+        _ <- bagStores.copyToStream(itemId, cmd.format.toOption.flatMap(formatToArchiveStreamType.get), Console.out, bagStoreBaseDir)
+      } yield s"Retrieved item with item-id: $itemId to stream."
+      // TODO: Also report from which bag store, as with get
     case Some(cmd @ commandLine.enum) =>
       cmd.bagId.toOption
         .map(s => for {
@@ -92,7 +99,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
           .map(_ => "Done pruning"))
         .getOrElse(Success("No reference Bags specified: nothing to do"))
     case Some(cmd @ commandLine.complete) =>
-      implicit val baseDir: BaseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select which bag store to add to."))
+      implicit val baseDir: BaseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select in the context of which bag store to complete."))
       bagProcessing.complete(cmd.bagDir()).map(_ => s"Done completing ${ cmd.bagDir() }")
     case Some(cmd @ commandLine.locate) =>
       for {
@@ -100,7 +107,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
         location <- bagStores.locate(itemId, bagStoreBaseDir)
       } yield location.toString
     case Some(cmd @ commandLine.validate) =>
-      implicit val baseDir: BaseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select which bag store to add to."))
+      implicit val baseDir: BaseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select in the context of which bag store to validate."))
       fileSystem.isVirtuallyValid(cmd.bagDir())
         .map(res => s"Done validating. Result: " + res.fold(msg => s"not virtually valid; Messages: '$msg'", _ => "virtually-valid"))
     case Some(_ @ commandLine.runService) => runAsService()

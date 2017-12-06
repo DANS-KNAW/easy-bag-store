@@ -87,64 +87,30 @@ trait BagStoreComponent {
       } yield filteredIds.toSeq.sortBy(_.path)
     }
 
-    def get(itemId: ItemId, output: => OutputStream): Try[Unit] = {
-      trace(itemId)
-
-      for {
-        _ <- fileSystem.checkBagExists(BagId(itemId.uuid))
-        _ <- itemId match {
-          case bagId: BagId =>
-            for {
-              location <- fileSystem.toLocation(bagId)
-              stagingDir <- bagProcessing.stageBagDir(location)
-              stagedBag = stagingDir.resolve(location.getFileName)
-              _ <- bagProcessing.complete(stagedBag)
-              zipStaging <- bagProcessing.stageBagZip(stagedBag)
-              _ = Files.copy(zipStaging.resolve(location.getFileName), output)
-              _ = FileUtils.deleteDirectory(stagingDir.toFile)
-              _ = FileUtils.deleteDirectory(zipStaging.toFile)
-            } yield ()
-          case fileId: FileId =>
-            fileSystem.toRealLocation(fileId)
-              .map(path => {
-                debug(s"Copying $path to outputstream")
-                Files.copy(path, output)
-              })
-        }
-      } yield ()
-    }
-
-    def get(itemId: ItemId, output: Path): Try[Path] = {
+    def copyToDirectory(itemId: ItemId, output: Path, skipCompletion: Boolean = false): Try[(Path, BaseDir)] = {
       trace(itemId, output)
-      fileSystem.checkBagExists(BagId(itemId.uuid)).flatMap { _ =>
-        itemId match {
-          case bagId: BagId =>
-            fileSystem.toLocation(bagId)
-              .map(path => {
-                val target = if (Files.isDirectory(output)) output.resolve(path.getFileName)
-                             else output
-                if (Files.exists(target)) {
-                  debug("Target already exists")
-                  throw OutputAlreadyExists(target)
-                }
-                else {
-                  debug(s"Creating directory for output: $target")
-                  Files.createDirectory(target)
-                  debug(s"Copying bag from $path to $target")
-                  FileUtils.copyDirectory(path.toFile, target.toFile)
+      if (Files.isRegularFile(output)) Failure(OutputAlreadyExists(output))
+      else {
+        if (!Files.exists(output)) Files.createDirectories(output)
+        fileSystem.checkBagExists(BagId(itemId.uuid)).flatMap { _ =>
+          itemId match {
+            case bagId: BagId =>
+              fileSystem.toLocation(bagId)
+                .map(path => {
+                  debug(s"Copying bag from $path to $output")
+                  FileUtils.copyDirectoryToDirectory(path.toFile, output.toFile)
+                  if (!skipCompletion) bagProcessing.complete(output.resolve(path.getFileName))
                   Files.walk(output).iterator().asScala.foreach(bagProcessing.setPermissions(_))
-                  baseDir
-                }
-              })
-          case fileId: FileId =>
-            fileSystem.toRealLocation(fileId)
-              .map(path => {
-                val target = if (Files.isDirectory(output)) output.resolve(path.getFileName)
-                             else output
-                Files.copy(path, target)
-                bagProcessing.setFilePermissions()(target)
-                baseDir
-              })
+                  (output.resolve(path.getFileName), baseDir)
+                })
+            case fileId: FileId =>
+              fileSystem.toRealLocation(fileId)
+                .map(path => {
+                  FileUtils.copyFileToDirectory(path.toFile, output.toFile)
+                  bagProcessing.setFilePermissions()(output.resolve(path.getFileName))
+                  (output.resolve(path.getFileName), baseDir)
+                })
+          }
         }
       }
     }
@@ -161,7 +127,7 @@ trait BagStoreComponent {
      * @param outputStream      the output stream to write to
      * @return whether the call was successful
      */
-    def getToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream): Try[Unit] = {
+    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream): Try[Unit] = {
       trace(itemId)
       val bagId = BagId(itemId.uuid)
 

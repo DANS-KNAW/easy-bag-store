@@ -37,14 +37,14 @@ trait BagStoresComponent {
     def storeShortnames: Map[String, BaseDir]
     def getBaseDirByShortname(name: String): Option[BaseDir] = storeShortnames.get(name)
 
-    def copyToDirectory(itemId: ItemId, output: Path, fromStore: Option[BaseDir] = None): Try[Path] = {
+    def copyToDirectory(itemId: ItemId, output: Path, skipCompletion: Boolean = false, fromStore: Option[BaseDir] = None): Try[(Path, BaseDir)] = {
       fromStore
         .map(BagStore(_))
-        .map(_.get(itemId, output))
+        .map(_.copyToDirectory(itemId, output, skipCompletion))
         .getOrElse {
           storeShortnames.values.toStream
             .map(BagStore(_))
-            .map(_.get(itemId, output))
+            .map(_.copyToDirectory(itemId, output, skipCompletion))
             .find(_.isSuccess)
             .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
         }
@@ -53,11 +53,11 @@ trait BagStoresComponent {
     def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream, fromStore: Option[BaseDir] = None): Try[Unit] = {
       fromStore
         .map(BagStore(_))
-        .map(_.getToStream(itemId, archiveStreamType, outputStream))
+        .map(_.copyToStream(itemId, archiveStreamType, outputStream))
         .getOrElse {
           storeShortnames.values.toStream
             .map(BagStore(_))
-            .map(_.getToStream(itemId, archiveStreamType, outputStream))
+            .map(_.copyToStream(itemId, archiveStreamType, outputStream))
             .find {
               case Success(()) => true
               case Failure(e: NoSuchBagException) => false

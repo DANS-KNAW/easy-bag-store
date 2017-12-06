@@ -15,8 +15,6 @@
  */
 package nl.knaw.dans.easy.bagstore
 
-import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
-
 package object server {
   import ArchiveStreamType._
   val acceptToArchiveStreamType = Map(
