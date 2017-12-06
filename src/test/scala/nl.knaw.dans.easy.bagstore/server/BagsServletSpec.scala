@@ -128,23 +128,22 @@ class BagsServletSpec extends TestSupportFixture
     }
   }
 
-  // TODO: SHOULD be 400 Bad request
-  ignore should "enumerate the bags in all bag-stores even if an unknown state is given" in {
-    get("/", "state" -> "invalid value") {
+  it should "enumerate the bags in all bag-stores even if an unknown state is given" in {
+    get("/", params = Map("state" -> "invalid value"), headers = Map("Accept" -> "text/plain")) {
       status shouldBe 200
       body.lines.toList should contain only(
-        "00000000-0000-0000-0000-000000000001",
-        "00000000-0000-0000-0000-000000000002",
-        "00000000-0000-0000-0000-000000000003",
-        "00000000-0000-0000-0000-000000000004",
-        "00000000-0000-0000-0000-000000000005",
-        "00000000-0000-0000-0000-000000000006"
+        "01000000-0000-0000-0000-000000000001",
+        "01000000-0000-0000-0000-000000000002",
+        "01000000-0000-0000-0000-000000000003",
+        "02000000-0000-0000-0000-000000000001",
+        "02000000-0000-0000-0000-000000000002",
+        "02000000-0000-0000-0000-000000000003"
       )
     }
   }
 
   "get uuid" should "enumerate the files of a given bag" in {
-    get("/01000000-0000-0000-0000-000000000001") {
+    get("/01000000-0000-0000-0000-000000000001", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 200
       body.lines.toList should contain only(
         "01000000-0000-0000-0000-000000000001/data/x",
