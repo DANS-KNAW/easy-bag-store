@@ -44,7 +44,6 @@ trait BagsServletComponent extends DebugEnhancedLogging {
     }
 
     get("/:uuid") {
-      contentType = "text/plain"
       val uuidStr = params("uuid")
       val accept = request.getHeader("Accept")
       ItemId.fromString(uuidStr)
@@ -53,7 +52,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
         }
         .flatMap(_.toBagId)
         .flatMap(bagId => {
-          if (accept == "text/plain" || accept == null) bagStores
+          if (accept == "text/plain") bagStores
             .enumFiles(bagId, includeDirectories = false)
             .map(files => Ok(files.toList.mkString("\n")))
           else bagStores
