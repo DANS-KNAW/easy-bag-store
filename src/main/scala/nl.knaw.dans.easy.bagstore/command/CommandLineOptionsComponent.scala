@@ -89,6 +89,8 @@ trait CommandLineOptionsComponent {
       val uuid: ScallopOption[String] = opt(name = "uuid", short = 'u',
         descr = "UUID to use as bag-id for the bag",
         required = false)
+      val move: ScallopOption[Boolean] = opt(name = "move",
+        descr = "move (rather than copy) the bag when adding it to the bag store")
       footer(SUBCOMMAND_SEPARATOR)
     }
     addSubcommand(add)
