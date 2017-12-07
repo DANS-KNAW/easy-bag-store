@@ -53,7 +53,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     case Some(cmd @ commandLine.add) =>
       val bagUuid = cmd.uuid.toOption.map(UUID.fromString)
       val baseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select which bag store to add to."))
-      BagStore(baseDir).add(cmd.bag(), bagUuid).map(bagId => s"Added bag with bag-id: $bagId to bag store: $baseDir")
+      BagStore(baseDir).add(cmd.bag(), bagUuid, skipStage = cmd.move()).map(bagId => s"Added bag with bag-id: $bagId to bag store: $baseDir")
     case Some(cmd @ commandLine.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())

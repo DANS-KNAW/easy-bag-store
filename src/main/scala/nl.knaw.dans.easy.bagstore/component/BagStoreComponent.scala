@@ -198,7 +198,7 @@ trait BagStoreComponent {
           _ <- fileSystem.makePathAndParentsInBagStoreGroupWritable(container)
           _ = debug(s"created container for Bag: $container")
           _ <- ingest(bagDir.getFileName, staging, container)
-          _ = FileUtils.deleteDirectory(staging.toFile)
+          _ = if (!skipStage) FileUtils.deleteDirectory(staging.toFile)
         } yield bagId
       }
     }
