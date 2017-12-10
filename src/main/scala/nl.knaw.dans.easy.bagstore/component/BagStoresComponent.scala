@@ -45,8 +45,11 @@ trait BagStoresComponent {
           storeShortnames.values.toStream
             .map(BagStore(_))
             .map(_.copyToDirectory(itemId, output, skipCompletion))
-            .find(_.isSuccess)
-            .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
+            .find {
+              case _ : Success[(Path, BaseDir)] => true
+              case Failure(e: NoSuchBagException) => false
+              case _ => true
+            }.getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
         }
     }
 
@@ -150,14 +153,14 @@ trait BagStoresComponent {
         }
     }
 
-    def locate(itemId: ItemId, fromStore: Option[Path] = None): Try[Path] = {
+    def locate(itemId: ItemId, fileDataLocation: Boolean = false, fromStore: Option[Path] = None): Try[Path] = {
       fromStore
         .map(BagStore(_))
-        .map(_.locate(itemId))
+        .map(_.locate(itemId, fileDataLocation))
         .getOrElse {
           storeShortnames.values.toStream
             .map(BagStore(_))
-            .map(_.locate(itemId))
+            .map(_.locate(itemId, fileDataLocation))
             .find(_.isSuccess)
             .getOrElse(Failure(NoSuchItemException(itemId)))
         }

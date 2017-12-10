@@ -44,7 +44,8 @@ trait FileSystemComponent extends DebugEnhancedLogging {
   trait FileSystem {
     val localBaseUri: URI
     val uuidPathComponentSizes: Seq[Int]
-    val bagPermissions: String
+    val bagFilePermissions: java.util.Set[PosixFilePermission]
+    val bagDirPermissions: java.util.Set[PosixFilePermission]
 
     /**
      * @return Lazily populated JStream with bags in this base directory

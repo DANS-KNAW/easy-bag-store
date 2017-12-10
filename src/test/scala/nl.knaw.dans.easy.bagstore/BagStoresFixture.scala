@@ -16,6 +16,7 @@
 package nl.knaw.dans.easy.bagstore
 
 import java.net.URI
+import java.nio.file.attribute.{ PosixFilePermission, PosixFilePermissions }
 
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
 
@@ -29,13 +30,15 @@ trait BagStoresFixture extends BagStoreFixture {
 
   override val fileSystem = new FileSystem {
     override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
-    override val bagPermissions: String = "rwxr-xr-x"
+    override val bagFilePermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
+    override val bagDirPermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
     override val localBaseUri: URI = new URI("http://localhost")
   }
 
   override val bagProcessing = new BagProcessing {
     override val stagingBaseDir: BagPath = testDir
-    override val outputBagPermissions: String = "rwxr-xr-x"
+    override val outputBagFilePermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
+    override val outputBagDirPermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
   }
 
   val bagStore1 = new BagStore {

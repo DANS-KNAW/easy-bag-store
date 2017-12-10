@@ -152,15 +152,22 @@ trait BagFacadeComponent {
     }
 
     def removeFetchTxtFromTagManifests(bagDir: Path): Try[Unit] = {
-      removeFromTagManifests(bagDir, FETCH_TXT_FILENAME)
+        removeFromTagManifests(bagDir, FETCH_TXT_FILENAME)
     }
 
     def removeFromTagManifests(bagDir: Path, filename: String): Try[Unit] = {
       getBag(bagDir)
         .map(bag => {
           val tagManifests: JSet[BagitManifest] = bag.getTagManifests
-          tagManifests.asScala.foreach(_.getFileToChecksumMap.remove(bagDir.resolve(filename)))
-          ManifestWriter.writeTagManifests(tagManifests, bagDir, bagDir, bag.getFileEncoding)
+          val affectedTagManifests = tagManifests.asScala.filter(_.getFileToChecksumMap.containsKey(filename))
+
+          /*
+           * Avoid unnecessary changes to the tag manifests (such as only changing the order of the entries).
+           */
+          if (affectedTagManifests.nonEmpty) {
+            affectedTagManifests.foreach(_.getFileToChecksumMap.remove(bagDir.resolve(filename)))
+            ManifestWriter.writeTagManifests(tagManifests, bagDir, bagDir, bag.getFileEncoding)
+          }
         })
     }
 

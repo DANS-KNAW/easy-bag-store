@@ -15,14 +15,13 @@
  */
 package nl.knaw.dans.easy.bagstore.command
 
-import java.nio.file.Path
 import java.util.UUID
 
+import nl.knaw.dans.easy.bagstore.ArchiveStreamType._
 import nl.knaw.dans.easy.bagstore.service.ServiceWiring
-import nl.knaw.dans.easy.bagstore.{ ArchiveStreamType, BaseDir, ItemId, TryExtensions2 }
+import nl.knaw.dans.easy.bagstore.{ BaseDir, ItemId, TryExtensions2 }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import nl.knaw.dans.easy.bagstore.ArchiveStreamType._
 
 import scala.annotation.tailrec
 import scala.io.StdIn
@@ -100,12 +99,13 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
         .getOrElse(Success("No reference Bags specified: nothing to do"))
     case Some(cmd @ commandLine.complete) =>
       implicit val baseDir: BaseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select in the context of which bag store to complete."))
-      bagProcessing.complete(cmd.bagDir()).map(_ => s"Done completing ${ cmd.bagDir() }")
+      bagProcessing.complete(cmd.bagDir().toAbsolutePath, cmd.keepFetchTxt()).map(_ => s"Done completing ${ cmd.bagDir() }")
     case Some(cmd @ commandLine.locate) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
-        location <- bagStores.locate(itemId, bagStoreBaseDir)
-      } yield location.toString
+        location <- bagStores.locate(itemId, cmd.fileDataLocation(), bagStoreBaseDir)
+        _ <- Try { Console.out.println(location.toString) }
+      } yield s"Located item $itemId"
     case Some(cmd @ commandLine.validate) =>
       implicit val baseDir: BaseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select in the context of which bag store to validate."))
       fileSystem.isVirtuallyValid(cmd.bagDir())
@@ -130,15 +130,24 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
 
   @tailrec
   private def promptForStore(msg: String): BaseDir = {
-    val name = StdIn.readLine(
-      s"""$msg
-         |Available BagStores:
-         |$listStores
-         |Select a name: """.stripMargin)
-    bagStores.getBaseDirByShortname(name) match {
-      case Some(store) => store
-      case None => promptForStore(msg)
+    if (bagStores.storeShortnames.size > 1) {
+      val name = StdIn.readLine(
+        s"""$msg
+
+           |Available BagStores:
+           |$listStores
+
+           |Select a name: """
+          .stripMargin)
+      bagStores.
+        getBaseDirByShortname(name) match {
+        case Some(store) => store
+        case
+          None
+        => promptForStore(msg)
+      }
     }
+    else bagStores.storeShortnames.values.head
   }
 
   private def runAsService(): Try[FeedBackMessage] = Try {

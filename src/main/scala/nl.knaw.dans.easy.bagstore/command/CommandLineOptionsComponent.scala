@@ -135,6 +135,8 @@ trait CommandLineOptionsComponent {
 
     val locate = new Subcommand("locate") {
       descr("Locates the item with <item-id> on the file system")
+      val fileDataLocation: ScallopOption[Boolean] = opt(name = "file-data-location",
+        descr = "resolve to file-data-location")
       val itemId: ScallopOption[String] = trailArg(name = "<item-id>",
         descr = "the item to locate",
         required = true)
@@ -174,6 +176,8 @@ trait CommandLineOptionsComponent {
 
     val complete = new Subcommand("complete") {
       descr("Resolves fetch.txt references from the bag store and copies them into <bag-dir>")
+      val keepFetchTxt: ScallopOption[Boolean] = opt(name = "keep-fetchtxt",
+        descr = "do not delete fetch.txt, if present")
       val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
         descr = "bag directory to complete",
         required = true)

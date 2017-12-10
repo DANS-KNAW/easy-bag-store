@@ -16,7 +16,7 @@
 package nl.knaw.dans.easy.bagstore.component
 
 import java.io.OutputStream
-import java.nio.file.{ Files, Path, Paths }
+import java.nio.file.{ Files, LinkOption, Path, Paths }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
@@ -87,9 +87,26 @@ trait BagStoreComponent {
       } yield filteredIds.toSeq.sortBy(_.path)
     }
 
+    /**
+     * Copies an item to a specified output directory. If the output directory does not exist, it is first
+     * created. The result can be a regular file or complete bag, depending on what `itemId`
+     * points to. Copying of a single directory is not supported, as a bag directory may not be represented
+     * in stored bag as a physical directory. Copying a directory can be achieved with @{link #copyToStream}.
+     *
+     * If the path for the result already exists, this function returns a failure. Also, if the
+     * output directory exists as a regular file, the function will fail.
+     *
+     * The file and directory permissions on the result are changed recursively to the values configured in
+     * `cli.output.bag-file-permissions` and `cli.output.bag-dir-permissions`.
+     *
+     * @param itemId the item to copy
+     * @param output the directory to copy it to
+     * @param skipCompletion if `true` no files will be fetched from other locations
+     * @return
+     */
     def copyToDirectory(itemId: ItemId, output: Path, skipCompletion: Boolean = false): Try[(Path, BaseDir)] = {
       trace(itemId, output)
-      if (Files.isRegularFile(output)) Failure(OutputAlreadyExists(output))
+      if (Files.isRegularFile(output)) Failure(OutputNotADirectoryException(output))
       else {
         if (!Files.exists(output)) Files.createDirectories(output)
         fileSystem.checkBagExists(BagId(itemId.uuid)).flatMap { _ =>
@@ -97,19 +114,26 @@ trait BagStoreComponent {
             case bagId: BagId =>
               fileSystem.toLocation(bagId)
                 .map(path => {
+                  val resultDir = output.resolve(path.getFileName).toAbsolutePath
+                  if (Files.exists(resultDir)) throw OutputAlreadyExists(resultDir)
                   debug(s"Copying bag from $path to $output")
-                  FileUtils.copyDirectoryToDirectory(path.toFile, output.toFile)
-                  if (!skipCompletion) bagProcessing.complete(output.resolve(path.getFileName))
-                  Files.walk(output).iterator().asScala.foreach(bagProcessing.setPermissions(_))
+                  FileUtils.copyDirectory(path.toFile, resultDir.toFile)
+                  if (!skipCompletion) bagProcessing.complete(resultDir)
+                  bagProcessing.setPermissions(resultDir, bagProcessing.outputBagFilePermissions, bagProcessing.outputBagDirPermissions)
                   (output.resolve(path.getFileName), baseDir)
                 })
             case fileId: FileId =>
-              fileSystem.toRealLocation(fileId)
-                .map(path => {
-                  FileUtils.copyFileToDirectory(path.toFile, output.toFile)
-                  bagProcessing.setFilePermissions()(output.resolve(path.getFileName))
-                  (output.resolve(path.getFileName), baseDir)
-                })
+              if (fileId.isDirectory) throw NoRegularFileException(itemId)
+              else {
+                fileSystem.toRealLocation(fileId)
+                  .map(path => {
+                    val resultFile = output.resolve(path.getFileName).toAbsolutePath
+                    if (Files.exists(resultFile)) throw OutputAlreadyExists(resultFile)
+                    FileUtils.copyFile(path.toFile, resultFile.toFile)
+                    Files.setPosixFilePermissions(resultFile, bagProcessing.outputBagFilePermissions)
+                    (output.resolve(path.getFileName), baseDir)
+                  })
+              }
           }
         }
       }
@@ -215,8 +239,10 @@ trait BagStoreComponent {
     private def ingest(bagName: Path, staging: Path, container: Path): Try[Unit] = {
       trace(bagName, staging, container)
       val moved = container.resolve(bagName)
-      bagProcessing.setPermissions(staging.resolve(bagName))
+      bagProcessing.setPermissions(staging.resolve(bagName), fileSystem.bagFilePermissions, fileSystem.bagDirPermissions, includeTopDir = false)
         .map(Files.move(_, moved))
+        // We cannot move bagDir if is it read-only, so set file permissions after moving.
+        .map(Files.setPosixFilePermissions(_, fileSystem.bagDirPermissions))
         .map(_ => ())
         .recoverWith {
           case NonFatal(e) =>
@@ -250,8 +276,9 @@ trait BagStoreComponent {
       }
     }
 
-    def locate(itemId: ItemId): Try[Path] = {
-      fileSystem.toLocation(itemId)
+    def locate(itemId: ItemId, resolveToFileDataLocation: Boolean = false): Try[Path] = {
+      if (resolveToFileDataLocation) itemId.toFileId.flatMap(fileSystem.toRealLocation)
+      else fileSystem.toLocation(itemId)
     }
   }
 

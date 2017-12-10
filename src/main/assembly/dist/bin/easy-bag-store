@@ -14,6 +14,7 @@ else
     LOGCONFIG=$APPHOME/cfg/logback.xml
 fi
 
+LC_ALL=en_US.UTF-8 \
 java -Dlogback.configurationFile=$LOGCONFIG \
      -Dapp.home=$APPHOME \
      -jar $APPHOME/bin/easy-bag-store.jar $@

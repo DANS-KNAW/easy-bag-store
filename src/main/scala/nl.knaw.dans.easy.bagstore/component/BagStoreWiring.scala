@@ -16,7 +16,7 @@
 package nl.knaw.dans.easy.bagstore.component
 
 import java.net.URI
-import java.nio.file.attribute.PosixFilePermissions
+import java.nio.file.attribute.{ PosixFilePermission, PosixFilePermissions }
 import java.nio.file.{ Files, Paths }
 
 import nl.knaw.dans.easy.bagstore.{ BagFacadeComponent, BaseDir, ConfigurationComponent }
@@ -30,18 +30,18 @@ trait BagStoreWiring extends BagStoresComponent with BagStoreComponent with BagP
   private val properties = configuration.properties
 
   override lazy val fileSystem: FileSystem = new FileSystem {
-    override val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-component-sizes").map(_.toInt).toSeq
-    override val bagPermissions: String = properties.getString("bag-store.bag-file-permissions")
-    override val localBaseUri: URI = new URI(properties.getString("bag-store.base-uri"))
+    override val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-slash-pattern").map(_.toInt).toSeq
+    override val bagFilePermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString(properties.getString("bag-store.bag-file-permissions"))
+    override val bagDirPermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString(properties.getString("bag-store.bag-dir-permissions"))
+    override val localBaseUri: URI = new URI(properties.getString("bag-store.local-file-uri-base"))
 
     require(uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${ uuidPathComponentSizes.sum }")
-    require(Try(PosixFilePermissions.fromString(bagPermissions)).isSuccess, s"Bag file permissions are invalid: '$bagPermissions'")
   }
   override lazy val bagProcessing: BagProcessing = new BagProcessing {
-    override val outputBagPermissions: String = properties.getString("output.bag-file-permissions")
-    override val stagingBaseDir: BagPath = Paths.get(properties.getString("staging.base-dir"))
+    override val outputBagFilePermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString(properties.getString("cli.output.bag-file-permissions"))
+    override val outputBagDirPermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString(properties.getString("cli.output.bag-dir-permissions"))
+    override val stagingBaseDir: BagPath = Paths.get(properties.getString("bag-store.staging.base-dir"))
 
-    require(Try(PosixFilePermissions.fromString(outputBagPermissions)).isSuccess, s"Bag export file permissions are invalid: '$outputBagPermissions'")
     require(Files.isWritable(stagingBaseDir), s"Non-existent or non-writable staging base-dir: $stagingBaseDir")
   }
 

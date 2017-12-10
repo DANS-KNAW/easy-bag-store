@@ -16,6 +16,7 @@
 package nl.knaw.dans.easy.bagstore.component
 
 import java.net.URI
+import java.nio.file.attribute.{ PosixFilePermission, PosixFilePermissions }
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
@@ -56,13 +57,15 @@ class BagStoreSpec extends TestSupportFixture
 
   override val fileSystem = new FileSystem {
     override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
-    override val bagPermissions: String = "rwxr-xr-x"
+    override val bagFilePermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
+    override val bagDirPermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
     override val localBaseUri: URI = new URI("http://localhost")
   }
 
   override val bagProcessing = new BagProcessing {
     override val stagingBaseDir: BagPath = testDir
-    override val outputBagPermissions: String = "rwxr-xr-x"
+    override val outputBagFilePermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
+    override val outputBagDirPermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
   }
 
   private val bagStore = new BagStore {
@@ -126,4 +129,6 @@ class BagStoreSpec extends TestSupportFixture
     testSuccessfulAdd(testBagWithRefsB, uuid2)
     testSuccessfulAdd(testBagWithRefsC, uuid3)
   }
+
+  it should "set file and directory permissions"
 }

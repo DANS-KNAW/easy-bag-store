@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagstore.component
 import java.io.{ IOException, InputStream }
 import java.net.URI
 import java.nio.charset.StandardCharsets
-import java.nio.file.attribute.{ BasicFileAttributes, PosixFilePermissions }
+import java.nio.file.attribute.{ BasicFileAttributes, PosixFilePermission, PosixFilePermissions }
 import java.nio.file.{ FileVisitResult, FileVisitor, Files, Path }
 
 import net.lingala.zip4j.core.ZipFile
@@ -40,10 +40,11 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
   trait BagProcessing {
 
     val stagingBaseDir: Path
-    val outputBagPermissions: String
+    val outputBagFilePermissions: java.util.Set[PosixFilePermission]
+    val outputBagDirPermissions: java.util.Set[PosixFilePermission]
 
     // TODO: This function looks a lot like BagStoreContext.isVirtuallyValid.createLinks, refactor?
-    def complete(bagDir: Path)(implicit baseDir: BaseDir): Try[Unit] = {
+    def complete(bagDir: Path, keepFetchTxt: Boolean = false)(implicit baseDir: BaseDir): Try[Unit] = {
       trace(bagDir)
 
       def copyFiles(mappings: Seq[(Path, Path)]): Try[Unit] = Try {
@@ -55,7 +56,7 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
           }
           debug(s"copy $from -> $to")
           Files.copy(from, to)
-          setPermissions(to).get
+          setPermissions(to, outputBagFilePermissions, outputBagDirPermissions).get
         }
       }
 
@@ -65,23 +66,17 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
         if virtuallyValid.isRight
         mappings <- fileSystem.projectedToRealLocation(bagDir)
         _ <- copyFiles(mappings)
-        _ <- bagFacade.removeFetchTxtFromTagManifests(bagDir)
-        _ <- Try { Files.deleteIfExists(bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)) }
+        _ <- if (!keepFetchTxt) bagFacade.removeFetchTxtFromTagManifests(bagDir) else Success(())
+        _ <- if (!keepFetchTxt) Try { Files.deleteIfExists(bagDir.resolve(bagFacade.FETCH_TXT_FILENAME)) } else Success(())
         valid <- bagFacade.isValid(bagDir)
         _ = debug(valid.fold(msg => s"result invalid: $msg", _ => s"result valid?: $valid"))
         if valid.isRight
       } yield ()
     }
 
-    // FIXME: Only called in BagStoreComp
-    def setFilePermissions(permissions: String = outputBagPermissions)(path: Path): Try[Path] = Try {
-      Files.setPosixFilePermissions(path, PosixFilePermissions.fromString(permissions))
-    }
-
     // FIXME: Only called in BagStoreComp and in previous method
-    def setPermissions(bagDir: BaseDir, permissions: String = outputBagPermissions) = Try {
-      logger.info(s"Setting bag permissions to: $permissions, bag directory: $bagDir")
-      val posixFilePermissions = PosixFilePermissions.fromString(permissions)
+    def setPermissions(bagDir: Path, filePermissions: java.util.Set[PosixFilePermission], directoryPermissions: java.util.Set[PosixFilePermission], includeTopDir: Boolean = true) = Try {
+      logger.info(s"Setting bag permissions to: file = $filePermissions, dir = $directoryPermissions, bag directory: $bagDir")
       object SetPermissionsFileVisitor extends FileVisitor[Path] {
         override def visitFileFailed(file: Path, exc: IOException): FileVisitResult = {
           logger.error(s"Could not visit file $file", exc)
@@ -91,7 +86,7 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
         override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
           trace(file, attrs)
           if (logger.underlying.isDebugEnabled) logAttributes(file, attrs)
-          Files.setPosixFilePermissions(file, posixFilePermissions)
+          Files.setPosixFilePermissions(file, filePermissions)
           FileVisitResult.CONTINUE
         }
 
@@ -108,7 +103,10 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
               logger.error(s"Error when visiting directory: $dir", exc)
               FileVisitResult.TERMINATE
             })
-            .getOrElse(FileVisitResult.CONTINUE)
+            .getOrElse {
+              if (dir != bagDir || includeTopDir) Files.setPosixFilePermissions(dir, directoryPermissions)
+              FileVisitResult.CONTINUE
+            }
         }
 
         private def logAttributes(path: Path, attrs: BasicFileAttributes): Unit = {

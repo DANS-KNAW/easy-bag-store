@@ -71,10 +71,10 @@ Tutorial
    
        mkdir easy-bag-store-tutorial
        cd easy-bag-store-tutorial
-       vagrant init https://easy.dans.knaw.nl/boxes/easy-bag-store-tutorial.box
+       vagrant init https://easy.dans.knaw.nl/boxes/easy-bag-store-tutorial-2017-12-08.box
        vagrant up
 
-   The first time you run this tutorial, this will have to download the ~850M vagrant box so&mdash;depending on
+   The first time you run this tutorial, this will have to download the ~800M vagrant box so&mdash;depending on
    your internet connection&mdash;that may take some minutes. If everything goes well, you will end up with
    a virtual machine running CentOS 6 Linux and with `easy-bag-store` installed on it. Don't worry if using
    Linux in your organization is not an option: the bag store does not *require* Linux; `easy-bag-store` 
@@ -128,7 +128,7 @@ Tutorial
          extracting: sample/path/with a/space/檔案.txt
          
    The last file has a Chinese file name, which can only be displayed by your terminal if it has fonts that include
-   Chinese characters. Otherwise they will probably show up as questions marks on your screen.         
+   Chinese characters. Otherwise they will probably show up as questions marks on your screen.           
          
 4. Next, we will turn the newly created `sample` directory into a bag. For this we will use a tool 
    that was created by [Library Of Congress]. It is already installed on the VM. Type the following command:
@@ -163,8 +163,8 @@ Tutorial
 5. At this point, we are ready to add the bag to the store:
 
         easy-bag-store add sample    
-        > OK: Added Bag with bag-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 to \
-            BagStore: default    
+        > OK: Added bag with bag-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 to \
+           bag store: /srv/dans.knaw.nl/bag-store
    
    The bag-id will of course be different in each case. You may also specify a UUID yourself, 
    using the `-u` option (`easy-bag-store add -u <your UUID> sample`). The great thing about 
@@ -195,14 +195,14 @@ Tutorial
                     ├── manifest-md5.txt
                     └── tagmanifest-md5.txt
                   
-   As you can see the bag-id is used to form a path from the bag store base directory to a container in which
-   the bag is stored. The slashes must be put in the same places for all the bags in a bag store. So in this case
+   As you can see, the bag-id is used to form a path from the bag store base directory to a container in which
+   the bag is stored. The slashes must be put in the same places for all the bags in a bag store. So, in this case,
    the first two characters of the bag-id form the name of the parent directory and the rest (stripped of dashes)
    the child. Note that this "slashing pattern" strictly speaking doesn't need to be stored anywhere, as it 
    will be implicitly recorded when adding the first bag. However, the `easy-bag-store` tool does use a configuration
    setting for this, as "discovering" this every time would be inefficient.                
         
-Wasn't that great? And it took only six steps and three pages to explain! At this point you may think you might just 
+Wasn't that great? And it took only six steps and three pages to explain! At this point you may be thinking you might just 
 as well have copied the bag to the given path yourself, and that is quite true. Actually, that is the point of the bag store:
 to be so simple that manual operation would be feasible. This is how we attain the **independence** from
 any repository software that we talked about earlier.
@@ -215,8 +215,8 @@ support archival package **authenticity**. That is why we limit the allowed oper
 * `GET` - read any part of the bag store.
 * `ENUM` - enumerate the bags and/or files in a bag store. 
 
-Note that there is no <del>`MODIFY`</del>. By making the bag store "add-only"&mdash;carving the added bags in stone as 
-it were&mdash;we make it easier to guarantee the authenticity of the recorded data, at least at the bit level. We might
+Note that there is no <del>`MODIFY`</del>. By making the bag store "add-only"&mdash;carving the added bags in stone, as 
+it were&mdash;we are making it easier to guarantee the authenticity of the recorded data&mdash;at least, at the bit level. We might
 set the permissions on the archived files to read-only and even flag them as immutable.   
 
 This *does* mean, however, that if we should happen to add an invalid bag, we corrupt the bag store. So, 
@@ -226,7 +226,7 @@ while manual operation is feasible in theory, in practise you would soon be deve
 * change the file permissions of the contents of the bag to read-only, so as to prevent accidental modification;
 * convert the UUID to a path correctly.
 
-These are precisely the things that `easy-bag-store add` does for you! To mess up you now really have to make
+These are precisely the things that `easy-bag-store add` does for you! To mess up, you now really have to make
 a conscious effort. 
 
 So, let's now move on to an even simpler task: retrieving an item.
