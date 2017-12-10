@@ -264,15 +264,21 @@ We can use `easy-bag-store` to find an item for us.
           
 2. Copy the bag to some output directory:
 
-        easy-bag-store get 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 out
-        > OK: Retrieved item with item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 \
-           to out from BagStore: /srv/dans.knaw.nl/bag-store
-           
-   The directory `out` will be created automatically.
+        easy-bag-store get 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+        > FAILED: Output path already exists; not overwriting /home/vagrant/./sample
+        
+
+3. Yes, that is right. By default `easy-bag-store get` will try to copy the itme to the current directory.
+   However, that would overwrite the existing directory `sample`, which is probably not what you want.
+   You can specify a different output directory with the `-d` option:
+   
+        easy-bag-store get -d out 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+
+    The `out` directory will be created if it doesn't exist yet.
         
 3. Now to check that the bag you retrieved is equal to the one you added:
 
-        diff -r sample out        
+        diff -r sample out/sample        
 
    No output here is good. It means the directories are the same. 
 
@@ -300,23 +306,48 @@ We can use `easy-bag-store` to find an item for us.
 2. Select one of the item-ids from the output and:
 
         easy-bag-store get \
-            8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03.jpeg .
+            8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03.jpeg
         > OK: Retrieved item with \
-          item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03.jpeg to . \
-          from BagStore: /srv/dans.knaw.nl/bag-store     
+          item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03.jpeg to \
+          ./image03.jpg from bag store: default     
              
     We have now copied the selected file to the current directory, which you can check with a simple
     `ls` call.
 
 #### A directory
+1. What if we want to get all the files in a specific directory, say, `sample/data/img`? Let's try that.
 
-*WORK IN PROGRESS*
+        easy-bag-store get 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img    
+        > FAILED: Source '/srv/dans.knaw.nl/bag-store/8e/eaeda43ae74be29f633db09b19db43/sample/data/img' \
+          exists but is a directory
+          
+   Alas, this hasn't been implemented yet! However, there is an alternative way of getting items, which
+   also supports getting directories: *archive streams*.
+
+2. To get the directory as a [TAR] archive stream, execute the following:
+
+        easy-bag-store stream -f tar 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img > img.tar
+        > OK: Retrieved item with item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img to stream.
+        
+3. This will also work for complete bags and single files. Don't forget to redirect the stream to 
+   a file, or the TAR will be printed to your screen. You might also pipe the stream into the `tar`
+   extract command:
+   
+        easy-bag-store stream -f tar 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img | tar x
+        > OK: Retrieved item with item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img to stream.
+       
+   This will extract the `img` directory in your current working directory, so effectively does what we
+   where trying to achieve at the beginning of this section.<sup>[1](#footnote1)<sup>
+   
+    
+           
+[TAR]: https://en.wikipedia.org/wiki/Tar_(computing)
 
 
 ### Adding an updated bag
 Now guarding **authenticity** of your archival packages by disallowing any changes to them may seem
-a bit draconic. In the real world packages do get updated because of errors, newly available data, etc.
-How do we deal with that? The answer is: in the simplest possible way; by adding a new version. 
+a bit draconic. In the real world packages do get updated to correct errors, add newly available data, etc.
+How do we deal with that? The answer is: *in the simplest possible way; by adding a new version*. 
 
 Keeping track of the versions is not built in to the bag store, but here is were **modular** design comes in:
 you can add that capability by simply adding appropriate metadata. That could be something as simple
@@ -339,9 +370,9 @@ A bag is virtually-valid when:
 
 The idea is that the only things we need to do to make the bag valid are:
 
-* Download the files referenced from `fetch.txt` into the bag.
-* Remove `fetch.txt` from the bag.
-* Remove any entries for `fetch.txt` in the tag manifests, if present.
+1. Download the files referenced from `fetch.txt` into the bag.
+2. Remove `fetch.txt` from the bag.
+3. Remove any entries for `fetch.txt` in the tag manifests, if present.
 
 If we can prove that this would be enough to make the bag valid, then it is virtually-valid. Note that
 this term was introduced by us and is nowhere to be found in the BagIt specifications document.
@@ -372,11 +403,16 @@ a command to help you strip your updated bag of unnecessary files.
 
         echo "New file content" > sample-updated/data/NEW.TXT
 
-5. Update the checksums in the new bag:
+5. Update the checksums in the new bag, so that it is valid again:
 
         bagit update sample-updated
 
-5. Now copy the bag-id of the version we stored earlier (use `easy-bag-store enum` if needed) and 
+6. Make a copy of this updated bag, so that we can compare it later with the one we retrieve from the
+   bag store:
+   
+        cp -r sample-updated sample-updated-unpruned
+
+7. Now copy the bag-id of the version we stored earlier (use `easy-bag-store enum` if needed) and 
    use it in the following command:
    
         easy-bag-store prune sample-updated 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
@@ -385,7 +421,7 @@ a command to help you strip your updated bag of unnecessary files.
    Note that we provided as the second argument the bag-id of the bag in which the unchanged files 
    where located. You may append as many bag-ids as you like. We call these bags reference bags or **ref-bag**s.
    
-4. Now let's have a look at `sample-updated`:
+8. Now let's have a look at `sample-updated`:
 
         tree sample-updated/
         > sample-updated/
@@ -400,7 +436,7 @@ a command to help you strip your updated bag of unnecessary files.
             ├── manifest-md5.txt
             └── tagmanifest-md5.txt
 
-5. Yes, that's right: all the other data files are gone. Take a look at the contents of `fetch.txt`
+9. Yes, that's right: *all the other data files are gone*. Now take a look at the contents of `fetch.txt`:
 
         cat sample-updated/fetch.txt
         > http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/%E6%AA%94%E6%A1%88.txt  34  data/path/with a/space/檔案.txt
@@ -413,15 +449,16 @@ a command to help you strip your updated bag of unnecessary files.
    
    
 As you may have noticed, the URLs in `fetch.txt` all start with `http://localhost/`. These URLs are called
-**local-item-uri**s. They will of course only really work, if&mdash;on this host&mdash;there is a web server to do the
-item-to-location mapping  as described earlier (looking in the correct bag store). We could set that up, but really what
-the local-item-uris are intended to do is point back into the same bag store that the `fetch.txt` file is stored in.
-That makes resolving the local-item-uri trivial, as leaving off `http://localhost/` gives you the item-id.
+**local-file-uri**s. They will of course only really work, if&mdash;on this host&mdash;there is a web server to do the
+item-to-location mapping  as described earlier (looking in the correct bag store). We *could* set that up, but really what
+the local-file-uris are intended to do is point back into the same bag store that the `fetch.txt` file is stored in.
+That makes resolving the local-file-uri trivial, as leaving off `http://localhost/` gives you the item-id.
 
-The local-item-uris must never point to anything else, even if we set up the web server to give back the correct 
-file. The reason for this rule is that we want to keep the bag store self-contained. This supports **authenticity** of 
-the archival packages. Being able to find all the files in a packages obviously is a *sine qua non* for guaranteeing its
-authenticity. If we cannot even do that, we should give up all claims of being a reliable archive.
+The local-file-uris must never point to files outside the same bag store that their containing `fetch.txt` is in, even 
+if we set up the web server to give back the correct file. The reason for this rule is that we want to keep the bag 
+store self-contained. This supports **authenticity** of the archival packages. Being able to find all the files 
+in a packages obviously is a *sine qua non* for guaranteeing its authenticity. If we cannot even do that, we should 
+give up all claims of being a reliable archive.
 
 Note, that fetching items with *non-local* URLs is still sound practice. However, it is essential to consider how the 
 persistence of these URLs is guaranteed (and by whom). It *does* pose more challenges than keeping all the packages 
@@ -437,24 +474,24 @@ full content.
 
 2. Retrieve it again from the bag store:
 
-        easy-bag-store get <bag-id of sample-updated> out2
+        easy-bag-store get -d out <bag-id of sample-updated>
         
-3. Note that the retrieved bag is still only virtually-valid, and not valid. We will use the 
-   `easy-bag-store complete` command for that.
-   
-        easy-bag-store complete out2
+3. Verify that `sample-update-unpruned` and `out/sample-updated` are equal
 
-4. Verify that `my-example-bag-v2` and `out2` are equal
-
-        diff -r my-example-bag-v2 out2
+        diff -r sample-update-unpruned out/sample-updated
 
    Again, if you see any output from the last command, that means the directories are different and something 
-   went wrong.
+   went wrong. As you can see, the `get` subcommand will, by default, also complete the bag by fetching any files
+   that were pruned away before. You can also skip the "completing" step with the `-s` option. You may then use
+   the `complete` subcommand to complete the bag after retrieval from the bag store.
 
 #### Other operations and commands
 You have now seen the most important bag store operations in action: `ADD`, `ENUM` and `GET`. The command line
-tool implemented these as the subcommands `add`, `enum` and `get`. Futhermore, you have seen the utility subcommands
-`prune` and `complete` that help you convert between virtually-valid and valid bags. 
+tool implements these as the subcommands `add`, `enum` and `get`/`stream`. Furthermore, you have seen the utility subcommands
+`prune` and `complete` that help you convert between virtually-valid and valid bags. For a list of all the available subcommands
+type:
+
+        easy-bag-store --help
 
 For more exceptional situations the bag store allows you to `DEACTIVATE` a bag. This will mark it as hidden, while
 you can still reference files in it. The main use case for this operation is, when you turn out to have created an
@@ -466,8 +503,8 @@ This operation is also *not* intended for regular use cases, but rather for situ
 obligation to destroy data. However, in such cases a filtering migration might be a better option.
 
 ### Using the HTTP service
-For simple scenarios working with the command line interface of the bag store tool is quite sufficient. However, 
-when building a complete archival system on the bag store it may be more convenient to have an HTTP based interface.
+For simple scenarios, working with the command line interface of the bag store tool is quite sufficient. However, 
+when building a complete archival system on top of the bag store, it may be more convenient to have an HTTP based interface.
 Fortunately, such an interface exists. We will briefly explore it here. 
 
 The examples work with the command line tool [cURL].
@@ -478,6 +515,7 @@ The examples work with the command line tool [cURL].
         curl http://localhost:20110/
         > EASY Bag Store is running.
           Available stores at <http://localhost:20110/stores>
+          Bags from all stores at <http://localhost:20110/bags>
           
    Even though the current API is rather basic, we have tried to adhere to the [HATEOAS] principle.
        
@@ -486,21 +524,83 @@ The examples work with the command line tool [cURL].
         curl http://localhost:20110/stores
         > <http://localhost:20110/stores/default>
         
-   It turns out there is only one store on this VM. It *is* possible to have multple stores. One use case for this could
+   It turns out there is only one store on this VM. It *is* possible to have multiple stores. One use case for this could
    be when some of your archival packages contain sensitive data that must be stored with an added level of security.
+   
+3. We follow the link to the one store:
+
+        curl http://localhost:20110/stores/default
+        > Bag store 'default'.
+          Bags for this store at <http://localhost:20110/stores/default/bags>
+   
+   We see we can access the bags in this particular bag store. 
  
 #### Enumerating bags and files
 1. Enumerate all the bags in your bag store:
 
         curl http://localhost:20110/stores/default/bags
+        > <newline-separated list of UUIDs>
         
+   You will get the list of all the bags currently in your bag store.
+
+2. Pick one UUID and use it in the following:
+
+        curl http://localhost:20110/stores/default/bags/8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+        > Item 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 is not a regular file.
+      
+3. We need to specify the media type we want to accept. Currently, for a bag you can choose between
+   `text/plain`, `application/zip` and `application/x-tar`. `text/plain` will give you a listing of the regular
+   files in the bag.
    
+        curl -H 'Accept: text/plain' http://localhost:20110/stores/default/bags/8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+        > <list of file-ids>
+        
+#### Retrieving one file
+1. To download one file, just put its item-id in place of the bag-id, and don't specify a media type:
+
+        curl http://localhost:20110/stores/default/bags/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02.jpeg > image02.jpeg
+        > % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                           Dload  Upload   Total   Spent    Left  Speed
+          100 13829  100 13829    0     0  1042k      0 --:--:-- --:--:-- --:--:-- 1227k
+
+#### Retrieving a bag or a directory
+1. To download the contents of a bag (or a directory) simply use its item-id and specify the desired format in the 
+   `Accept` header:
+   
+        curl -H 'Accept: application/x-tar' \
+          http://localhost:20110/stores/default/bags/8eeaeda4-3ae7-4be2-9f63-3db09b19db43 > mybag.tar
+        
+         
 
 
+
+
+#### Adding bag
+
+
+
+
+#### Adding an updated bag
+
+
+
+
+---
+<a name="footnote1" /><sup>1</sup>There is a slight catch when getting a complete bag this way: if it contains a 
+`fetch.txt`, this will *not* be removed, leaving the resulting bag technically incomplete. However, 
+this is easily fixed by removing `fetch.txt` yourself, along with any entries for it in the tag manifests.
+
+By the way, the `bagit` command line tool we use in this tutorial will incorrectly judge the bag to be valid
+when asked so with `bagit verifyvalid`. [The section on completeness in the BagIt specs], however, seems to say
+that a bag is incomplete (and therefore not valid) if it contains a `fetch.txt`. (And it is not even *incomplete*
+(i.e. invalid) if there are files referenced in a payload manifest, that are present in neither the bag *nor* 
+the `fetch.txt`.) The [PyBagIt] library on the other hand, *does* catch this error.
 
 
 [cURL]: https://curl.haxx.se/
 [HATEOAS]: https://en.wikipedia.org/wiki/HATEOAS
+[The section on completeness in the BagIt specs]: https://tools.ietf.org/html/draft-kunze-bagit#section-3
+[PyBagIt]: http://ahankinson.github.io/pybagit/
 
 Appendix I: extended motivation of features
 -------------------------------------------

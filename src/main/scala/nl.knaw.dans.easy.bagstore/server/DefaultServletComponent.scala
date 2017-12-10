@@ -31,7 +31,10 @@ trait DefaultServletComponent {
 
     get("/") {
       contentType = "text/plain"
-      Ok(s"EASY Bag Store is running.\nAvailable stores at <${ externalBaseUri.resolve("stores") }>")
+      Ok(s"""EASY Bag Store is running.
+           |Available stores at <${ externalBaseUri.resolve("stores") }>
+           |Bags from all stores at <${ externalBaseUri.resolve("bags") }>
+           |""".stripMargin)
     }
   }
 }

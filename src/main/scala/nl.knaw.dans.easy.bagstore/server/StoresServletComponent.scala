@@ -39,10 +39,22 @@ trait StoresServletComponent extends DebugEnhancedLogging {
 
     get("/") {
       contentType = "text/plain"
-      bagStores.storeShortnames
+      Ok(bagStores.storeShortnames
         .keys
         .map(store => s"<${ externalBaseUri.resolve(s"stores/$store") }>")
-        .mkString("\n")
+        .mkString("\n"))
+    }
+
+    get("/:bagstore") {
+      contentType = "text/plain"
+      val bagstore = params("bagstore")
+      bagStores.getBaseDirByShortname(bagstore)
+        .map(baseDir =>
+          Ok(
+            s"""Bag store '$bagstore'.
+               |Bags for this store at <${ externalBaseUri.resolve(s"stores/$bagstore/bags") }>
+               |""".stripMargin))
+        .getOrElse(NotFound(s"No such bag-store: $bagstore"))
     }
 
     get("/:bagstore/bags") {
