@@ -16,7 +16,7 @@
 package nl.knaw.dans.easy.bagstore.component
 
 import java.io.OutputStream
-import java.nio.file.{ Files, LinkOption, Path, Paths }
+import java.nio.file.{ Files, Path, Paths }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
@@ -60,7 +60,7 @@ trait BagStoreComponent {
 
       val queriedPath = itemId match {
         case fileId: FileId => fileId.path
-        case bagId: BagId => Paths.get("")
+        case _: BagId => Paths.get("")
       }
 
       for {
@@ -241,7 +241,7 @@ trait BagStoreComponent {
       val moved = container.resolve(bagName)
       bagProcessing.setPermissions(staging.resolve(bagName), fileSystem.bagFilePermissions, fileSystem.bagDirPermissions, includeTopDir = false)
         .map(Files.move(_, moved))
-        // We cannot move bagDir if is it read-only, so set file permissions after moving.
+        // We cannot move bagDir if it is read-only, so set file permissions after moving.
         .map(Files.setPosixFilePermissions(_, fileSystem.bagDirPermissions))
         .map(_ => ())
         .recoverWith {
@@ -258,10 +258,7 @@ trait BagStoreComponent {
         path <- fileSystem.toLocation(bagId)
         _ <- if (Files.isHidden(path)) Failure(AlreadyInactiveException(bagId))
              else Success(())
-      } yield {
-        val newPath = path.getParent.resolve(s".${ path.getFileName }")
-        Files.move(path, newPath)
-      }
+      } yield Files.move(path, path.getParent.resolve(s".${ path.getFileName }"))
     }
 
     def reactivate(bagId: BagId): Try[Unit] = {
@@ -270,10 +267,7 @@ trait BagStoreComponent {
         path <- fileSystem.toLocation(bagId)
         _ <- if (!Files.isHidden(path)) Failure(NotInactiveException(bagId))
              else Success(())
-      } yield {
-        val newPath = path.getParent.resolve(s"${ path.getFileName.toString.substring(1) }")
-        Files.move(path, newPath)
-      }
+      } yield Files.move(path, path.getParent.resolve(s"${ path.getFileName.toString.substring(1) }"))
     }
 
     def locate(itemId: ItemId, resolveToFileDataLocation: Boolean = false): Try[Path] = {
