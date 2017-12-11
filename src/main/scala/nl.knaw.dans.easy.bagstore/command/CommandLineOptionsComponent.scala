@@ -27,7 +27,7 @@ trait CommandLineOptionsComponent {
 
   class CommandLineOptions(args: Array[String]) extends ScallopConf(args) {
     appendDefaultToDescription = true
-    editBuilder(_.setHelpWidth(110))
+    editBuilder(_.setHelpWidth(100))
 
     printedName = "easy-bag-store"
     private val _________ = " " * (printedName.length + 2)
@@ -46,6 +46,7 @@ trait CommandLineOptionsComponent {
          |${ _________ }| get [-s,--skip-completion] [-d,--directory <dir>] <item-id>
          |${ _________ }| stream [-f,--format zip|tar] <item-id>
          |${ _________ }| enum [[-i,--inactive|-a,--all] [<item-id>]]
+         |${ _________ }| locate [-f,--file-data-location] <item-id>
          |${ _________ }| deactivate <bag-id>
          |${ _________ }| reactivate <bag-id>
          |${ _________ }| verify [<bag-id>]
@@ -78,6 +79,7 @@ trait CommandLineOptionsComponent {
         """Lists the bag stores for which a shortname has been defined. These are the bag stores
           |that are also accessible through the HTTP interface.
         """.stripMargin)
+      footer(SUBCOMMAND_SEPARATOR)
     }
     addSubcommand(list)
 
@@ -114,6 +116,7 @@ trait CommandLineOptionsComponent {
         descr = "stream item packaged in this format (tar|zip)")
       val itemId: ScallopOption[String] = trailArg[String](name = "item-id",
         descr = "item-id of the item to stream")
+      footer(SUBCOMMAND_SEPARATOR)
     }
     addSubcommand(stream)
 
@@ -163,7 +166,9 @@ trait CommandLineOptionsComponent {
     addSubcommand(reactivate)
 
     val prune = new Subcommand("prune") {
-      descr("Removes Files from bag, that are already found in reference bags, replacing them with fetch.txt references")
+      descr("""Removes Files from bag, that are already found in reference bags, replacing them with
+              |fetch.txt references.
+              |""".stripMargin)
       val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
         descr = "bag directory to prune",
         required = true)

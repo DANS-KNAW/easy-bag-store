@@ -26,7 +26,7 @@ SYNOPSIS
                      | get [-s,--skip-completion] [-d,--directory <dir>] <item-id> 
                      | stream [-f,--format zip|tar] <item-id>
                      | enum [[-i,--inactive|-a,--all] <bag-id>]
-                     | locate [<item-id>]
+                     | locate [-f,--file-data-location] <item-id>
                      | deactivate <bag-id>
                      | reactivate <bag-id>
                      | verify [<bag-id>] # Not implemented yet
@@ -81,81 +81,101 @@ For details about the service API see the [OpenAPI specification].
 ARGUMENTS
 ---------
 
-      -b, --base-dir  <arg>     BagStore base-dir to use
+      -b, --base-dir  <arg>     bag store base-dir to use
       -s, --store-name  <arg>   Configured store to use
           --help                Show help message
           --version             Show version of this program
     
-    Subcommand: list - Lists the bag-stores for which a shortname has been defined. 
-    These are the bag-stores that are accessible through the HTTP interface
+    Subcommand: list - Lists the bag stores for which a shortname has been defined. These are the bag stores
+    that are also accessible through the HTTP interface.
     
           --help   Show help message
+    ---
+    
     Subcommand: add - Adds a bag to the bag-store
-      -u, --uuid  <arg>   UUID to use as name for the Bag
+      -m, --move          move (rather than copy) the bag when adding it to the bag
+                          store
+      -u, --uuid  <arg>   UUID to use as bag-id for the bag
           --help          Show help message
     
      trailing arguments:
-      bag (required)   the (unserialized) Bag to add
+      bag (required)   the (unserialized) bag to add
     ---
     
-    Subcommand: get - Retrieves a Bag or File in it
+    Subcommand: get - Retrieves an item by copying it to the specified directory (default: current directory).
+      -d, --directory  <arg>   directory in which to put the item (default = .)
+      -s, --skip-completion    do not complete an incomplete bag
+          --help               Show help message
+    
+     trailing arguments:
+      item-id (required)   item-id of the item to copy
+    ---
+    
+    Subcommand: stream - Retrieves an item by streaming it to the standard output
+      -f, --format  <arg>   stream item packaged in this format (tar|zip)
+          --help            Show help message
+    
+     trailing arguments:
+      item-id (required)   item-id of the item to stream
+    ---
+    
+    Subcommand: enum - Enumerates bags or Files
+      -a, --all                   enumerate all bags, including inactive ones
+      -e, --exclude-directories   enumerate only regular files, not directories
+      -d, --inactive              only enumerate inactive bags
+          --help                  Show help message
+    
+     trailing arguments:
+      <bagId> (not required)   bag of which to enumerate the Files
+    ---
+    
+    Subcommand: locate - Locates the item with <item-id> on the file system
+      -f, --file-data-location   resolve to file-data-location
+          --help                 Show help message
+    
+     trailing arguments:
+      <item-id> (required)   the item to locate
+    ---
+    
+    Subcommand: deactivate - Marks a bag as inactive
           --help   Show help message
     
      trailing arguments:
-      item-id (required)        ID of the Bag or File to retrieve
-      <output-dir> (required)   directory in which to put the Bag or File
+      <bag-id> (required)   bag to mark as inactive
     ---
     
-    Subcommand: enum - Enumerates Bags or Files
-      -a, --all        enumerate all Bags, including inactive ones
-      -d, --inactive   only enumerate inactive Bags
-          --help       Show help message
-    
-     trailing arguments:
-      <bagId> (not required)   Bag of which to enumerate the Files
-    ---
-    
-    Subcommand: deactivate - Marks a Bag as inactive
+    Subcommand: reactivate - Reactivates an inactive bag
           --help   Show help message
     
      trailing arguments:
-      <bag-id> (required)   Bag to mark as inactive
+      <bag-id> (required)   inactive bag to re-activate
     ---
     
-    Subcommand: reactivate - Reactivates an inactive Bag
+    Subcommand: prune - Removes Files from bag, that are already found in reference bags, replacing them with fetch.txt references
           --help   Show help message
     
      trailing arguments:
-      <bag-id> (required)   Inactive Bag to re-activate
-    ---
-    
-    Subcommand: prune - Removes Files from Bag, that are already found in 
-    reference Bags, replacing them with fetch.txt references
-          --help   Show help message
-    
-     trailing arguments:
-      <bag-dir> (required)         Bag directory to prune
-      <ref-bag-id>... (required)   One or more bag-ids of Bags in the BagStore to
+      <bag-dir> (required)         bag directory to prune
+      <ref-bag-id>... (required)   One or more bag-ids of bags in the bag store to
                                    check for redundant Files
     ---
     
-    Subcommand: complete - Resolves fetch.txt references from the BagStore 
-    and copies them into <bag-dir>
+    Subcommand: complete - Resolves fetch.txt references from the bag store and copies them into <bag-dir>
+      -k, --keep-fetchtxt   do not delete fetch.txt, if present
+          --help            Show help message
+    
+     trailing arguments:
+      <bag-dir> (required)   bag directory to complete
+    ---
+    
+    Subcommand: validate - Checks that <bag-dir> is a virtually-valid bag
           --help   Show help message
     
      trailing arguments:
-      <bag-dir> (required)   Bag directory to complete
+      <bag-dir> (required)   bag directory to validate
     ---
     
-    Subcommand: validate - Checks that <bag-dir> is a virtually-valid Bag
-          --help   Show help message
-    
-     trailing arguments:
-      <bag-dir> (required)   Bag directory to validate
-    ---
-    
-    Subcommand: run-service - Starts the EASY Bag Store as a daemon that 
-    services HTTP requests
+    Subcommand: run-service - Starts the EASY Bag Store as a daemon that services HTTP requests
           --help   Show help message
     ---
 

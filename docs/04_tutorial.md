@@ -71,7 +71,7 @@ Tutorial
    
        mkdir easy-bag-store-tutorial
        cd easy-bag-store-tutorial
-       vagrant init https://easy.dans.knaw.nl/boxes/easy-bag-store-tutorial-2017-12-08.box
+       vagrant init https://easy.dans.knaw.nl/boxes/easy-bag-store-tutorial-2017-12-11.box
        vagrant up
 
    The first time you run this tutorial, this will have to download the ~800M vagrant box so&mdash;depending on
@@ -287,17 +287,22 @@ We can use `easy-bag-store` to find an item for us.
    perform the percent-encoding ourselves:
    
         easy-bag-store enum 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
-        > 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/\
-            %E6%AA%94%E6%A1%88.txt
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/manifest-md5.txt
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03.jpeg
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02.jpeg
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image01.png
+        > 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/
           8eeaeda4-3ae7-4be2-9f63-3db09b19db43/bag-info.txt
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/README.TXT
           8eeaeda4-3ae7-4be2-9f63-3db09b19db43/bagit.txt
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/tagmanifest-md5.txt
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/README.TXT
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image01.png
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02.jpeg
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03.jpeg
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space
           8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/file1.txt
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/%E6%AA%94%E6%A1%88.txt
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/manifest-md5.txt
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/tagmanifest-md5.txt
           OK: Done enumerating
           
     Notice that the Chinese characters and spaces appear percent-encoded. Also note that the bag
@@ -335,6 +340,12 @@ We can use `easy-bag-store` to find an item for us.
    
         easy-bag-store stream -f tar 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img | tar x
         > OK: Retrieved item with item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img to stream.
+        
+        ls -l img
+        > total 3144
+          -rw-r--r--. 1 vagrant vagrant  422887 Sep 25 07:59 image01.png
+          -rw-r--r--. 1 vagrant vagrant   13829 Sep 25 07:59 image02.jpeg
+          -rw-r--r--. 1 vagrant vagrant 2775738 Sep 25 07:59 image03.jpeg
        
    This will extract the `img` directory in your current working directory, so effectively does what we
    where trying to achieve at the beginning of this section.<sup>[1](#footnote1)<sup>
@@ -476,9 +487,9 @@ full content.
 
         easy-bag-store get -d out <bag-id of sample-updated>
         
-3. Verify that `sample-update-unpruned` and `out/sample-updated` are equal
+3. Verify that `sample-updated-unpruned` and `out/sample-updated` are equal
 
-        diff -r sample-update-unpruned out/sample-updated
+        diff -r sample-updated-unpruned out/sample-updated
 
    Again, if you see any output from the last command, that means the directories are different and something 
    went wrong. As you can see, the `get` subcommand will, by default, also complete the bag by fetching any files
@@ -572,7 +583,7 @@ The examples work with the command line tool [cURL].
         
          
 
-
+*TO BE CONTINUED...*
 
 
 #### Adding bag
