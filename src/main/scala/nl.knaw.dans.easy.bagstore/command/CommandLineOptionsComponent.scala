@@ -16,6 +16,7 @@
 package nl.knaw.dans.easy.bagstore.command
 
 import java.nio.file.{ Files, Path, Paths }
+import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore
 import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
@@ -66,6 +67,11 @@ trait CommandLineOptionsComponent {
 
 
     private implicit val fileConverter: ValueConverter[Path] = singleArgConverter[Path](s => Paths.get(resolveTildeToHomeDir(s)))
+    private implicit val uuidParser: ValueConverter[UUID] = singleArgConverter(UUID.fromString)
+    private implicit val archiveStreamTypeParser: ValueConverter[ArchiveStreamType.Value] = singleArgConverter {
+      case "zip" => ArchiveStreamType.ZIP
+      case "tar" => ArchiveStreamType.TAR
+    }
 
     private def resolveTildeToHomeDir(s: String): String = if (s.startsWith("~")) s.replaceFirst("~", System.getProperty("user.home"))
                                                            else s
@@ -90,7 +96,7 @@ trait CommandLineOptionsComponent {
       val bag: ScallopOption[Path] = trailArg(name = "bag",
         descr = "the (unserialized) bag to add")
       validatePathExists(bag)
-      val uuid: ScallopOption[String] = opt(name = "uuid", short = 'u',
+      val uuid: ScallopOption[UUID] = opt(name = "uuid", short = 'u',
         descr = "UUID to use as bag-id for the bag",
         required = false)
       val move: ScallopOption[Boolean] = opt(name = "move",
@@ -112,10 +118,6 @@ trait CommandLineOptionsComponent {
     }
     addSubcommand(get)
 
-    implicit private val archiveStreamTypeParser: ValueConverter[ArchiveStreamType.Value] = singleArgConverter {
-      case "zip" => ArchiveStreamType.ZIP
-      case "tar" => ArchiveStreamType.TAR
-    }
     val stream = new Subcommand("stream") {
       descr("Retrieves an item by streaming it to the standard output")
       val format: ScallopOption[ArchiveStreamType] = opt(name = "format",

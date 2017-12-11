@@ -15,9 +15,6 @@
  */
 package nl.knaw.dans.easy.bagstore.command
 
-import java.util.UUID
-
-import nl.knaw.dans.easy.bagstore.ArchiveStreamType._
 import nl.knaw.dans.easy.bagstore.service.ServiceWiring
 import nl.knaw.dans.easy.bagstore.{ BaseDir, ItemId, TryExtensions2 }
 import nl.knaw.dans.lib.error._
@@ -45,9 +42,8 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
   val result: Try[FeedBackMessage] = commandLine.subcommand match {
     case Some(commandLine.list) => Try { s"Configured bag-stores:\n$listStores" }
     case Some(cmd @ commandLine.add) =>
-      val bagUuid = cmd.uuid.toOption.map(UUID.fromString)
       val baseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select which bag store to add to."))
-      BagStore(baseDir).add(cmd.bag(), bagUuid, skipStage = cmd.move()).map(bagId => s"Added bag with bag-id: $bagId to bag store: $baseDir")
+      BagStore(baseDir).add(cmd.bag(), cmd.uuid.toOption, skipStage = cmd.move()).map(bagId => s"Added bag with bag-id: $bagId to bag store: $baseDir")
     case Some(cmd @ commandLine.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
