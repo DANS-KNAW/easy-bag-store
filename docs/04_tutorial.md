@@ -20,7 +20,14 @@ Table of contents
     + [Virtually-valid](#virtually-valid)
     + [Pruning](#pruning)
     + [Round-trip: adding, retrieving, completing](#round-trip--adding--retrieving--completing)
+    + [Other operations and commands](#other-operations-and-commands)
   * [Using the HTTP service](#using-the-http-service)
+    + [Getting the list of bag stores](#getting-the-list-of-bag-stores)
+    + [Enumerating bags and files](#enumerating-bags-and-files)
+    + [Retrieving one file](#retrieving-one-file)
+    + [Retrieving a bag or a directory](#retrieving-a-bag-or-a-directory)
+    + [Adding bag](#adding-bag)
+    + [Adding an updated bag](#adding-an-updated-bag-1)
 - [Appendix I: extended motivation of features](#appendix-i--extended-motivation-of-features)
   * [Simple](#simple)
   * [Open standards](#open-standards)
@@ -28,6 +35,7 @@ Table of contents
   * [Authenticity](#authenticity)
   * [Efficiency](#efficiency)
   * [Modular design](#modular-design)
+- [Appendix II: Migrations](#appendix-ii--migrations)
 
 Motivation
 ----------
