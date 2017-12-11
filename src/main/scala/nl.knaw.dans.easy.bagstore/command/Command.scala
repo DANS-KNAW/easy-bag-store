@@ -33,11 +33,6 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
 
   type FeedBackMessage = String
 
-  val formatToArchiveStreamType = Map(
-    "zip" -> ZIP,
-    "tar" -> TAR)
-
-
   override val commandLine: CommandLineOptions = new CommandLineOptions(args) {
     verify()
   }
@@ -62,7 +57,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     case Some(cmd @ commandLine.stream) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
-        _ <- bagStores.copyToStream(itemId, cmd.format.toOption.flatMap(formatToArchiveStreamType.get), Console.out, bagStoreBaseDir)
+        _ <- bagStores.copyToStream(itemId, cmd.format.toOption, Console.out, bagStoreBaseDir)
       } yield s"Retrieved item with item-id: $itemId to stream."
       // TODO: Also report from which bag store, as with get
     case Some(cmd @ commandLine.enum) =>

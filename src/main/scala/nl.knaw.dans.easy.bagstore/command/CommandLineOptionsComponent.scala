@@ -17,7 +17,9 @@ package nl.knaw.dans.easy.bagstore.command
 
 import java.nio.file.{ Files, Path, Paths }
 
-import nl.knaw.dans.easy.bagstore.ConfigurationComponent
+import nl.knaw.dans.easy.bagstore
+import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
+import nl.knaw.dans.easy.bagstore.{ ArchiveStreamType, ConfigurationComponent }
 import org.rogach.scallop.{ ScallopConf, ScallopOption, Subcommand, ValueConverter, singleArgConverter }
 
 trait CommandLineOptionsComponent {
@@ -110,9 +112,13 @@ trait CommandLineOptionsComponent {
     }
     addSubcommand(get)
 
+    implicit private val archiveStreamTypeParser: ValueConverter[ArchiveStreamType.Value] = singleArgConverter {
+      case "zip" => ArchiveStreamType.ZIP
+      case "tar" => ArchiveStreamType.TAR
+    }
     val stream = new Subcommand("stream") {
       descr("Retrieves an item by streaming it to the standard output")
-      val format: ScallopOption[String] = opt(name = "format",
+      val format: ScallopOption[ArchiveStreamType] = opt(name = "format",
         descr = "stream item packaged in this format (tar|zip)")
       val itemId: ScallopOption[String] = trailArg[String](name = "item-id",
         descr = "item-id of the item to stream")
