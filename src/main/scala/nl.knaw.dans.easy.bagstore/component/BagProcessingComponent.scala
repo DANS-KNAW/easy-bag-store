@@ -18,8 +18,9 @@ package nl.knaw.dans.easy.bagstore.component
 import java.io.{ IOException, InputStream }
 import java.net.URI
 import java.nio.charset.StandardCharsets
-import java.nio.file.attribute.{ BasicFileAttributes, PosixFilePermission, PosixFilePermissions }
+import java.nio.file.attribute.{ BasicFileAttributes, PosixFilePermission }
 import java.nio.file.{ FileVisitResult, FileVisitor, Files, Path }
+import java.util.{ Set => JSet }
 
 import net.lingala.zip4j.core.ZipFile
 import net.lingala.zip4j.exception.ZipException
@@ -40,8 +41,8 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
   trait BagProcessing {
 
     val stagingBaseDir: Path
-    val outputBagFilePermissions: java.util.Set[PosixFilePermission]
-    val outputBagDirPermissions: java.util.Set[PosixFilePermission]
+    val outputBagFilePermissions: JSet[PosixFilePermission]
+    val outputBagDirPermissions: JSet[PosixFilePermission]
 
     // TODO: This function looks a lot like BagStoreContext.isVirtuallyValid.createLinks, refactor?
     def complete(bagDir: Path, keepFetchTxt: Boolean = false)(implicit baseDir: BaseDir): Try[Unit] = {
@@ -77,7 +78,7 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
     }
 
     // FIXME: Only called in BagStoreComp and in previous method
-    def setPermissions(bagDir: Path, filePermissions: java.util.Set[PosixFilePermission], directoryPermissions: java.util.Set[PosixFilePermission], includeTopDir: Boolean = true) = Try {
+    def setPermissions(bagDir: Path, filePermissions: JSet[PosixFilePermission], directoryPermissions: JSet[PosixFilePermission], includeTopDir: Boolean = true) = Try {
       logger.info(s"Setting bag permissions to: file = $filePermissions, dir = $directoryPermissions, bag directory: $bagDir")
       object SetPermissionsFileVisitor extends FileVisitor[Path] {
         override def visitFileFailed(file: Path, exc: IOException): FileVisitResult = {

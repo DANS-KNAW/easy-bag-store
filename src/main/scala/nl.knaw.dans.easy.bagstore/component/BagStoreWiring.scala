@@ -16,13 +16,13 @@
 package nl.knaw.dans.easy.bagstore.component
 
 import java.net.URI
+import java.util.{Set => JSet}
 import java.nio.file.attribute.{ PosixFilePermission, PosixFilePermissions }
 import java.nio.file.{ Files, Paths }
 
 import nl.knaw.dans.easy.bagstore.{ BagFacadeComponent, BaseDir, ConfigurationComponent }
 
 import scala.collection.JavaConverters._
-import scala.util.Try
 
 trait BagStoreWiring extends BagStoresComponent with BagStoreComponent with BagProcessingComponent with FileSystemComponent {
   this: ConfigurationComponent with BagFacadeComponent =>
@@ -31,8 +31,8 @@ trait BagStoreWiring extends BagStoresComponent with BagStoreComponent with BagP
 
   override lazy val fileSystem: FileSystem = new FileSystem {
     override val uuidPathComponentSizes: Seq[Int] = properties.getStringArray("bag-store.uuid-slash-pattern").map(_.toInt).toSeq
-    override val bagFilePermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString(properties.getString("bag-store.bag-file-permissions"))
-    override val bagDirPermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString(properties.getString("bag-store.bag-dir-permissions"))
+    override val bagFilePermissions: JSet[PosixFilePermission] = PosixFilePermissions.fromString(properties.getString("bag-store.bag-file-permissions"))
+    override val bagDirPermissions: JSet[PosixFilePermission] = PosixFilePermissions.fromString(properties.getString("bag-store.bag-dir-permissions"))
     override val localBaseUri: URI = new URI(properties.getString("bag-store.local-file-uri-base"))
 
     require(uuidPathComponentSizes.sum == 32, s"UUID-path component sizes must add up to length of UUID in hexadecimal, sum found: ${ uuidPathComponentSizes.sum }")
