@@ -49,11 +49,11 @@ trait StoresServletComponent extends DebugEnhancedLogging {
       contentType = "text/plain"
       val bagstore = params("bagstore")
       bagStores.getBaseDirByShortname(bagstore)
-        .map(baseDir =>
-          Ok(
-            s"""Bag store '$bagstore'.
-               |Bags for this store at <${ externalBaseUri.resolve(s"stores/$bagstore/bags") }>
-               |""".stripMargin))
+        .map(baseDir => Ok {
+          s"""Bag store '$bagstore'.
+             |Bags for this store at <${ externalBaseUri.resolve(s"stores/$bagstore/bags") }>
+             |""".stripMargin
+        })
         .getOrElse(NotFound(s"No such bag-store: $bagstore"))
     }
 
@@ -146,9 +146,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
             .recoverWith {
               case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
             }
-            .flatMap(uuid => {
-              bagStores.putBag(request.getInputStream, base, uuid)
-            })
+            .flatMap(bagStores.putBag(request.getInputStream, base, _))
             .map(bagId => Created(headers = Map(
               "Location" -> externalBaseUri.resolve(s"stores/$bagstore/bags/${ fileSystem.toUri(bagId).getPath }").toASCIIString
             )))
