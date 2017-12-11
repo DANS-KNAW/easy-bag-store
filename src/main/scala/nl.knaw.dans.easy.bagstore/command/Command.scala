@@ -69,7 +69,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
         .getOrElse {
           val includeActive = cmd.all() || !cmd.inactive()
           val includeInactive = cmd.all() || cmd.inactive()
-          bagStores.enumBags(includeActive, includeActive, bagStoreBaseDir).map(_.foreach(println(_)))
+          bagStores.enumBags(includeActive, includeInactive, bagStoreBaseDir).map(_.foreach(println(_)))
         }
         .map(_ => "Done enumerating" + bagStoreBaseDir.map(b => s" (limited to BagStore: ${ getStoreName(b) })").getOrElse(""))
     case Some(cmd @ commandLine.deactivate) =>
