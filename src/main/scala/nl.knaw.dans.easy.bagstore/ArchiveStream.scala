@@ -22,6 +22,7 @@ import org.apache.commons.compress.archivers.{ ArchiveOutputStream, ArchiveStrea
 import org.apache.commons.io.FileUtils
 import resource.ManagedResource
 
+import scala.language.implicitConversions
 import scala.util.Try
 
 object ArchiveStreamType extends Enumeration {
@@ -47,10 +48,12 @@ case class EntrySpec(sourcePath: Option[Path], entryPath: String)
 class ArchiveStream(streamType: ArchiveStreamType, files: Seq[EntrySpec]) {
   private val BLOCKSIZE = 1024 * 10 // TAR files are rounded up to blocks of 10K,
 
-  private val streamTypes = Map(
-    TAR -> ArchiveStreamFactory.TAR,
-    ZIP -> ArchiveStreamFactory.ZIP)
-
+  implicit private def toArchiveStreamFactory(streamType: ArchiveStreamType.Value): String = {
+    streamType match {
+      case TAR => ArchiveStreamFactory.TAR
+      case ZIP => ArchiveStreamFactory.ZIP
+    }
+  }
 
   /**
    * Writes the files to an output stream.
@@ -76,7 +79,7 @@ class ArchiveStream(streamType: ArchiveStreamType, files: Seq[EntrySpec]) {
 
   private def createArchiveOutputStream(output: => OutputStream): Try[ManagedResource[ArchiveOutputStream]] = Try {
     resource.managed(new ArchiveStreamFactory("UTF-8")
-      .createArchiveOutputStream(streamTypes(streamType), output)
+      .createArchiveOutputStream(streamType, output)
       .asInstanceOf[ArchiveOutputStream])
   }
 
