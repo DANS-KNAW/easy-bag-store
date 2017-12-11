@@ -15,6 +15,10 @@
  */
 package nl.knaw.dans.easy.bagstore.server
 
+import nl.knaw.dans.easy.bagstore.ArchiveStreamType
+
+import scala.language.implicitConversions
+
 trait ServletUtils {
   type IncludeActive = Boolean
   type IncludeInactive = Boolean
@@ -24,6 +28,14 @@ trait ServletUtils {
       case Some("all") => (true, true)
       case Some("inactive") => (false, true)
       case _ => (true, false)
+    }
+  }
+
+  implicit def acceptToArchiveStreamType(accept: String): Option[ArchiveStreamType.Value] = {
+    accept match {
+      case "application/zip" => Some(ArchiveStreamType.ZIP)
+      case "application/x-tar" => Some(ArchiveStreamType.TAR)
+      case _ => None
     }
   }
 }
