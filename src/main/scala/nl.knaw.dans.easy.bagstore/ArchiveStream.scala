@@ -68,38 +68,30 @@ class ArchiveStream(streamType: ArchiveStreamType, files: Seq[EntrySpec]) {
      * TAR streams.
      */
     implicit val buffer: Array[Byte] = new Array[Byte](BLOCKSIZE)
-    createArchiveOutputStream(outputStream).map {
-      _.acquireAndGet {
-        tarStream =>
-          files.foreach(addFileToTarStream(tarStream))
-          tarStream.finish()
-      }
-    }
+    createArchiveOutputStream(outputStream).map(_.acquireAndGet { tarStream =>
+      files.foreach(addFileToTarStream(tarStream))
+      tarStream.finish()
+    })
   }
 
   private def createArchiveOutputStream(output: => OutputStream): Try[ManagedResource[ArchiveOutputStream]] = Try {
-    resource.managed(new ArchiveStreamFactory("UTF-8")
-      .createArchiveOutputStream(streamType, output)
-      .asInstanceOf[ArchiveOutputStream])
+    resource.managed(new ArchiveStreamFactory("UTF-8").createArchiveOutputStream(streamType, output))
   }
 
   private def addFileToTarStream(os: ArchiveOutputStream)(entrySpec: EntrySpec)(implicit buffer: Array[Byte]): Try[Unit] = Try {
     val entry = os.createArchiveEntry(entrySpec.sourcePath.map(_.toFile).orNull, entrySpec.entryPath)
     os.putArchiveEntry(entry)
-    entrySpec.sourcePath.foreach(
-      file =>
-        if (Files.isRegularFile(file)) copyFileToStream(os, file))
+    entrySpec.sourcePath.foreach { case file if Files.isRegularFile(file) => copyFileToStream(os, file) }
     os.closeArchiveEntry()
   }
 
   private def copyFileToStream(os: OutputStream, file: Path)(implicit buffer: Array[Byte]): Unit = {
-    resource.managed(FileUtils.openInputStream(file.toFile)) acquireAndGet {
-      is =>
-        var read = is.read(buffer)
-        while (read > 0) {
-          os.write(buffer, 0, read)
-          read = is.read(buffer)
-        }
-    }
+    resource.managed(FileUtils.openInputStream(file.toFile)).acquireAndGet(is => {
+      var read = is.read(buffer)
+      while (read > 0) {
+        os.write(buffer, 0, read)
+        read = is.read(buffer)
+      }
+    })
   }
 }
