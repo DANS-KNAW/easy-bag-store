@@ -43,7 +43,9 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     case Some(commandLine.list) => Try { s"Configured bag-stores:\n$listStores" }
     case Some(cmd @ commandLine.add) =>
       val baseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select which bag store to add to."))
-      BagStore(baseDir).add(cmd.bag(), cmd.uuid.toOption, skipStage = cmd.move()).map(bagId => s"Added bag with bag-id: $bagId to bag store: $baseDir")
+      BagStore(baseDir)
+        .add(cmd.bag(), cmd.uuid.toOption, skipStage = cmd.move())
+        .map(bagId => s"Added bag with bag-id: $bagId to bag store: $baseDir")
     case Some(cmd @ commandLine.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
@@ -83,14 +85,15 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     case Some(cmd @ commandLine.prune) =>
       implicit val baseDir: BaseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select which bag store to add to."))
       cmd.referenceBags.toOption
-        .map(refBags => refBags.map(ItemId.fromString).map(_.flatMap(_.toBagId))
+        .map(_.map(ItemId.fromString(_).flatMap(_.toBagId))
           .collectResults
           .flatMap(refBagIds => bagProcessing.prune(cmd.bagDir(), refBagIds))
           .map(_ => "Done pruning"))
         .getOrElse(Success("No reference Bags specified: nothing to do"))
     case Some(cmd @ commandLine.complete) =>
       implicit val baseDir: BaseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select in the context of which bag store to complete."))
-      bagProcessing.complete(cmd.bagDir().toAbsolutePath, cmd.keepFetchTxt()).map(_ => s"Done completing ${ cmd.bagDir() }")
+      bagProcessing.complete(cmd.bagDir().toAbsolutePath, cmd.keepFetchTxt())
+        .map(_ => s"Done completing ${ cmd.bagDir() }")
     case Some(cmd @ commandLine.locate) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
@@ -112,30 +115,31 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
   bagFacade.stop().unsafeGetOrThrow
 
   private def listStores: String = {
-    bagStores.storeShortnames.map { case (name, base) => s"- $name -> $base" }.mkString("\n")
+    bagStores.storeShortnames
+      .map { case (name, base) => s"- $name -> $base" }
+      .mkString("\n")
   }
 
   private def getStoreName(p: BaseDir): String = {
-    bagStores.storeShortnames.collectFirst { case (name, base) if base == p => name }.getOrElse(p.toString)
+    bagStores.storeShortnames
+      .collectFirst { case (name, base) if base == p => name }
+      .getOrElse(p.toString)
   }
 
   @tailrec
   private def promptForStore(msg: String): BaseDir = {
     if (bagStores.storeShortnames.size > 1) {
-      val name = StdIn.readLine(
+      val name = StdIn.readLine {
         s"""$msg
 
            |Available BagStores:
            |$listStores
 
-           |Select a name: """
-          .stripMargin)
-      bagStores.
-        getBaseDirByShortname(name) match {
+           |Select a name: """.stripMargin
+      }
+      bagStores.getBaseDirByShortname(name) match {
         case Some(store) => store
-        case
-          None
-        => promptForStore(msg)
+        case None => promptForStore(msg)
       }
     }
     else bagStores.storeShortnames.values.head
