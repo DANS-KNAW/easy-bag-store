@@ -15,9 +15,15 @@
  */
 package nl.knaw.dans.easy.bagstore
 
+import scala.language.implicitConversions
+
 package object server {
-  import ArchiveStreamType._
-  val acceptToArchiveStreamType = Map(
-    "application/zip" -> ZIP,
-    "application/x-tar" -> TAR)
+
+  implicit def acceptToArchiveStreamType(accept: String): Option[ArchiveStreamType.Value] = {
+    accept match {
+      case "application/zip" => Some(ArchiveStreamType.ZIP)
+      case "application/x-tar" => Some(ArchiveStreamType.TAR)
+      case _ => None
+    }
+  }
 }
