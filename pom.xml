@@ -20,7 +20,7 @@
     <parent>
         <groupId>nl.knaw.dans.shared</groupId>
         <artifactId>dans-scala-prototype</artifactId>
-        <version>1.62</version>
+        <version>1.63-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>nl.knaw.dans.easy</groupId>
@@ -42,25 +42,22 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.1.7</version>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.11</artifactId>
+            <artifactId>scalatest_2.12</artifactId>
         </dependency>
         <dependency>
             <groupId>org.scalamock</groupId>
-            <artifactId>scalamock-scalatest-support_2.11</artifactId>
+            <artifactId>scalamock-scalatest-support_2.12</artifactId>
         </dependency>
         <dependency>
             <groupId>org.scalatra</groupId>
-            <artifactId>scalatra-scalatest_2.11</artifactId>
-            <version>2.3.0</version>
-            <scope>test</scope>
+            <artifactId>scalatra-scalatest_2.12</artifactId>
         </dependency>
         <dependency>
             <groupId>org.rogach</groupId>
-            <artifactId>scallop_2.11</artifactId>
+            <artifactId>scallop_2.12</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-configuration</groupId>
@@ -78,16 +75,14 @@
         <dependency>
             <groupId>gov.loc</groupId>
             <artifactId>bagit</artifactId>
-            <version>5.0.3</version>
         </dependency>
         <dependency>
             <groupId>com.jsuereth</groupId>
-            <artifactId>scala-arm_2.11</artifactId>
+            <artifactId>scala-arm_2.12</artifactId>
         </dependency>
         <dependency>
             <groupId>nl.knaw.dans.lib</groupId>
-            <artifactId>dans-scala-lib</artifactId>
-            <version>1.2</version>
+            <artifactId>dans-scala-lib_2.12</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -108,7 +103,7 @@
         </dependency>
         <dependency>
             <groupId>org.scalatra</groupId>
-            <artifactId>scalatra_2.11</artifactId>
+            <artifactId>scalatra_2.12</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -117,7 +112,7 @@
         </dependency>
         <dependency>
             <groupId>org.scalatra</groupId>
-            <artifactId>scalatra-scalate_2.11</artifactId>
+            <artifactId>scalatra-scalate_2.12</artifactId>
         </dependency>
         <dependency>
             <groupId>net.lingala.zip4j</groupId>
@@ -127,6 +122,14 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
             <version>1.15</version>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.joda</groupId>
+            <artifactId>joda-convert</artifactId>
         </dependency>
     </dependencies>
     <repositories>
