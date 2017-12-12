@@ -16,6 +16,7 @@
 package nl.knaw.dans.easy.bagstore.component
 
 import java.net.URI
+import java.util.{Set => JSet}
 import java.nio.file._
 import java.nio.file.attribute.{ BasicFileAttributes, PosixFilePermission }
 import java.util.UUID
@@ -44,8 +45,8 @@ trait FileSystemComponent extends DebugEnhancedLogging {
   trait FileSystem {
     val localBaseUri: URI
     val uuidPathComponentSizes: Seq[Int]
-    val bagFilePermissions: java.util.Set[PosixFilePermission]
-    val bagDirPermissions: java.util.Set[PosixFilePermission]
+    val bagFilePermissions: JSet[PosixFilePermission]
+    val bagDirPermissions: JSet[PosixFilePermission]
 
     /**
      * @return Lazily populated JStream with bags in this base directory
@@ -130,7 +131,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
           if (itemIdPath.getNameCount > 1)
             Try(FileId(bagId, itemIdPath.subpath(1, itemIdPath.getNameCount)))
           else if (uri.toString.endsWith("/"))
-                 Try(FileId(bagId, Paths.get("")))
+            Try(FileId(bagId, Paths.get("")))
           else
             Try(bagId)
         }

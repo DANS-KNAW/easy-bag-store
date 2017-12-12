@@ -22,8 +22,8 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 import org.scalatra._
 
+import scala.util.Failure
 import scala.util.control.NonFatal
-import scala.util.{ Failure, Try }
 
 trait BagsServletComponent extends DebugEnhancedLogging {
   this: BagStoresComponent =>
@@ -56,7 +56,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
             .enumFiles(bagId, includeDirectories = false)
             .map(files => Ok(files.toList.mkString("\n")))
           else bagStores
-            .copyToStream(bagId, acceptToArchiveStreamType.get(accept), response.outputStream)
+            .copyToStream(bagId, accept, response.outputStream)
             .map(_ => Ok())
         })
         .getOrRecover {
@@ -79,7 +79,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
             }
             .flatMap(itemId => {
               debug(s"Retrieving item $itemId")
-              bagStores.copyToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType.get) , response.outputStream)
+              bagStores.copyToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType) , response.outputStream)
             })
             .map(_ => Ok())
             .getOrRecover {
