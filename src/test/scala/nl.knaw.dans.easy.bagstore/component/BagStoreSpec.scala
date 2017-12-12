@@ -17,16 +17,22 @@ package nl.knaw.dans.easy.bagstore.component
 
 import java.net.URI
 import java.nio.file.attribute.{ PosixFilePermission, PosixFilePermissions }
-import java.nio.file.{ Path, Paths }
+import java.nio.file.{ Files, Path, Paths }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore._
-import nl.knaw.dans.lib.error.CompositeException
 import org.apache.commons.io.FileUtils
+import org.scalatest.OneInstancePerTest
 
 import scala.util.{ Failure, Success }
 
 class BagStoreSpec extends TestSupportFixture
+  /*
+   * Currently (fall 2017) we do not use OneInstancePerTest, as we had problems with it in the past.
+   * Using it here because one of the tests mutates filesystem.bagXxxPermissions, and otherwise this
+   * could affect subsequent tests.
+   */
+  with OneInstancePerTest
   with BagStoreFixture
   with BagitFixture
   with BagStoreComponent
@@ -36,6 +42,9 @@ class BagStoreSpec extends TestSupportFixture
   FileUtils.copyDirectory(
     Paths.get("src/test/resources/bags/minimal-bag").toFile,
     testDir.resolve("minimal-bag").toFile)
+  FileUtils.copyDirectory(
+    Paths.get("src/test/resources/bags/valid-bag").toFile,
+    testDir.resolve("valid-bag").toFile)
   FileUtils.copyDirectory(
     Paths.get("src/test/resources/bags/incomplete-bag").toFile,
     testDir.resolve("incomplete-bag").toFile)
@@ -47,6 +56,7 @@ class BagStoreSpec extends TestSupportFixture
     testDir.resolve("basic-sequence-unpruned-with-refbags").toFile)
 
   private val testBagMinimal = testDir.resolve("minimal-bag")
+  private val testValidBag = testDir.resolve("valid-bag")
   private val testBagIncomplete = testDir.resolve("incomplete-bag")
   private val testBagPrunedA = testDir.resolve("basic-sequence-pruned/a")
   private val testBagPrunedB = testDir.resolve("basic-sequence-pruned/b")
@@ -130,5 +140,31 @@ class BagStoreSpec extends TestSupportFixture
     testSuccessfulAdd(testBagWithRefsC, uuid3)
   }
 
-  it should "set file and directory permissions"
+  it should "set file and directory permissions" in {
+    /*
+     * Changing the permissions to unusual values (only for this test!).
+     */
+    val filePermissions = PosixFilePermissions.fromString("rwx------")
+    val dirPermissions = PosixFilePermissions.fromString("rwx-w----")
+
+    fileSystem.bagFilePermissions.clear()
+    fileSystem.bagFilePermissions.addAll(filePermissions)
+    fileSystem.bagDirPermissions.clear()
+    fileSystem.bagDirPermissions.addAll(dirPermissions)
+
+
+    val uuid1 = UUID.fromString("11111111-1111-1111-1111-111111111111")
+    testSuccessfulAdd(testValidBag, uuid1)
+
+    val bagInStore = store1.resolve("11/111111111111111111111111111111/valid-bag")
+
+    // Checking some random files
+    Files.getPosixFilePermissions(bagInStore.resolve("bagit.txt")) shouldBe filePermissions
+    Files.getPosixFilePermissions(bagInStore.resolve("data/sub/u")) shouldBe filePermissions
+
+    // Checking some random directories
+    Files.getPosixFilePermissions(bagInStore) shouldBe dirPermissions
+    Files.getPosixFilePermissions(bagInStore.resolve("data")) shouldBe dirPermissions
+    Files.getPosixFilePermissions(bagInStore.resolve("data/sub")) shouldBe dirPermissions
+  }
 }

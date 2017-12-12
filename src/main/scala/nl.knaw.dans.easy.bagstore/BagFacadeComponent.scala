@@ -166,7 +166,7 @@ trait BagFacadeComponent {
            */
           if (affectedTagManifests.nonEmpty) {
             affectedTagManifests.foreach(_.getFileToChecksumMap.remove(bagDir.resolve(filename)))
-            ManifestWriter.writeTagManifests(tagManifests, bagDir, bagDir, bag.getFileEncoding)
+            ManifestWriter.writeTagManifests(affectedTagManifests.asJava, bagDir, bagDir, bag.getFileEncoding)
           }
         })
     }

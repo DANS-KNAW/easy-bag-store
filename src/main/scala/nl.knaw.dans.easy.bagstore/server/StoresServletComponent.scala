@@ -49,7 +49,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
       contentType = "text/plain"
       val bagstore = params("bagstore")
       bagStores.getBaseDirByShortname(bagstore)
-        .map(baseDir => Ok {
+        .map(_ => Ok {
           s"""Bag store '$bagstore'.
              |Bags for this store at <${ externalBaseUri.resolve(s"stores/$bagstore/bags") }>
              |""".stripMargin
