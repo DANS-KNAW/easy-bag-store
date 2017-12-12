@@ -16,8 +16,11 @@
 package nl.knaw.dans.easy.bagstore.command
 
 import java.nio.file.{ Files, Path, Paths }
+import java.util.UUID
 
-import nl.knaw.dans.easy.bagstore.ConfigurationComponent
+import nl.knaw.dans.easy.bagstore
+import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
+import nl.knaw.dans.easy.bagstore.{ ArchiveStreamType, ConfigurationComponent }
 import org.rogach.scallop.{ ScallopConf, ScallopOption, Subcommand, ValueConverter, singleArgConverter }
 
 trait CommandLineOptionsComponent {
@@ -27,7 +30,7 @@ trait CommandLineOptionsComponent {
 
   class CommandLineOptions(args: Array[String]) extends ScallopConf(args) {
     appendDefaultToDescription = true
-    editBuilder(_.setHelpWidth(110))
+    editBuilder(_.setHelpWidth(100))
 
     printedName = "easy-bag-store"
     private val _________ = " " * (printedName.length + 2)
@@ -46,6 +49,7 @@ trait CommandLineOptionsComponent {
          |${ _________ }| get [-s,--skip-completion] [-d,--directory <dir>] <item-id>
          |${ _________ }| stream [-f,--format zip|tar] <item-id>
          |${ _________ }| enum [[-i,--inactive|-a,--all] [<item-id>]]
+         |${ _________ }| locate [-f,--file-data-location] <item-id>
          |${ _________ }| deactivate <bag-id>
          |${ _________ }| reactivate <bag-id>
          |${ _________ }| verify [<bag-id>]
@@ -63,6 +67,11 @@ trait CommandLineOptionsComponent {
 
 
     private implicit val fileConverter: ValueConverter[Path] = singleArgConverter[Path](s => Paths.get(resolveTildeToHomeDir(s)))
+    private implicit val uuidParser: ValueConverter[UUID] = singleArgConverter(UUID.fromString)
+    private implicit val archiveStreamTypeParser: ValueConverter[ArchiveStreamType.Value] = singleArgConverter {
+      case "zip" => ArchiveStreamType.ZIP
+      case "tar" => ArchiveStreamType.TAR
+    }
 
     private def resolveTildeToHomeDir(s: String): String = if (s.startsWith("~")) s.replaceFirst("~", System.getProperty("user.home"))
                                                            else s
@@ -78,6 +87,7 @@ trait CommandLineOptionsComponent {
         """Lists the bag stores for which a shortname has been defined. These are the bag stores
           |that are also accessible through the HTTP interface.
         """.stripMargin)
+      footer(SUBCOMMAND_SEPARATOR)
     }
     addSubcommand(list)
 
@@ -86,7 +96,7 @@ trait CommandLineOptionsComponent {
       val bag: ScallopOption[Path] = trailArg(name = "bag",
         descr = "the (unserialized) bag to add")
       validatePathExists(bag)
-      val uuid: ScallopOption[String] = opt(name = "uuid", short = 'u',
+      val uuid: ScallopOption[UUID] = opt(name = "uuid", short = 'u',
         descr = "UUID to use as bag-id for the bag",
         required = false)
       val move: ScallopOption[Boolean] = opt(name = "move",
@@ -110,10 +120,11 @@ trait CommandLineOptionsComponent {
 
     val stream = new Subcommand("stream") {
       descr("Retrieves an item by streaming it to the standard output")
-      val format: ScallopOption[String] = opt(name = "format",
+      val format: ScallopOption[ArchiveStreamType] = opt(name = "format",
         descr = "stream item packaged in this format (tar|zip)")
       val itemId: ScallopOption[String] = trailArg[String](name = "item-id",
         descr = "item-id of the item to stream")
+      footer(SUBCOMMAND_SEPARATOR)
     }
     addSubcommand(stream)
 
@@ -135,6 +146,8 @@ trait CommandLineOptionsComponent {
 
     val locate = new Subcommand("locate") {
       descr("Locates the item with <item-id> on the file system")
+      val fileDataLocation: ScallopOption[Boolean] = opt(name = "file-data-location",
+        descr = "resolve to file-data-location")
       val itemId: ScallopOption[String] = trailArg(name = "<item-id>",
         descr = "the item to locate",
         required = true)
@@ -161,7 +174,9 @@ trait CommandLineOptionsComponent {
     addSubcommand(reactivate)
 
     val prune = new Subcommand("prune") {
-      descr("Removes Files from bag, that are already found in reference bags, replacing them with fetch.txt references")
+      descr("""Removes Files from bag, that are already found in reference bags, replacing them with
+              |fetch.txt references.
+              |""".stripMargin)
       val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
         descr = "bag directory to prune",
         required = true)
@@ -174,6 +189,8 @@ trait CommandLineOptionsComponent {
 
     val complete = new Subcommand("complete") {
       descr("Resolves fetch.txt references from the bag store and copies them into <bag-dir>")
+      val keepFetchTxt: ScallopOption[Boolean] = opt(name = "keep-fetchtxt",
+        descr = "do not delete fetch.txt, if present")
       val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
         descr = "bag directory to complete",
         required = true)

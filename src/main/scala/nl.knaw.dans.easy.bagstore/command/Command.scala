@@ -15,14 +15,10 @@
  */
 package nl.knaw.dans.easy.bagstore.command
 
-import java.nio.file.Path
-import java.util.UUID
-
 import nl.knaw.dans.easy.bagstore.service.ServiceWiring
-import nl.knaw.dans.easy.bagstore.{ ArchiveStreamType, BaseDir, ItemId, TryExtensions2 }
+import nl.knaw.dans.easy.bagstore.{ BaseDir, ItemId, TryExtensions2 }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import nl.knaw.dans.easy.bagstore.ArchiveStreamType._
 
 import scala.annotation.tailrec
 import scala.io.StdIn
@@ -33,11 +29,6 @@ import scala.util.{ Success, Try }
 object Command extends App with CommandLineOptionsComponent with ServiceWiring with DebugEnhancedLogging {
 
   type FeedBackMessage = String
-
-  val formatToArchiveStreamType = Map(
-    "zip" -> ZIP,
-    "tar" -> TAR)
-
 
   override val commandLine: CommandLineOptions = new CommandLineOptions(args) {
     verify()
@@ -51,9 +42,10 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
   val result: Try[FeedBackMessage] = commandLine.subcommand match {
     case Some(commandLine.list) => Try { s"Configured bag-stores:\n$listStores" }
     case Some(cmd @ commandLine.add) =>
-      val bagUuid = cmd.uuid.toOption.map(UUID.fromString)
       val baseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select which bag store to add to."))
-      BagStore(baseDir).add(cmd.bag(), bagUuid, skipStage = cmd.move()).map(bagId => s"Added bag with bag-id: $bagId to bag store: $baseDir")
+      BagStore(baseDir)
+        .add(cmd.bag(), cmd.uuid.toOption, skipStage = cmd.move())
+        .map(bagId => s"Added bag with bag-id: $bagId to bag store: $baseDir")
     case Some(cmd @ commandLine.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
@@ -63,7 +55,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     case Some(cmd @ commandLine.stream) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
-        _ <- bagStores.copyToStream(itemId, cmd.format.toOption.flatMap(formatToArchiveStreamType.get), Console.out, bagStoreBaseDir)
+        _ <- bagStores.copyToStream(itemId, cmd.format.toOption, Console.out, bagStoreBaseDir)
       } yield s"Retrieved item with item-id: $itemId to stream."
       // TODO: Also report from which bag store, as with get
     case Some(cmd @ commandLine.enum) =>
@@ -75,7 +67,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
         .getOrElse {
           val includeActive = cmd.all() || !cmd.inactive()
           val includeInactive = cmd.all() || cmd.inactive()
-          bagStores.enumBags(includeActive, includeActive, bagStoreBaseDir).map(_.foreach(println(_)))
+          bagStores.enumBags(includeActive, includeInactive, bagStoreBaseDir).map(_.foreach(println(_)))
         }
         .map(_ => "Done enumerating" + bagStoreBaseDir.map(b => s" (limited to BagStore: ${ getStoreName(b) })").getOrElse(""))
     case Some(cmd @ commandLine.deactivate) =>
@@ -93,19 +85,21 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     case Some(cmd @ commandLine.prune) =>
       implicit val baseDir: BaseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select which bag store to add to."))
       cmd.referenceBags.toOption
-        .map(refBags => refBags.map(ItemId.fromString).map(_.flatMap(_.toBagId))
+        .map(_.map(ItemId.fromString(_).flatMap(_.toBagId))
           .collectResults
           .flatMap(refBagIds => bagProcessing.prune(cmd.bagDir(), refBagIds))
           .map(_ => "Done pruning"))
         .getOrElse(Success("No reference Bags specified: nothing to do"))
     case Some(cmd @ commandLine.complete) =>
       implicit val baseDir: BaseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select in the context of which bag store to complete."))
-      bagProcessing.complete(cmd.bagDir()).map(_ => s"Done completing ${ cmd.bagDir() }")
+      bagProcessing.complete(cmd.bagDir().toAbsolutePath, cmd.keepFetchTxt())
+        .map(_ => s"Done completing ${ cmd.bagDir() }")
     case Some(cmd @ commandLine.locate) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
-        location <- bagStores.locate(itemId, bagStoreBaseDir)
-      } yield location.toString
+        location <- bagStores.locate(itemId, cmd.fileDataLocation(), bagStoreBaseDir)
+        _ <- Try { Console.out.println(location.toString) }
+      } yield s"Located item $itemId"
     case Some(cmd @ commandLine.validate) =>
       implicit val baseDir: BaseDir = bagStoreBaseDir.getOrElse(promptForStore("Please, select in the context of which bag store to validate."))
       fileSystem.isVirtuallyValid(cmd.bagDir())
@@ -121,24 +115,34 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
   bagFacade.stop().unsafeGetOrThrow
 
   private def listStores: String = {
-    bagStores.storeShortnames.map { case (name, base) => s"- $name -> $base" }.mkString("\n")
+    bagStores.storeShortnames
+      .map { case (name, base) => s"- $name -> $base" }
+      .mkString("\n")
   }
 
   private def getStoreName(p: BaseDir): String = {
-    bagStores.storeShortnames.collectFirst { case (name, base) if base == p => name }.getOrElse(p.toString)
+    bagStores.storeShortnames
+      .collectFirst { case (name, base) if base == p => name }
+      .getOrElse(p.toString)
   }
 
   @tailrec
   private def promptForStore(msg: String): BaseDir = {
-    val name = StdIn.readLine(
-      s"""$msg
-         |Available BagStores:
-         |$listStores
-         |Select a name: """.stripMargin)
-    bagStores.getBaseDirByShortname(name) match {
-      case Some(store) => store
-      case None => promptForStore(msg)
+    if (bagStores.storeShortnames.size > 1) {
+      val name = StdIn.readLine {
+        s"""$msg
+
+           |Available BagStores:
+           |$listStores
+
+           |Select a name: """.stripMargin
+      }
+      bagStores.getBaseDirByShortname(name) match {
+        case Some(store) => store
+        case None => promptForStore(msg)
+      }
     }
+    else bagStores.storeShortnames.values.head
   }
 
   private def runAsService(): Try[FeedBackMessage] = Try {

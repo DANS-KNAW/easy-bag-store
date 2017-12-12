@@ -17,6 +17,7 @@ package nl.knaw.dans.easy.bagstore.component
 
 import java.net.URI
 import java.nio.file.Paths
+import java.nio.file.attribute.{ PosixFilePermission, PosixFilePermissions }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore._
@@ -36,7 +37,8 @@ class FileSystemSpec extends TestSupportFixture
 
   override val fileSystem: FileSystem = new FileSystem {
     override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
-    override val bagPermissions: String = "rwxr-xr-x"
+    override val bagFilePermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
+    override val bagDirPermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
     override val localBaseUri: URI = new URI("http://localhost")
   }
 
@@ -67,7 +69,8 @@ class FileSystemSpec extends TestSupportFixture
   it should "return a bag-id even if there are many slashes" in {
     val otherFS = new FileSystem {
       override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
-      override val bagPermissions: String = "rwxr-xr-x"
+      override val bagFilePermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
+      override val bagDirPermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
       override val localBaseUri: URI = new URI("http://localhost")
     }
 
@@ -134,7 +137,8 @@ class FileSystemSpec extends TestSupportFixture
   it should "return a bag-id for valid UUID-path after the base-uri even if base-uri contains part of path" in {
     val otherFS = new FileSystem {
       override val uuidPathComponentSizes: Seq[Int] = Seq.fill(32)(1)
-      override val bagPermissions: String = "rwxr-xr-x"
+      override val bagFilePermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
+      override val bagDirPermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
       override val localBaseUri: URI = new URI("http://localhost")
     }
 

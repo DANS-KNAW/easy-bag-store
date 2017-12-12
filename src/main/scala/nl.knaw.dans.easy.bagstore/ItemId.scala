@@ -50,6 +50,7 @@ case class BagId(override val uuid: UUID) extends ItemId(uuid) {
   override def toFileId: Try[FileId] = Failure(NoFileIdException(this))
 }
 
+// FIXME: isDirectory cannot always be known in advance
 case class FileId(bagId: BagId, path: Path, isDirectory: Boolean = false) extends ItemId(bagId.uuid) {
   private val pathEscaper = UrlEscapers.urlPathSegmentEscaper()
 

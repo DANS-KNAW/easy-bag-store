@@ -19,9 +19,9 @@ import java.io.OutputStream
 import java.nio.file.{ Files, Path }
 
 import org.apache.commons.compress.archivers.{ ArchiveOutputStream, ArchiveStreamFactory }
-import org.apache.commons.io.FileUtils
 import resource.ManagedResource
 
+import scala.language.implicitConversions
 import scala.util.Try
 
 object ArchiveStreamType extends Enumeration {
@@ -45,12 +45,13 @@ case class EntrySpec(sourcePath: Option[Path], entryPath: String)
  * @param files the files in the TAR ball
  */
 class ArchiveStream(streamType: ArchiveStreamType, files: Seq[EntrySpec]) {
-  private val BLOCKSIZE = 1024 * 10 // TAR files are rounded up to blocks of 10K,
 
-  private val streamTypes = Map(
-    TAR -> ArchiveStreamFactory.TAR,
-    ZIP -> ArchiveStreamFactory.ZIP)
-
+  implicit private def toArchiveStreamFactory(streamType: ArchiveStreamType.Value): String = {
+    streamType match {
+      case TAR => ArchiveStreamFactory.TAR
+      case ZIP => ArchiveStreamFactory.ZIP
+    }
+  }
 
   /**
    * Writes the files to an output stream.
@@ -59,44 +60,20 @@ class ArchiveStream(streamType: ArchiveStreamType, files: Seq[EntrySpec]) {
    * @return
    */
   def writeTo(outputStream: => OutputStream): Try[Unit] = {
-    /**
-     * We create the buffer here, as it is possible that two threads will call `writeTo` simultaneously.
-     * Invocations of `writeTo` cannot share the buffer, as this would obviously lead to corrupted
-     * TAR streams.
-     */
-    implicit val buffer: Array[Byte] = new Array[Byte](BLOCKSIZE)
-    createArchiveOutputStream(outputStream).map {
-      _.acquireAndGet {
-        tarStream =>
-          files.foreach(addFileToTarStream(tarStream))
-          tarStream.finish()
-      }
-    }
+    createArchiveOutputStream(outputStream).map(_.acquireAndGet { tarStream =>
+      files.foreach(addFileToTarStream(tarStream))
+      tarStream.finish()
+    })
   }
 
   private def createArchiveOutputStream(output: => OutputStream): Try[ManagedResource[ArchiveOutputStream]] = Try {
-    resource.managed(new ArchiveStreamFactory("UTF-8")
-      .createArchiveOutputStream(streamTypes(streamType), output)
-      .asInstanceOf[ArchiveOutputStream])
+    resource.managed(new ArchiveStreamFactory("UTF-8").createArchiveOutputStream(streamType, output))
   }
 
-  private def addFileToTarStream(os: ArchiveOutputStream)(entrySpec: EntrySpec)(implicit buffer: Array[Byte]): Try[Unit] = Try {
+  private def addFileToTarStream(os: ArchiveOutputStream)(entrySpec: EntrySpec): Try[Unit] = Try {
     val entry = os.createArchiveEntry(entrySpec.sourcePath.map(_.toFile).orNull, entrySpec.entryPath)
     os.putArchiveEntry(entry)
-    entrySpec.sourcePath.foreach(
-      file =>
-        if (Files.isRegularFile(file)) copyFileToStream(os, file))
+    entrySpec.sourcePath.foreach { case file if Files.isRegularFile(file) => Files.copy(file, os) }
     os.closeArchiveEntry()
-  }
-
-  private def copyFileToStream(os: OutputStream, file: Path)(implicit buffer: Array[Byte]): Unit = {
-    resource.managed(FileUtils.openInputStream(file.toFile)) acquireAndGet {
-      is =>
-        var read = is.read(buffer)
-        while (read > 0) {
-          os.write(buffer, 0, read)
-          read = is.read(buffer)
-        }
-    }
   }
 }

@@ -39,10 +39,22 @@ trait StoresServletComponent extends DebugEnhancedLogging {
 
     get("/") {
       contentType = "text/plain"
-      bagStores.storeShortnames
+      Ok(bagStores.storeShortnames
         .keys
         .map(store => s"<${ externalBaseUri.resolve(s"stores/$store") }>")
-        .mkString("\n")
+        .mkString("\n"))
+    }
+
+    get("/:bagstore") {
+      contentType = "text/plain"
+      val bagstore = params("bagstore")
+      bagStores.getBaseDirByShortname(bagstore)
+        .map(_ => Ok {
+          s"""Bag store '$bagstore'.
+             |Bags for this store at <${ externalBaseUri.resolve(s"stores/$bagstore/bags") }>
+             |""".stripMargin
+        })
+        .getOrElse(NotFound(s"No such bag-store: $bagstore"))
     }
 
     get("/:bagstore/bags") {
@@ -76,7 +88,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
               .enumFiles(bagId, includeDirectories = false, Some(baseDir))
               .map(files => Ok(files.toList.mkString("\n")))
             else bagStores
-              .copyToStream(bagId, acceptToArchiveStreamType.get(accept), response.outputStream, Some(baseDir))
+              .copyToStream(bagId, accept, response.outputStream, Some(baseDir))
               .map(_ => Ok())
           })
           .getOrRecover {
@@ -105,7 +117,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
               }
               .flatMap(itemId => {
                 debug(s"Retrieving item $itemId")
-                bagStores.copyToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType.get), response.outputStream, Some(baseDir))
+                bagStores.copyToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType), response.outputStream, Some(baseDir))
               })
               .map(_ => Ok())
               .getOrRecover {
@@ -134,9 +146,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
             .recoverWith {
               case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
             }
-            .flatMap(uuid => {
-              bagStores.putBag(request.getInputStream, base, uuid)
-            })
+            .flatMap(bagStores.putBag(request.getInputStream, base, _))
             .map(bagId => Created(headers = Map(
               "Location" -> externalBaseUri.resolve(s"stores/$bagstore/bags/${ fileSystem.toUri(bagId).getPath }").toASCIIString
             )))

@@ -43,3 +43,9 @@
       src: /vagrant/src/test/resources/bags
       dest: /home/vagrant/test-data
       state: link
+
+  - name: Use UTF-8 for file name encoding
+    lineinfile:
+      path: "/home/vagrant/.bash_profile"
+      line: "export LC_ALL=en_US.UTF-8"
+

@@ -45,6 +45,7 @@ package object bagstore {
   case class NoFileIdException(itemId: ItemId) extends Exception(s"item-id $itemId is not a file-id")
   case class CorruptBagStoreException(reason: String) extends Exception(s"BagStore seems to be corrupt: $reason")
   case class OutputAlreadyExists(path: Path) extends Exception(s"Output path already exists; not overwriting $path")
+  case class OutputNotADirectoryException(path: Path) extends Exception(s"Output path must be a directory; $path exists, but is not a directory.")
   case class NoBagException(cause: Throwable) extends Exception("The provided input did not contain a bag", cause)
   case class InvalidBagException(bagId: BagId, msg: String) extends Exception(s"Bag $bagId is not a valid bag: $msg")
   case class NoRegularFileException(itemId: ItemId) extends Exception(s"Item $itemId is not a regular file.")
