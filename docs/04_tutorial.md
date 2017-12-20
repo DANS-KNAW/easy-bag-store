@@ -228,7 +228,7 @@ it were&mdash;we are making it easier to guarantee the authenticity of the recor
 set the permissions on the archived files to read-only and even flag them as immutable.   
 
 This *does* mean, however, that if we should happen to add an invalid bag, we corrupt the bag store. So, 
-while manual operation is feasible in theory, in practise you would soon be developing some scripts to:
+while manual operation is feasible in theory, in practise you would probably soon be developing some scripts to:
 
 * verify that the bag you are about to add is (virtually) valid;
 * change the file permissions of the contents of the bag to read-only, so as to prevent accidental modification;
