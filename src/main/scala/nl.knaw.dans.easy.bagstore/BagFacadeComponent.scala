@@ -33,6 +33,7 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable.Stream.Empty
 import scala.language.postfixOps
 import scala.util.control.NonFatal
+import nl.knaw.dans.lib.error.TryExtensions
 import scala.util.{ Failure, Success, Try }
 
 sealed abstract class Algorithm(val strength: Int)

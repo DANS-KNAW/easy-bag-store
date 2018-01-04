@@ -16,6 +16,7 @@
 package nl.knaw.dans.easy.bagstore
 
 import org.scalatest.BeforeAndAfterAll
+import nl.knaw.dans.lib.error.TryExtensions
 
 trait BagitFixture extends BagFacadeComponent with BeforeAndAfterAll {
   this: TestSupportFixture =>

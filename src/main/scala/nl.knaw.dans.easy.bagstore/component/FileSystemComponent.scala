@@ -16,12 +16,10 @@
 package nl.knaw.dans.easy.bagstore.component
 
 import java.net.URI
-import java.util.{Set => JSet}
 import java.nio.file._
 import java.nio.file.attribute.{ BasicFileAttributes, PosixFilePermission }
-import java.util.UUID
-import java.util.function.{ Predicate => JPredicate }
 import java.util.stream.{ Stream => JStream }
+import java.util.{ UUID, Set => JSet }
 
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error._
@@ -53,11 +51,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
      */
     def walkStore(implicit baseDir: BaseDir): JStream[BagPath] = {
       Files.walk(baseDir, uuidPathComponentSizes.size, FileVisitOption.FOLLOW_LINKS)
-        .filter(new JPredicate[Path] {
-          def test(path: Path): Boolean = {
-            baseDir.relativize(path).getNameCount == uuidPathComponentSizes.size
-          }
-        })
+        .filter(baseDir.relativize(_).getNameCount == uuidPathComponentSizes.size)
     }
 
     def fromLocation(path: Path)(implicit baseDir: BaseDir): Try[ItemId] = {

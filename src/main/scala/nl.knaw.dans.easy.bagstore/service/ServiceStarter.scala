@@ -41,7 +41,7 @@ class ServiceStarter extends Daemon with DebugEnhancedLogging {
       .doIfFailure {
         case NonFatal(e) => logger.info(s"Service startup failed: ${ e.getMessage }", e)
       }
-      .getOrRecover(throw _)
+      .unsafeGetOrThrow
   }
 
   def stop(): Unit = {
@@ -52,7 +52,7 @@ class ServiceStarter extends Daemon with DebugEnhancedLogging {
       .doIfFailure {
         case NonFatal(e) => logger.error(s"Service stop failed: ${ e.getMessage }", e)
       }
-      .getOrRecover(throw _)
+      .unsafeGetOrThrow
   }
 
   def destroy(): Unit = {
@@ -61,6 +61,6 @@ class ServiceStarter extends Daemon with DebugEnhancedLogging {
       .doIfFailure {
         case e => logger.error(s"Service destroy failed: ${ e.getMessage }", e)
       }
-      .getOrRecover(throw _)
+      .unsafeGetOrThrow
   }
 }

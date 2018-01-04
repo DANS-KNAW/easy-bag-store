@@ -15,10 +15,9 @@
  */
 package nl.knaw.dans.easy.bagstore.command
 
-import java.nio.file.{ Files, Path, Paths }
+import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstore
 import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
 import nl.knaw.dans.easy.bagstore.{ ArchiveStreamType, ConfigurationComponent }
 import org.rogach.scallop.{ ScallopConf, ScallopOption, Subcommand, ValueConverter, singleArgConverter }

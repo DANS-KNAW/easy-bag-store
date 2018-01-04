@@ -82,16 +82,6 @@ package object bagstore {
     rec(List((f1, f2)))
   }
 
-  implicit class TryExtensions2[T](val t: Try[T]) extends AnyVal {
-    // TODO candidate for dans-scala-lib
-    def unsafeGetOrThrow: T = {
-      t match {
-        case Success(value) => value
-        case Failure(throwable) => throw throwable
-      }
-    }
-  }
-
   // TODO: canditates for dans-scala-lib?
   def listDirs(dir: Path): Seq[Path] = {
     listFiles(dir).filter(Files.isDirectory(_))
