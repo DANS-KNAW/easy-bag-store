@@ -16,18 +16,16 @@
 package nl.knaw.dans.easy.bagstore.component
 
 import java.net.URI
-import java.util.{Set => JSet}
 import java.nio.file._
 import java.nio.file.attribute.{ BasicFileAttributes, PosixFilePermission }
-import java.util.UUID
-import java.util.function.{ Predicate => JPredicate }
 import java.util.stream.{ Stream => JStream }
+import java.util.{ UUID, Set => JSet }
 
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import nl.knaw.dans.lib.string._
 import org.apache.commons.io.FileUtils
-import org.apache.commons.lang.StringUtils
 
 import scala.collection.JavaConverters._
 import scala.util.{ Failure, Success, Try }
@@ -53,11 +51,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
      */
     def walkStore(implicit baseDir: BaseDir): JStream[BagPath] = {
       Files.walk(baseDir, uuidPathComponentSizes.size, FileVisitOption.FOLLOW_LINKS)
-        .filter(new JPredicate[Path] {
-          def test(path: Path): Boolean = {
-            baseDir.relativize(path).getNameCount == uuidPathComponentSizes.size
-          }
-        })
+        .filter(baseDir.relativize(_).getNameCount == uuidPathComponentSizes.size)
     }
 
     def fromLocation(path: Path)(implicit baseDir: BaseDir): Try[ItemId] = {
@@ -122,7 +116,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
         // The path part after the base-uri is basically the item-id, but in a Path object.
         val itemIdPath = if (baseUriPath.toString.nonEmpty) baseUriPath.relativize(path)
                          else path
-        if (StringUtils.isBlank(itemIdPath.toString))
+        if (itemIdPath.toString.isBlank)
           Failure(IncompleteItemUriException("base-uri by itself is not an item-uri"))
         else {
           val uuidStr = formatUuidStrCanonically(itemIdPath.getName(0).toString.filterNot(_ == '-'))

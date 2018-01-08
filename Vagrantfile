@@ -8,6 +8,7 @@ Vagrant.configure(2) do |config|
       test.vm.provision "ansible" do |ansible|
         ansible.playbook = "src/main/ansible/vagrant.yml"
         ansible.config_file = "src/main/ansible/ansible.cfg"
+        ansible.compatibility_mode = "2.0"
 #        ansible.verbose = "vvvv"
       end
       test.vm.provider "virtualbox" do |vb|

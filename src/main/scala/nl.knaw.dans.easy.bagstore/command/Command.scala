@@ -16,7 +16,7 @@
 package nl.knaw.dans.easy.bagstore.command
 
 import nl.knaw.dans.easy.bagstore.service.ServiceWiring
-import nl.knaw.dans.easy.bagstore.{ BaseDir, ItemId, TryExtensions2 }
+import nl.knaw.dans.easy.bagstore.{ BaseDir, ItemId }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
