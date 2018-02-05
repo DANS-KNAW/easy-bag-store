@@ -61,7 +61,7 @@ By using the `easy-bag-store` command you can manage a bag store from the comman
   more bag stores, because the bag directories they operate on may contain [local references] to bags in those stores.
   
 Some of the sub-commands require you to specify the store context you want to use. The store to operate on can be specified
-on one of two ways:
+in one of two ways:
 
 * With the `--store` option. This expects the shortname of a store, which is mapped to a base directory in the `stores.properties`
   configuration file.

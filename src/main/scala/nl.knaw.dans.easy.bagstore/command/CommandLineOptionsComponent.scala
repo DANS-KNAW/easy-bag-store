@@ -45,8 +45,8 @@ trait CommandLineOptionsComponent {
          |${ _________ }# operations on items in a bag store
          |${ _________ }| list
          |${ _________ }| add [-u,--uuid <uuid>] <bag>
-         |${ _________ }| get [-s,--skip-completion] [-d,--directory <dir>] <item-id>
-         |${ _________ }| stream [-f,--format zip|tar] <item-id>
+         |${ _________ }| get [-s,--skip-completion] [-f, --force-inactive] [-d,--directory <dir>] <item-id>
+         |${ _________ }| stream [-f,--format zip|tar] [-f, --force-inactive] <item-id>
          |${ _________ }| enum [[-i,--inactive|-a,--all] [<item-id>]]
          |${ _________ }| locate [-f,--file-data-location] <item-id>
          |${ _________ }| deactivate <bag-id>
@@ -108,6 +108,8 @@ trait CommandLineOptionsComponent {
       descr("Retrieves an item by copying it to the specified directory (default: current directory).")
       val skipCompletion: ScallopOption[Boolean] = opt(name = "skip-completion",
         descr = "do not complete an incomplete bag")
+      val forceInactive: ScallopOption[Boolean] = opt(name = "force-inactive",
+        descr = "force retrieval of an inactive item (by default inactive items are not retrieved)")
       val outputDir: ScallopOption[Path] = opt(name = "directory",
         descr = "directory in which to put the item",
         default = Some(Paths.get(".")))
@@ -121,6 +123,8 @@ trait CommandLineOptionsComponent {
       descr("Retrieves an item by streaming it to the standard output")
       val format: ScallopOption[ArchiveStreamType] = opt(name = "format",
         descr = "stream item packaged in this format (tar|zip)")
+      val forceInactive: ScallopOption[Boolean] = opt(name = "force-inactive",
+        descr = "force retrieval of an inactive item (by default inactive items are not retrieved)")
       val itemId: ScallopOption[String] = trailArg[String](name = "item-id",
         descr = "item-id of the item to stream")
       footer(SUBCOMMAND_SEPARATOR)
