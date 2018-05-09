@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagstore.server
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.{ Files, Path, Paths }
-import java.util.UUID
+import java.util.{ Base64, UUID }
 
 import net.lingala.zip4j.core.ZipFile
 import net.lingala.zip4j.model.ZipParameters
@@ -36,14 +36,17 @@ class StoresServletSpec extends TestSupportFixture
   with ServletFixture
   with ScalatraSuite
   with StoresServletComponent
+  with BagStoreAuthenticationStrategyComponent
   with BagStoresComponent
   with BagStoreComponent
   with BagProcessingComponent
   with FileSystemComponent {
 
-  val storesServlet: StoresServlet = new StoresServlet {
-    val externalBaseUri: URI = new URI("http://example-archive.org/")
+  override val storesServlet: StoresServlet = new StoresServlet {
+    override val externalBaseUri: URI = new URI("http://example-archive.org/")
   }
+  override val bagstoreUsername: String = "easy-bag-store"
+  override val bagstorePassword: String = "easy-bag-store"
 
   private val testBagsUnpruned = testDir.resolve("basic-sequence-unpruned-with-refbags")
   FileUtils.copyDirectory(
@@ -328,8 +331,15 @@ class StoresServletSpec extends TestSupportFixture
     }
   }
 
+  def authenticationHeader(username: String, password: String, authType: String = "Basic"): List[(String, String)] = {
+    val encoded = Base64.getEncoder.encodeToString(s"$username:$password")
+    List("Authorization" -> s"$authType $encoded")
+  }
+
+  private val basicAuthentication = authenticationHeader(bagstoreUsername, bagstorePassword)
+
   def putBag(uuid: String, bagZip: Path): Unit = {
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(bagZip)) {
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(bagZip), basicAuthentication) {
       status shouldBe 201
       header should contain("Location" -> s"http://example-archive.org/stores/store1/bags/$uuid")
     }
@@ -400,8 +410,34 @@ class StoresServletSpec extends TestSupportFixture
     retrieveBag(uuid3, "c")
   }
 
+  it should "fail when no BasicAuth credentials are provided" in {
+    val uuid = "11111111-1111-1111-1111-111111111111"
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA)) {
+      status shouldBe 401
+      body shouldBe "Unauthenticated"
+      header should contain("WWW-Authenticate" -> "Basic realm=\"easy-bag-store\"")
+    }
+  }
+
+  it should "fail when another type of credentials is provided" in {
+    val uuid = "11111111-1111-1111-1111-111111111111"
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), authenticationHeader("foo", "bar", "Bearer")) {
+      status shouldBe 400
+      body shouldBe "Bad Request"
+    }
+  }
+
+  it should "fail when invalid BasicAuth credentials are provided" in {
+    val uuid = "11111111-1111-1111-1111-111111111111"
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), authenticationHeader("wrong-username", "wrong-password")) {
+      status shouldBe 401
+      body shouldBe empty
+      header should contain("WWW-Authenticate" -> "Basic realm=\"easy-bag-store\"")
+    }
+  }
+
   it should "fail when the store is unknown" in {
-    put("/unknown-store/bags/11111111-1111-1111-1111-111111111111", body = Files.readAllBytes(testBagUnprunedA)) {
+    put("/unknown-store/bags/11111111-1111-1111-1111-111111111111", body = Files.readAllBytes(testBagUnprunedA), basicAuthentication) {
       status shouldBe 404
       body shouldBe "No such bag-store: unknown-store"
     }
@@ -409,7 +445,7 @@ class StoresServletSpec extends TestSupportFixture
 
   it should "fail when the given uuid is not a uuid" in {
     val uuid = "11111111111111111111111111111111"
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA)) {
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), basicAuthentication) {
       status shouldBe 400
       body shouldBe s"invalid UUID string: $uuid"
     }
@@ -417,7 +453,7 @@ class StoresServletSpec extends TestSupportFixture
 
   it should "fail when the given uuid is not a well-formatted uuid" in {
     val uuid = "abc-def-ghi-jkl-mno"
-    put(s"/store1/bags/$uuid") {
+    put(s"/store1/bags/$uuid", headers = basicAuthentication) {
       status shouldBe 400
       body shouldBe s"invalid UUID string: $uuid"
     }
@@ -425,7 +461,7 @@ class StoresServletSpec extends TestSupportFixture
 
   it should "fail when the input stream is empty" in {
     val uuid = "11111111-1111-1111-1111-111111111111"
-    put(s"/store1/bags/$uuid") {
+    put(s"/store1/bags/$uuid", headers = basicAuthentication) {
       status shouldBe 400
       body shouldBe "The provided input did not contain a bag"
     }
@@ -433,7 +469,7 @@ class StoresServletSpec extends TestSupportFixture
 
   it should "fail when the input stream contains anything else than a zip-file" in {
     val uuid = "66666666-6666-6666-6666-666666666666"
-    put(s"/store1/bags/$uuid", body = "hello world".getBytes) {
+    put(s"/store1/bags/$uuid", body = "hello world".getBytes, basicAuthentication) {
       status shouldBe 400
       body shouldBe "The provided input did not contain a bag"
     }
@@ -446,7 +482,7 @@ class StoresServletSpec extends TestSupportFixture
     }
 
     val uuid = "66666666-6666-6666-6666-666666666666"
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(zip)) {
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(zip), basicAuthentication) {
       status shouldBe 400
       body should include(s"Bag $uuid is not a valid bag")
     }

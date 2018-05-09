@@ -29,11 +29,11 @@ import scala.util.control.NonFatal
 import scala.util.{ Failure, Try }
 
 trait StoresServletComponent extends DebugEnhancedLogging {
-  this: BagStoresComponent with FileSystemComponent =>
+  this: BagStoresComponent with FileSystemComponent with BagStoreAuthenticationStrategyComponent =>
 
   val storesServlet: StoresServlet
 
-  trait StoresServlet extends ScalatraServlet with ServletUtils {
+  trait StoresServlet extends ScalatraServlet with ServletUtils with BagStoreAuthenticationSupport {
 
     val externalBaseUri: URI
 
@@ -138,6 +138,8 @@ trait StoresServletComponent extends DebugEnhancedLogging {
     }
 
     put("/:bagstore/bags/:uuid") {
+      basicAuth()
+
       val bagstore = params("bagstore")
       val uuidStr = params("uuid")
       bagStores.getBaseDirByShortname(bagstore)
