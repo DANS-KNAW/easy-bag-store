@@ -16,7 +16,6 @@
 package nl.knaw.dans.easy.bagstore.server
 
 import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatra.ScalatraBase
 import org.scalatra.auth.strategy.{ BasicAuthStrategy, BasicAuthSupport }
 import org.scalatra.auth.{ ScentryConfig, ScentrySupport }
@@ -29,10 +28,9 @@ trait BagStoreAuthenticationSupport extends ScentrySupport[User] with BasicAuthS
   def bagstoreUsername: String
   def bagstorePassword: String
 
-  class BagStoreAuthenticationStrategy(protected override val app: ScalatraBase, realm: String) extends BasicAuthStrategy[User](app, realm) with DebugEnhancedLogging {
+  class BagStoreAuthenticationStrategy(protected override val app: ScalatraBase, realm: String) extends BasicAuthStrategy[User](app, realm) {
 
     override protected def validate(userName: String, password: String)(implicit request: HttpServletRequest, response: HttpServletResponse): Option[User] = {
-      logger.info(s"validate($userName, $password)")
       if (userName == bagstoreUsername && password == bagstorePassword)
         Some(User(userName))
       else
@@ -40,7 +38,6 @@ trait BagStoreAuthenticationSupport extends ScentrySupport[User] with BasicAuthS
     }
 
     override protected def getUserId(user: User)(implicit request: HttpServletRequest, response: HttpServletResponse): String = {
-      logger.info(s"getUserId($user)")
       user.id
     }
   }
