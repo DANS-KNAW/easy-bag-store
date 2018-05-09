@@ -32,7 +32,7 @@ trait BagStoreServerComponent {
   class BagStoreServer(serverPort: Int) {
 
     private val server = new Server(serverPort) {
-      this.setHandler(new ServletContextHandler(ServletContextHandler.NO_SESSIONS) {
+      this.setHandler(new ServletContextHandler(ServletContextHandler.SESSIONS) {
         this.addEventListener(new ScalatraListener {
           override def probeForCycleClass(classLoader: ClassLoader): (String, LifeCycle) = {
             ("bagstore-lifecycle", new LifeCycle {
