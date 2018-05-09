@@ -31,7 +31,6 @@ class ListStoresServletSpec extends TestSupportFixture
   with ScalatraSuite
   with MockFactory
   with StoresServletComponent
-  with BagStoreAuthenticationStrategyComponent
   with BagStoresComponent
   with BagStoreComponent
   with BagProcessingComponent
@@ -41,10 +40,10 @@ class ListStoresServletSpec extends TestSupportFixture
   override val bagProcessing: BagProcessing = mock[BagProcessing]
   override val bagStores: BagStores = mock[BagStores]
   override val storesServlet: StoresServlet = new StoresServlet {
-    val externalBaseUri: URI = new URI("http://example-archive.org/")
+    override val externalBaseUri: URI = new URI("http://example-archive.org/")
+    override val bagstoreUsername: String = "unused"
+    override val bagstorePassword: String = "unused"
   }
-  override val bagstoreUsername: String = "unused"
-  override val bagstorePassword: String = "unused"
 
   override def beforeAll(): Unit = {
     super.beforeAll()

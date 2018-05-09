@@ -23,7 +23,8 @@ import org.scalatra.auth.{ ScentryConfig, ScentrySupport }
 
 case class User(id: String)
 
-trait BagStoreAuthenticationStrategyComponent {
+trait BagStoreAuthenticationSupport extends ScentrySupport[User] with BasicAuthSupport[User] {
+  self: ScalatraBase =>
 
   def bagstoreUsername: String
   def bagstorePassword: String
@@ -31,6 +32,7 @@ trait BagStoreAuthenticationStrategyComponent {
   class BagStoreAuthenticationStrategy(protected override val app: ScalatraBase, realm: String) extends BasicAuthStrategy[User](app, realm) with DebugEnhancedLogging {
 
     override protected def validate(userName: String, password: String)(implicit request: HttpServletRequest, response: HttpServletResponse): Option[User] = {
+      logger.info(s"validate($userName, $password)")
       if (userName == bagstoreUsername && password == bagstorePassword)
         Some(User(userName))
       else
@@ -38,35 +40,32 @@ trait BagStoreAuthenticationStrategyComponent {
     }
 
     override protected def getUserId(user: User)(implicit request: HttpServletRequest, response: HttpServletResponse): String = {
+      logger.info(s"getUserId($user)")
       user.id
     }
   }
 
-  trait BagStoreAuthenticationSupport extends ScentrySupport[User] with BasicAuthSupport[User] with DebugEnhancedLogging {
-    self: ScalatraBase =>
+  override val realm = "easy-bag-store"
+  private val basicStrategy = "Basic"
 
-    override val realm = "easy-bag-store"
-    private val basicStrategy = "Basic"
+  override protected def fromSession: PartialFunction[String, User] = {
+    case id: String => User(id)
+  }
 
-    override protected def fromSession: PartialFunction[String, User] = {
-      case id: String => User(id)
+  override protected def toSession: PartialFunction[User, String] = {
+    case usr: User => usr.id
+  }
+
+  override type ScentryConfiguration = ScentryConfig
+  override protected val scentryConfig: ScentryConfiguration = new ScentryConfig {}
+
+  override protected def configureScentry(): Unit = {
+    scentry.unauthenticated {
+      scentry.strategies(basicStrategy).unauthenticated()
     }
+  }
 
-    override protected def toSession: PartialFunction[User, String] = {
-      case usr: User => usr.id
-    }
-
-    override type ScentryConfiguration = ScentryConfig
-    override protected val scentryConfig: ScentryConfiguration = new ScentryConfig {}
-
-    override protected def configureScentry(): Unit = {
-      scentry.unauthenticated {
-        scentry.strategies(basicStrategy).unauthenticated()
-      }
-    }
-
-    override protected def registerAuthStrategies(): Unit = {
-      scentry.register(basicStrategy, app => new BagStoreAuthenticationStrategy(app, realm))
-    }
+  override protected def registerAuthStrategies(): Unit = {
+    scentry.register(basicStrategy, app => new BagStoreAuthenticationStrategy(app, realm))
   }
 }

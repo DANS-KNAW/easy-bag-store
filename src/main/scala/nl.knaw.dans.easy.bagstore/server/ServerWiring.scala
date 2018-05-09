@@ -23,21 +23,19 @@ import nl.knaw.dans.easy.bagstore.component.BagStoreWiring
 trait ServerWiring extends BagStoreServerComponent
   with DefaultServletComponent
   with BagsServletComponent
-  with StoresServletComponent
-  with BagStoreAuthenticationStrategyComponent {
+  with StoresServletComponent {
   this: BagStoreWiring with ConfigurationComponent =>
 
   private val ebu = new URI(configuration.properties.getString("daemon.external-base-uri"))
-
-  override lazy val bagstoreUsername: String = configuration.properties.getString("bag-store.username")
-  override lazy val bagstorePassword: String = configuration.properties.getString("bag-store.password")
 
   lazy val defaultServlet: DefaultServlet = new DefaultServlet {
     val externalBaseUri: URI = ebu
   }
   lazy val bagsServlet: BagsServlet = new BagsServlet {}
   lazy val storesServlet: StoresServlet = new StoresServlet {
-    val externalBaseUri: URI = ebu
+    override val externalBaseUri: URI = ebu
+    override val bagstoreUsername: String = configuration.properties.getString("bag-store.username")
+    override val bagstorePassword: String = configuration.properties.getString("bag-store.password")
   }
   lazy val server: BagStoreServer = new BagStoreServer(configuration.properties.getInt("daemon.http.port"))
 }

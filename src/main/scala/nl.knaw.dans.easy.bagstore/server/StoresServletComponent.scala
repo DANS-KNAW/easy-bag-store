@@ -29,7 +29,7 @@ import scala.util.control.NonFatal
 import scala.util.{ Failure, Try }
 
 trait StoresServletComponent extends DebugEnhancedLogging {
-  this: BagStoresComponent with FileSystemComponent with BagStoreAuthenticationStrategyComponent =>
+  this: BagStoresComponent with FileSystemComponent =>
 
   val storesServlet: StoresServlet
 

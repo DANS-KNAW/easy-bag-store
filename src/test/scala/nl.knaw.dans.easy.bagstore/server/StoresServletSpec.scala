@@ -36,17 +36,19 @@ class StoresServletSpec extends TestSupportFixture
   with ServletFixture
   with ScalatraSuite
   with StoresServletComponent
-  with BagStoreAuthenticationStrategyComponent
   with BagStoresComponent
   with BagStoreComponent
   with BagProcessingComponent
   with FileSystemComponent {
 
+  val username = "easy-bag-store"
+  val password = "easy-bag-store"
+
   override val storesServlet: StoresServlet = new StoresServlet {
     override val externalBaseUri: URI = new URI("http://example-archive.org/")
+    override val bagstoreUsername: String = username
+    override val bagstorePassword: String = password
   }
-  override val bagstoreUsername: String = "easy-bag-store"
-  override val bagstorePassword: String = "easy-bag-store"
 
   private val testBagsUnpruned = testDir.resolve("basic-sequence-unpruned-with-refbags")
   FileUtils.copyDirectory(
@@ -336,7 +338,7 @@ class StoresServletSpec extends TestSupportFixture
     List("Authorization" -> s"$authType $encoded")
   }
 
-  private val basicAuthentication = authenticationHeader(bagstoreUsername, bagstorePassword)
+  private val basicAuthentication = authenticationHeader(username, password)
 
   def putBag(uuid: String, bagZip: Path): Unit = {
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(bagZip), basicAuthentication) {
