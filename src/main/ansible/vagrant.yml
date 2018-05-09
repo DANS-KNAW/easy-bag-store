@@ -31,12 +31,12 @@
       state: latest
 
   - name: Configure application (application.properties)
-      replace:
-        dest: "/etc/opt/dans.knaw.nl/easy-bag-store/application.properties"
-        regexp: '^{{ item.key }}=.*$'
-        replace: '{{ item.key }}={{ item.value }}'
-      with_items:
-        - { key: "bag-store.password", value: "easy-bag-store" }
+    replace:
+      dest: "/etc/opt/dans.knaw.nl/easy-bag-store/application.properties"
+      regexp: '^{{ item.key }}=.*$'
+      replace: '{{ item.key }}={{ item.value }}'
+    with_items:
+      - { key: "bag-store.password", value: "easy-bag-store" }
 
   - service:
       name: easy-bag-store
