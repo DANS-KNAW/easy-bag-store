@@ -436,6 +436,16 @@ class StoresServletSpec extends TestSupportFixture
     }
   }
 
+  it should "fail when a second call does not provide credentials" in {
+    val uuid = "11111111-1111-1111-1111-111111111111"
+    putBag(uuid, testBagUnprunedA)
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA)) {
+      status shouldBe 401
+      body shouldBe "Unauthenticated"
+      header should contain("WWW-Authenticate" -> "Basic realm=\"easy-bag-store\"")
+    }
+  }
+
   it should "fail when the store is unknown" in {
     put("/unknown-store/bags/11111111-1111-1111-1111-111111111111", body = Files.readAllBytes(testBagUnprunedA), basicAuthentication) {
       status shouldBe 404
