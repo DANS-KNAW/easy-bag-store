@@ -417,7 +417,6 @@ class StoresServletSpec extends TestSupportFixture
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA)) {
       status shouldBe 401
       body shouldBe "Unauthenticated"
-      header should contain("WWW-Authenticate" -> "Basic realm=\"easy-bag-store\"")
     }
   }
 
@@ -433,8 +432,7 @@ class StoresServletSpec extends TestSupportFixture
     val uuid = "11111111-1111-1111-1111-111111111111"
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), authenticationHeader("wrong-username", "wrong-password")) {
       status shouldBe 401
-      body shouldBe empty
-      header should contain("WWW-Authenticate" -> "Basic realm=\"easy-bag-store\"")
+      body shouldBe "Unauthenticated"
     }
   }
 
@@ -444,7 +442,6 @@ class StoresServletSpec extends TestSupportFixture
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA)) {
       status shouldBe 401
       body shouldBe "Unauthenticated"
-      header should contain("WWW-Authenticate" -> "Basic realm=\"easy-bag-store\"")
     }
   }
 
