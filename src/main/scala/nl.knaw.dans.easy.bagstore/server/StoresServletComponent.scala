@@ -33,7 +33,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
 
   val storesServlet: StoresServlet
 
-  trait StoresServlet extends ScalatraServlet with ServletUtils {
+  trait StoresServlet extends ScalatraServlet with ServletUtils with BagStoreAuthenticationSupport {
 
     val externalBaseUri: URI
 
@@ -138,6 +138,8 @@ trait StoresServletComponent extends DebugEnhancedLogging {
     }
 
     put("/:bagstore/bags/:uuid") {
+      basicAuth()
+
       val bagstore = params("bagstore")
       val uuidStr = params("uuid")
       bagStores.getBaseDirByShortname(bagstore)

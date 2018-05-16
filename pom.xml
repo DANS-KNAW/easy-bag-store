@@ -107,6 +107,10 @@
             <artifactId>scalatra_2.12</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.scalatra</groupId>
+            <artifactId>scalatra-auth_2.12</artifactId>
+        </dependency>
+        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>3.1.0</version>
