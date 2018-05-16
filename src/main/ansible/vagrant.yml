@@ -24,6 +24,11 @@
 
 - hosts: "test"
   become: yes
+  vars:
+    dans_config_base: "/etc/opt/dans.knaw.nl"
+    easy_ldap_dir_easyadmin_password: "easyadmin"
+    easy_ldap_dir_ldapadmin_password: "ldapadmin"
+    easy_test_users_ldapadmin_password: "ldapadmin"
   tasks:
   - name: Install package
     yum:
@@ -56,4 +61,12 @@
     lineinfile:
       path: "/home/vagrant/.bash_profile"
       line: "export LC_ALL=en_US.UTF-8"
+
+  - name: Install Ldap
+    include_role:
+      name: "dans.easy-ldap-dir"
+
+  - name: Install easy users
+    include_role:
+      name: "dans.easy-test-users"
 
