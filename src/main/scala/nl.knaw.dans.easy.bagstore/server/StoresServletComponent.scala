@@ -138,7 +138,8 @@ trait StoresServletComponent extends DebugEnhancedLogging {
     }
 
     put("/:bagstore/bags/:uuid") {
-      basicAuth()
+      // Disabled because of https://drivenbydata.atlassian.net/browse/EASY-1565.
+      // basicAuth()
 
       val bagstore = params("bagstore")
       val uuidStr = params("uuid")
