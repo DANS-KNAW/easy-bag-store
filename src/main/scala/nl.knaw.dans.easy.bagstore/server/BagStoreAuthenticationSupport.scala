@@ -25,16 +25,25 @@ trait BagStoreAuthenticationSupport {
   def bagstoreUsername: String
   def bagstorePassword: String
 
-  val realm = "easy-bag-store"
+  private val realm = "easy-bag-store"
 
   def basicAuth()(implicit request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val baReq = new BasicAuthRequest(request)
     if (!baReq.providesAuth)
-      halt(401, "Unauthenticated")
-    if (!baReq.isBasicAuth)
-      halt(400, "Bad Request")
-    if (!validate(baReq.username, baReq.password))
-      halt(401, "Unauthenticated")
+      unauthenticated
+    else if (!baReq.isBasicAuth)
+      badRequest
+    else if (!validate(baReq.username, baReq.password))
+      unauthenticated
+  }
+
+  private def badRequest = {
+    halt(400, "Bad Request")
+  }
+
+  private def unauthenticated = {
+    response.setHeader("WWW-Authenticate", s"""Basic realm="$realm"""")
+    halt(401, "Unauthenticated")
   }
 
   protected def validate(userName: String, password: String): Boolean = {
