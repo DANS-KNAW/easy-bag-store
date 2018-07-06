@@ -48,8 +48,8 @@
       state: started
       enabled: yes
 
-  - include_role:
-      name: bagit
+  - import_role:
+      name: dans.bagit
 
   - name: Create link to test data
     file:

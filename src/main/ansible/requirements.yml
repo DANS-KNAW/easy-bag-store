@@ -22,3 +22,5 @@
   version: v2.0.2
 - src: https://github.com/DANS-KNAW/dans.easy-test-users
   version: v1.2.0
+- src: https://github.com/DANS-KNAW/dans.bagit
+  version: v1.0.0
