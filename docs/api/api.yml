@@ -85,7 +85,7 @@ paths:
           $ref: '#/components/responses/GetBagOk'
         404:
           description: The bag could not be found in any of the bag stores managed by this service.
-        409:
+        410:
           description: The bag was found, but `INACTIVE`.
 
   /bags/{uuid}/{p1}/{p2}/{p3}/{pn}:
@@ -116,7 +116,7 @@ paths:
           $ref: '#/components/responses/GetItemFromBagOk'
         404:
           description: The item could not be found.
-        409:
+        410:
           description: The bag containing the item is `INACTIVE`.
 
   /stores:
