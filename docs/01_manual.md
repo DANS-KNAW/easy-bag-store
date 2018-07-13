@@ -23,19 +23,16 @@ SYNOPSIS
                     # operations on items in a bag store
                     | list
                     | add [-m,--move] [-u,--uuid <uuid>] <bag>
-                    | get [-d,--directory <dir>] [-f, --force-inactive] \
-                          [-s,--skip-completion] <item-id>
-                    | stream [-f, --force-inactive]
-                          [-f,--format zip|tar] <item-id>
-                    | enum [[-a,--all] [-e,--exclude-directories] \
-                          [-i,--inactive] <bag-id>]
+                    | get [-d,--directory <dir>] [-f, --force-inactive] [-s,--skip-completion] <item-id>
+                    | stream [-f, --force-inactive] [-f,--format zip|tar] <item-id>
+                    | enum [[-a,--all] [-e,--exclude-directories] [-i,--inactive] <bag-id>]
                     | locate [-f,--file-data-location] <item-id>
                     | deactivate <bag-id>
                     | reactivate <bag-id>
                     |
                     # operations on bags outside a bag store
                     | prune <bag-dir> <ref-bag-id>...
-                    | complete <bag-dir>
+                    | complete [-f,--keep-fetchtxt] <bag-dir>
                     | validate <bag-dir>
                     |
                     # start as HTTP service

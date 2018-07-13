@@ -54,7 +54,7 @@ trait CommandLineOptionsComponent {
          |${ _________ }|
          |${ _________ }# operations on bags outside a bag store
          |${ _________ }| prune <bag-dir> <ref-bag-id>...
-         |${ _________ }| complete <bag-dir>
+         |${ _________ }| complete [-f,--keep-fetchtxt] <bag-dir>
          |${ _________ }| validate <bag-dir>
          |${ _________ }|
          |${ _________ }# start as HTTP service
@@ -131,7 +131,7 @@ trait CommandLineOptionsComponent {
 
     val enum = new Subcommand("enum") {
       descr("Enumerates bags or Files")
-      val inactive: ScallopOption[Boolean] = opt[Boolean](name = "inactive", short = 'd',
+      val inactive: ScallopOption[Boolean] = opt[Boolean](name = "inactive", short = 'i',
         descr = "only enumerate inactive bags")
       val all: ScallopOption[Boolean] = opt[Boolean](name = "all", short = 'a',
         descr = "enumerate all bags, including inactive ones")
@@ -190,7 +190,7 @@ trait CommandLineOptionsComponent {
 
     val complete = new Subcommand("complete") {
       descr("Resolves fetch.txt references from the bag store and copies them into <bag-dir>")
-      val keepFetchTxt: ScallopOption[Boolean] = opt(name = "keep-fetchtxt",
+      val keepFetchTxt: ScallopOption[Boolean] = opt(name = "keep-fetchtxt", short = 'f',
         descr = "do not delete fetch.txt, if present")
       val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
         descr = "bag directory to complete",
