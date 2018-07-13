@@ -44,15 +44,13 @@ trait CommandLineOptionsComponent {
          |$printedName [-b,--base-dir <dir>|-s,--store-name <name>]
          |${ _________ }# operations on items in a bag store
          |${ _________ }| list
-         |${ _________ }| add [-u,--uuid <uuid>] <bag>
-         |${ _________ }| get [-s,--skip-completion] [-f, --force-inactive] [-d,--directory <dir>] <item-id>
-         |${ _________ }| stream [-f,--format zip|tar] [-f, --force-inactive] <item-id>
-         |${ _________ }| enum [[-i,--inactive|-a,--all] [<item-id>]]
+         |${ _________ }| add [-m,--move] [-u,--uuid <uuid>] <bag>
+         |${ _________ }| get [-d,--directory <dir>] [-f, --force-inactive] [-s,--skip-completion] <item-id>
+         |${ _________ }| stream [-f, --force-inactive] [-f,--format zip|tar] <item-id>
+         |${ _________ }| enum [[-a,--all] [-e,--exclude-directories] [-i,--inactive] <bag-id>]
          |${ _________ }| locate [-f,--file-data-location] <item-id>
          |${ _________ }| deactivate <bag-id>
          |${ _________ }| reactivate <bag-id>
-         |${ _________ }| verify [<bag-id>]
-         |${ _________ }| erase <file-id>...
          |${ _________ }|
          |${ _________ }# operations on bags outside a bag store
          |${ _________ }| prune <bag-dir> <ref-bag-id>...

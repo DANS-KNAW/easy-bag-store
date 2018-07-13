@@ -20,25 +20,23 @@ SYNOPSIS
 --------
 
     easy-bag-store [-b,--base-dir <dir>|-s,--store-name <name>]
-                     # operations on items in a bag store
-                     | list
-                     | add [-u,--uuid <uuid>] <bag>
-                     | get [-s,--skip-completion] [-d,--directory <dir>] <item-id> 
-                     | stream [-f,--format zip|tar] <item-id>
-                     | enum [[-i,--inactive|-a,--all] <bag-id>]
-                     | locate [-f,--file-data-location] <item-id>
-                     | deactivate <bag-id>
-                     | reactivate <bag-id>
-                     | verify [<bag-id>] # Not implemented yet
-                     | erase <file-id>... # Not implemented yet
-                     
-                     # operations on bags outside a bag store
-                     | prune <bag-dir> <ref-bag-id>...
-                     | complete <bag-dir>
-                     | validate <bag-dir>
-                     
-                     # start as HTTP service
-                     | run-service
+                    # operations on items in a bag store
+                    | list
+                    | add [-m,--move] [-u,--uuid <uuid>] <bag>
+                    | get [-d,--directory <dir>] [-f, --force-inactive] [-s,--skip-completion] <item-id>
+                    | stream [-f, --force-inactive] [-f,--format zip|tar] <item-id>
+                    | enum [[-a,--all] [-e,--exclude-directories] [-i,--inactive] <bag-id>]
+                    | locate [-f,--file-data-location] <item-id>
+                    | deactivate <bag-id>
+                    | reactivate <bag-id>
+                    |
+                    # operations on bags outside a bag store
+                    | prune <bag-dir> <ref-bag-id>...
+                    | complete <bag-dir>
+                    | validate <bag-dir>
+                    |
+                    # start as HTTP service
+                    | run-service
                           
 
 DESCRIPTION

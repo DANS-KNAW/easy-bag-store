@@ -5,8 +5,8 @@ info:
   description: |
     This document specifies the Bag Store Service API. It provides HTTP access to one or more [bag store]s. This API
     implements the [operations] `ADD`, `ENUM` and `GET`. The operations `DEACTIVATE`, `REACTIVATE`
-    and `ERASE` are *not* implemented, as they should be used with care and only in very exceptional cases,
-    so certainly not in an automated workflow. The command line interface does provide these operations (except
+    and `ERASE` are *not* provided by this service API, as they should be used with care and only in very exceptional cases,
+    so certainly not in an automated workflow. The command line interface *does* provide these operations (except
     `ERASE`, which has been defined, but not implemented yet).
 
     The `ENUM` and `GET` operations are available both per bag store and for all the bag stores together. The
