@@ -41,12 +41,11 @@ class PruneSpec extends BagProcessingFixture {
       .addPayloadFile(toStream("doler"), Paths.get("some.x/some.txt")).getOrRecover(e => fail(e))
       .addPayloadFile(toStream("sit amet"), Paths.get("some.y")).getOrRecover(e => fail(e))
       .save()
-    // File("src/test/resources/XXX").copyTo(File(testDir) / "bag")
 
     bagProcessing.prune(
       testDir.resolve("bag"),
-      Seq(BagId(uuid)) // single referenced bag
-    ) shouldBe Success("xxx")
+      Seq(BagId(uuid))
+    ) shouldBe Success(())
     (bagDir / "data").size shouldBe 2
     (bagDir / "fetch.txt").toJava shouldNot exist // TODO drop toJava with ???
   }
