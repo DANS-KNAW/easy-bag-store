@@ -77,6 +77,16 @@
             <artifactId>bagit</artifactId>
         </dependency>
         <dependency>
+            <groupId>nl.knaw.dans.lib</groupId>
+            <artifactId>dans-bag-lib_2.12</artifactId>
+            <version>1.0.0-beta-2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.pathikrit</groupId>
+            <artifactId>better-files_2.12</artifactId>
+            <version>3.4.0</version>
+        </dependency>
+        <dependency>
             <groupId>com.jsuereth</groupId>
             <artifactId>scala-arm_2.12</artifactId>
         </dependency>
