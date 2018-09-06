@@ -30,7 +30,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
 
   val bagsServlet: BagsServlet
 
-  trait BagsServlet extends ScalatraServlet with ServletUtils {
+  trait BagsServlet extends ScalatraServlet with ServletUtils with ServletEnhancedLogging {
 
     get("/") {
       contentType = "text/plain"
