@@ -30,7 +30,7 @@ class PruneSpec extends BagProcessingFixture {
 
   implicit val referencedStore: BagPath = store1
 
-  "prune" should "not prune when a file in one is a folder in the other and vice versa" in pendingUntilFixed {
+  "prune" should "not prune when a file in one is a folder in the other and vice versa" in {
     val uuid = UUID.randomUUID()
     DansV0Bag.empty(File(store1) / pathFromUUID(uuid) / "bag").getOrRecover(e => fail(e))
       .addPayloadFile(toStream("lorum"), Paths.get("some.x")).getOrRecover(e => fail(e))
@@ -46,7 +46,7 @@ class PruneSpec extends BagProcessingFixture {
       testDir.resolve("bag"),
       Seq(BagId(uuid))
     ) shouldBe Success(())
-    (bagDir / "data").size shouldBe 2
+    (bagDir / "data").list.size shouldBe 2
     (bagDir / "fetch.txt").toJava shouldNot exist // TODO drop toJava with ???
   }
 

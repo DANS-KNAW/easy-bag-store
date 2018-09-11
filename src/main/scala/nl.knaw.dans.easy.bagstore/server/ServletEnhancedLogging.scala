@@ -29,7 +29,7 @@ trait ServletEnhancedLogging extends DebugEnhancedLogging {
     logger.info(s"${ request.getMethod } ${ request.getRequestURL } remote=${ request.getRemoteAddr } params=$params headers=${ request.headers }")
   }
 }
-object ç extends DebugEnhancedLogging {
+object ServletEnhancedLogging extends DebugEnhancedLogging {
 
   implicit class RichActionResult(actionResult: ActionResult)(implicit request: HttpServletRequest) {
     def logResponse: ActionResult = logResult(actionResult)
