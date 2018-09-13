@@ -189,7 +189,10 @@ paths:
         409:
           description: The bag was found, but `INACTIVE`.
     put:
-      summary: Adds a bag to the specified bag store.
+      summary: |
+        Adds a bag to the specified bag store. The bag sent by the client MAY contain a file
+        called `refbags.txt` in the base directory of the bag. If that file exists it MUST contain
+        a newline-separated list of UUIDs pointing to existing bags.
       parameters:
         - $ref: '#/components/parameters/Store'
         - $ref: '#/components/parameters/Uuid'
@@ -216,6 +219,8 @@ paths:
             * The UUID is already assigned to a bag in one of the managed stores.
             * The UUID was syntactically incorrect.
             * The bag is not virtually-valid.
+            * The bag contained a `refbags.txt` file but it contained no data, or malformed data or
+              references to non-existent bags.
         503:
           description: |
             The server cannot fulfil the request because of a temporary situation. If possible, the
