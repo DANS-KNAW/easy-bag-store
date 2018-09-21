@@ -91,12 +91,14 @@ trait BagStoresComponent {
     }
 
     def putBag(inputStream: InputStream, baseDir: BaseDir, uuid: UUID): Try[BagId] = {
+      trace(baseDir, uuid)
       val bagStore = BagStore(baseDir)
       for {
         _ <- checkBagDoesNotExist(BagId(uuid))
         staging <- bagProcessing.unzipBag(inputStream)
         staged <- bagProcessing.findBagDir(staging)
         bagId <- bagStore.add(staged, Some(uuid), skipStage = true)
+        _ = logger.info(s"Successfully added bag with bag-id $uuid to bag store at $baseDir")
         _ = FileUtils.deleteDirectory(staging.toFile)
       } yield bagId
     }

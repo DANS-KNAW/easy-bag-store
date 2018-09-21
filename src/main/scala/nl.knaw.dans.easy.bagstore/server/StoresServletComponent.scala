@@ -138,10 +138,12 @@ trait StoresServletComponent extends DebugEnhancedLogging {
     }
 
     put("/:bagstore/bags/:uuid") {
+      trace(())
       basicAuth()
-
+      debug("Authenticated")
       val bagstore = params("bagstore")
       val uuidStr = params("uuid")
+      logger.info(s"Received PUT request for bagstore $bagstore and UUID $uuidStr")
       bagStores.getBaseDirByShortname(bagstore)
         .map(base => {
           Try { UUID.fromString(uuidStr) }

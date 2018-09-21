@@ -79,7 +79,7 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
 
     // FIXME: Only called in BagStoreComp and in previous method
     def setPermissions(bagDir: Path, filePermissions: JSet[PosixFilePermission], directoryPermissions: JSet[PosixFilePermission], includeTopDir: Boolean = true) = Try {
-      logger.info(s"Setting bag permissions to: file = $filePermissions, dir = $directoryPermissions, bag directory: $bagDir")
+      logger.debug(s"Setting bag permissions to: file = $filePermissions, dir = $directoryPermissions, bag directory: $bagDir")
       object SetPermissionsFileVisitor extends FileVisitor[Path] {
         override def visitFileFailed(file: Path, exc: IOException): FileVisitResult = {
           logger.error(s"Could not visit file $file", exc)
