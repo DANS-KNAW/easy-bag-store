@@ -32,14 +32,14 @@ class PruneSpec extends BagProcessingFixture {
 
   "prune" should "not prune when a file in one is a folder in the other and vice versa" in {
     val uuid = UUID.randomUUID()
-    DansV0Bag.empty(File(store1) / pathFromUUID(uuid) / "bag").getOrRecover(e => fail(e))
-      .addPayloadFile(toStream("lorum"), Paths.get("some.x")).getOrRecover(e => fail(e))
-      .addPayloadFile(toStream("ipsum"), Paths.get("some.y/test.txt")).getOrRecover(e => fail(e))
+    DansV0Bag.empty(File(store1) / pathFromUUID(uuid) / "bag").getOrRecover(fail(_))
+      .addPayloadFile(toStream("lorum"), Paths.get("some.x")).getOrRecover(fail(_))
+      .addPayloadFile(toStream("ipsum"), Paths.get("some.y/test.txt")).getOrRecover(fail(_))
       .save()
     val bagDir = File(testDir) / "bag"
-    DansV0Bag.empty(bagDir).getOrRecover(e => fail(e))
-      .addPayloadFile(toStream("doler"), Paths.get("some.x/some.txt")).getOrRecover(e => fail(e))
-      .addPayloadFile(toStream("sit amet"), Paths.get("some.y")).getOrRecover(e => fail(e))
+    DansV0Bag.empty(bagDir).getOrRecover(fail(_))
+      .addPayloadFile(toStream("doler"), Paths.get("some.x/some.txt")).getOrRecover(fail(_))
+      .addPayloadFile(toStream("sit amet"), Paths.get("some.y")).getOrRecover(fail(_))
       .save()
 
     bagProcessing.prune(
@@ -83,15 +83,15 @@ class PruneSpec extends BagProcessingFixture {
   }
 
   // TODO see https://github.com/DANS-KNAW/easy-deposit-api/blob/1f742c812d5a98754b010d32abdc282db5d256c3/src/main/scala/nl.knaw.dans.easy.deposit/package.scala#L73-L77
-  def toStream(s: String) = new ByteArrayInputStream(s.getBytes())
+  def toStream(s: String): ByteArrayInputStream = new ByteArrayInputStream(s.getBytes())
 
-  private def containsFragments(e: Throwable, msgFragments: Seq[String]) = {
+  private def containsFragments(e: Throwable, msgFragments: Seq[String]): Boolean = {
     // TODO implicit class or custom matcher
     val message = e.getMessage
-    msgFragments.forall(fragment => { message.contains(fragment) })
+    msgFragments.forall(message.contains)
   }
 
-  private def pathFromUUID(randomUUUID: UUID) = {
+  private def pathFromUUID(randomUUUID: UUID): String = {
     // TODO this more or less mimics FileSystemComponent.toContainer
     randomUUUID.toString
       .replaceAll("-", "")

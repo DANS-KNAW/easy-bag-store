@@ -25,7 +25,7 @@ trait DefaultServletComponent {
 
   val defaultServlet: DefaultServlet
 
-  trait DefaultServlet extends ScalatraServlet {
+  trait DefaultServlet extends ScalatraServlet with ServletEnhancedLogging {
 
     val externalBaseUri: URI
 

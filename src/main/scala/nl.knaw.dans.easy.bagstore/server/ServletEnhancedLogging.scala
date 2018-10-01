@@ -21,7 +21,7 @@ import org.scalatra.{ ActionResult, ScalatraBase }
 
 import scala.util.{ Failure, Success, Try }
 
-// TODO candidate for dans-scala-lib (another package than authentication?)
+// TODO candidate for dans-scala-lib (copied from easy-deposit-api)
 trait ServletEnhancedLogging extends DebugEnhancedLogging {
   this: ScalatraBase =>
 
