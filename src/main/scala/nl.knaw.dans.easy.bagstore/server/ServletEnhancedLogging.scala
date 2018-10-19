@@ -15,42 +15,14 @@
  */
 package nl.knaw.dans.easy.bagstore.server
 
-import javax.servlet.http.HttpServletRequest
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.scalatra.{ ActionResult, ScalatraBase }
+import org.scalatra.ScalatraBase
 
-import scala.util.{ Failure, Success, Try }
-
-// TODO candidate for dans-scala-lib (copied from easy-deposit-api)
 trait ServletEnhancedLogging extends DebugEnhancedLogging {
   this: ScalatraBase =>
 
+  // copied from easy-deposit-api, in case filters on the headers or other details might be required: no library candidate
   before() {
     logger.info(s"${ request.getMethod } ${ request.getRequestURL } remote=${ request.getRemoteAddr } params=$params headers=${ request.headers }")
-  }
-}
-object ServletEnhancedLogging extends DebugEnhancedLogging {
-
-  implicit class RichActionResult(actionResult: ActionResult)(implicit request: HttpServletRequest) {
-    def logResponse: ActionResult = logResult(actionResult)
-  }
-
-  implicit class RichTriedActionResult(tried: Try[ActionResult])(implicit request: HttpServletRequest) {
-    // TODO to preserve actionResult into and beyond after filters, copy it into "implicit response: HttpServletResponse"
-    // See the last extensive readme version (documentation moved into an incomplete book and guides)
-    // https://github.com/scalatra/scalatra/blob/6a614d17c38d19826467adcabf1dc746e3192dfc/README.markdown
-    // sections #filters #action
-    def getOrRecoverResponse(recover: Throwable => ActionResult): ActionResult = {
-      // the signature is more specific than in nl.knaw.dans.lib.error and comes with the trait, not with just an import
-      logResult(tried match {
-        case Success(actionResult) => actionResult
-        case Failure(throwable) => recover(throwable)
-      })
-    }
-  }
-
-  private def logResult(actionResult: ActionResult)(implicit request: HttpServletRequest) = {
-    logger.info(s"${ request.getMethod } returned status=${ actionResult.status } headers=${ actionResult.headers }")
-    actionResult
   }
 }
