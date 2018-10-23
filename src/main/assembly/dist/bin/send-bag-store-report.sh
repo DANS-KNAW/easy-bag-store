@@ -43,7 +43,7 @@ exit_if_failed() {
 }
 
 echo -n "Creating list of DOIs in bag-store $BAGSTORE..."
-cat $BAGSTORES_BASEDIR/$BAGSTORE/*/*/*/metadata/dataset.xml | grep 'id-type:DOI' | sed -r 's/^.*>(.*)<.*$/\1/' > $REPORT
+find $BAGSTORES_BASEDIR/$BAGSTORE/ -name 'dataset.xml' | xargs cat | grep 'id-type:DOI' | sed -r 's/^.*>(.*)<.*$/\1/' > $REPORT
 exit_if_failed "DOI list creation failed"
 
 echo -n "Getting total disk usage of bag-store $BAGSTORE..."
