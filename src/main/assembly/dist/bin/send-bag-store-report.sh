@@ -47,7 +47,7 @@ find $BAGSTORES_BASEDIR/$BAGSTORE/ -name 'dataset.xml' | xargs cat | grep 'id-ty
 exit_if_failed "DOI list creation failed"
 
 echo -n "Getting total disk usage of bag-store $BAGSTORE..."
-DISK_USAGE=$(du -sh $BAGSTORES_BASEDIR/$BAGSTORE)
+DISK_USAGE=$(du -cbsh $BAGSTORES_BASEDIR/$BAGSTORE)
 exit_if_failed "disk space usage report failed"
 
 echo -n "Sending e-mail..."
