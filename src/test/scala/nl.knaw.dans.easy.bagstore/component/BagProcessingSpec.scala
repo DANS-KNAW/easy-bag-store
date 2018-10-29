@@ -18,7 +18,6 @@ package nl.knaw.dans.easy.bagstore.component
 import java.io.FileInputStream
 import java.net.URI
 import java.nio.file.Paths
-import java.nio.file.attribute.{ PosixFilePermission, PosixFilePermissions }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore._
@@ -27,12 +26,7 @@ import org.apache.commons.io.FileUtils
 import scala.io.Source
 import scala.util.{ Failure, Success }
 
-class BagProcessingSpec extends TestSupportFixture
-  with BagStoreFixture
-  with BagitFixture
-  with BagStoreComponent
-  with BagProcessingComponent
-  with FileSystemComponent {
+class BagProcessingSpec extends BagProcessingFixture {
 
   FileUtils.copyDirectory(
     Paths.get("src/test/resources/bags/basic-sequence-pruned").toFile,
@@ -48,20 +42,7 @@ class BagProcessingSpec extends TestSupportFixture
   private val testBagUnprunedB = testDir.resolve("basic-sequence-unpruned/b")
   private val testBagUnprunedC = testDir.resolve("basic-sequence-unpruned/c")
 
-  override val fileSystem = new FileSystem {
-    override val uuidPathComponentSizes: Seq[Int] = Seq(2, 30)
-    override val bagFilePermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
-    override val bagDirPermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
-    override val localBaseUri: URI = new URI("http://localhost")
-  }
-
-  override val bagProcessing = new BagProcessing {
-    override val stagingBaseDir: BagPath = testDir
-    override val outputBagFilePermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
-    override val outputBagDirPermissions: java.util.Set[PosixFilePermission] = PosixFilePermissions.fromString("rwxr-xr-x")
-  }
-
-  private val bagStore = new BagStore {
+  val bagStore: BagStore = new BagStore {
     implicit val baseDir: BaseDir = store1
   }
 

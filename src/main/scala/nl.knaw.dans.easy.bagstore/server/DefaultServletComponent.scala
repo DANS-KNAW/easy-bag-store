@@ -18,6 +18,7 @@ package nl.knaw.dans.easy.bagstore.server
 import java.net.URI
 
 import nl.knaw.dans.easy.bagstore.component.BagStoresComponent
+import nl.knaw.dans.easy.bagstore.server.ServletEnhancedLogging._
 import org.scalatra.{ Ok, ScalatraServlet }
 
 trait DefaultServletComponent {
@@ -25,16 +26,17 @@ trait DefaultServletComponent {
 
   val defaultServlet: DefaultServlet
 
-  trait DefaultServlet extends ScalatraServlet {
+  trait DefaultServlet extends ScalatraServlet with ServletEnhancedLogging {
 
     val externalBaseUri: URI
 
     get("/") {
       contentType = "text/plain"
-      Ok(s"""EASY Bag Store is running.
+      Ok(
+        s"""EASY Bag Store is running.
            |Available stores at <${ externalBaseUri.resolve("stores") }>
            |Bags from all stores at <${ externalBaseUri.resolve("bags") }>
-           |""".stripMargin)
+           |""".stripMargin).logResponse
     }
   }
 }

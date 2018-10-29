@@ -19,8 +19,10 @@ import java.nio.file.{ Files, Path, Paths }
 
 import org.apache.commons.io.FileUtils
 import org.scalatest._
+import org.scalatest.enablers.Existence
 
 trait TestSupportFixture extends FlatSpec with Matchers with Inside {
+  implicit def existenceOfFile[FILE <: better.files.File]: Existence[FILE] = _.exists
   lazy val testDir: Path = {
     val path = Paths.get(s"target/test/${ getClass.getSimpleName }").toAbsolutePath
     FileUtils.deleteQuietly(path.toFile)

@@ -16,34 +16,38 @@
 package nl.knaw.dans.easy.bagstore.server
 
 import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
-import org.scalatra.ScalatraBase
+import nl.knaw.dans.easy.bagstore.server.ServletEnhancedLogging._
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
+import org.scalatra.{ BadRequest, ScalatraBase, Unauthorized }
 
-trait BagStoreAuthenticationSupport {
+trait BagStoreAuthenticationSupport extends DebugEnhancedLogging {
   self: ScalatraBase =>
 
   def bagstoreUsername: String
+
   def bagstorePassword: String
 
   private val realm = "easy-bag-store"
 
   def basicAuth()(implicit request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val baReq = new BasicAuthRequest(request)
-    if (!baReq.providesAuth)
+    if (!baReq.providesAuth) unauthenticated
+    else if (!baReq.isBasicAuth) badRequest
+    else if (!validate(baReq.username, baReq.password)) {
+      logger.info("invalid user name password combination")
       unauthenticated
-    else if (!baReq.isBasicAuth)
-      badRequest
-    else if (!validate(baReq.username, baReq.password))
-      unauthenticated
+    }
   }
 
   private def badRequest = {
-    halt(400, "Bad Request")
+    logger.info(s"${ request.getMethod } did not have basic authentication")
+    halt(BadRequest("Bad Request").logResponse)
   }
 
   private def unauthenticated = {
-    response.setHeader("WWW-Authenticate", s"""Basic realm="$realm"""")
-    halt(401, "Unauthenticated")
+    val headers = Map("WWW-Authenticate" -> s"""Basic realm="$realm"""")
+    halt(Unauthorized("Unauthenticated", headers).logResponse)
   }
 
   protected def validate(userName: String, password: String): Boolean = {

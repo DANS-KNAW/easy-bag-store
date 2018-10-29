@@ -20,6 +20,7 @@ import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.{ BagStoresComponent, FileSystemComponent }
+import nl.knaw.dans.easy.bagstore.server.ServletEnhancedLogging._
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
@@ -42,7 +43,8 @@ trait StoresServletComponent extends DebugEnhancedLogging {
       Ok(bagStores.storeShortnames
         .keys
         .map(store => s"<${ externalBaseUri.resolve(s"stores/$store") }>")
-        .mkString("\n"))
+        .mkString("\n")
+      ).logResponse
     }
 
     get("/:bagstore") {
@@ -55,6 +57,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
              |""".stripMargin
         })
         .getOrElse(NotFound(s"No such bag-store: $bagstore"))
+        .logResponse
     }
 
     get("/:bagstore/bags") {
@@ -70,6 +73,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
             })
         })
         .getOrElse(NotFound(s"No such bag-store: $bagstore"))
+        .logResponse
     }
 
     get("/:bagstore/bags/:uuid") {
@@ -103,12 +107,13 @@ trait StoresServletComponent extends DebugEnhancedLogging {
               InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
           })
         .getOrElse(NotFound(s"No such bag-store: $bagstore"))
+        .logResponse
     }
 
     get("/:bagstore/bags/:uuid/*") {
       val bagstore = params("bagstore")
       val uuidStr = params("uuid")
-      multiParams("splat") match {
+      (multiParams("splat") match {
         case Seq(path) =>
           bagStores.getBaseDirByShortname(bagstore)
             .map(baseDir => ItemId.fromString(s"""$uuidStr/${ path }""")
@@ -134,7 +139,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
         case p =>
           logger.error(s"Unexpected path: $p")
           InternalServerError("Unexpected path")
-      }
+      }).logResponse
     }
 
     put("/:bagstore/bags/:uuid") {
@@ -165,6 +170,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
             }
         })
         .getOrElse(NotFound(s"No such bag-store: $bagstore"))
+        .logResponse
     }
   }
 }
