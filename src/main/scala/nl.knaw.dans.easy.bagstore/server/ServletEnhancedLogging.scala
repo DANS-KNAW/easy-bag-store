@@ -19,14 +19,19 @@ import javax.servlet.http.HttpServletRequest
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatra.{ ActionResult, ScalatraBase }
 
-// simplified copy of easy-deposit-api
-// hardly a library candidate because filters (personal info) on headers or other details might be required
+// simplified but filtered copy of easy-deposit-api
 
 trait ServletEnhancedLogging extends DebugEnhancedLogging {
   this: ScalatraBase =>
 
   before() {
-    logger.info(s"${ request.getMethod } ${ request.getRequestURL } remote=${ request.getRemoteAddr } params=$params headers=${ request.headers }")
+    val headers = request.headers.map{
+      // TODO a library version should filter any authentication any client might invent and probably provide hooks for more filters
+      // see private val BasicAuthStrategy.AUTHORIZATION_KEYS
+      case(key,value) if key.toLowerCase.endsWith("authorization") => (key,"*****")
+      case keyValue => keyValue
+    }
+    logger.info(s"${ request.getMethod } ${ request.getRequestURL } remote=${ request.getRemoteAddr } params=$params headers=$headers")
   }
 }
 object ServletEnhancedLogging extends DebugEnhancedLogging {
