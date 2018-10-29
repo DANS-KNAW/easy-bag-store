@@ -21,7 +21,7 @@ import org.scalatra.ScalatraBase
 trait ServletEnhancedLogging extends DebugEnhancedLogging {
   this: ScalatraBase =>
 
-  // copied from easy-deposit-api, in case filters on the headers or other details might be required: no library candidate
+  // copied from easy-deposit-api, no library candidate because filters on the headers or other details might be required:
   before() {
     logger.info(s"${ request.getMethod } ${ request.getRequestURL } remote=${ request.getRemoteAddr } params=$params headers=${ request.headers }")
   }

@@ -33,7 +33,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
 
   val storesServlet: StoresServlet
 
-  trait StoresServlet extends ScalatraServlet with ServletUtils with BagStoreAuthenticationSupport with ServletEnhancedLogging {
+  trait StoresServlet extends ScalatraServlet with ServletUtils with BagStoreAuthenticationSupport {
 
     val externalBaseUri: URI
 

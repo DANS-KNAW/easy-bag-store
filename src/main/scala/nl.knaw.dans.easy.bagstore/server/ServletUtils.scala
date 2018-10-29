@@ -16,10 +16,13 @@
 package nl.knaw.dans.easy.bagstore.server
 
 import nl.knaw.dans.easy.bagstore.ArchiveStreamType
+import org.scalatra.ScalatraBase
 
 import scala.language.implicitConversions
 
-trait ServletUtils {
+trait ServletUtils extends ServletEnhancedLogging {
+  this: ScalatraBase =>
+
   type IncludeActive = Boolean
   type IncludeInactive = Boolean
 
