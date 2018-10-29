@@ -47,7 +47,7 @@ class PruneSpec extends BagProcessingFixture {
       Seq(BagId(uuid))
     ) shouldBe Success(())
     (bagDir / "data").list.size shouldBe 2
-    (bagDir / "fetch.txt").toJava shouldNot exist // TODO drop toJava with ???
+    (bagDir / "fetch.txt") shouldNot exist
   }
 
   it should "report an invalid referenced bag" in {
