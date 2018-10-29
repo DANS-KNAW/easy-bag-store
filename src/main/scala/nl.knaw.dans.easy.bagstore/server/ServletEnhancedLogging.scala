@@ -32,6 +32,12 @@ trait ServletEnhancedLogging extends DebugEnhancedLogging {
 object ServletEnhancedLogging extends DebugEnhancedLogging {
 
   implicit class RichActionResult(actionResult: ActionResult)(implicit request: HttpServletRequest) {
+
+    /**
+     * @example halt(BadRequest().logResponse)
+     * @example Ok().logResponse
+     * @return this
+     */
     def logResponse: ActionResult = {
       logger.info(s"${ request.getMethod } returned status=${ actionResult.status } headers=${ actionResult.headers }")
       actionResult
