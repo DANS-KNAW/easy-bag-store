@@ -16,6 +16,7 @@
 package nl.knaw.dans.easy.bagstore.server
 
 import nl.knaw.dans.easy.bagstore.component.BagStoresComponent
+import nl.knaw.dans.easy.bagstore.server.ServletEnhancedLogging._
 import nl.knaw.dans.easy.bagstore.{ ItemId, NoRegularFileException, NoSuchBagException, NoSuchFileItemException }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
@@ -40,7 +41,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
         .getOrRecover(e => {
           logger.error("Unexpected type of failure", e)
           InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
-        })
+        }).logResponse
     }
 
     get("/:uuid") {
@@ -66,12 +67,12 @@ trait BagsServletComponent extends DebugEnhancedLogging {
           case e =>
             logger.error("Unexpected type of failure", e)
             InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
-        }
+        }.logResponse
     }
 
     get("/:uuid/*") {
       val uuidStr = params("uuid")
-      multiParams("splat") match {
+      (multiParams("splat") match {
         case Seq(path) =>
           ItemId.fromString(s"""$uuidStr/${ path }""")
             .recoverWith {
@@ -94,7 +95,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
         case p =>
           logger.error(s"Unexpected path: $p")
           InternalServerError("Unexpected path")
-      }
+      }).logResponse
     }
   }
 }

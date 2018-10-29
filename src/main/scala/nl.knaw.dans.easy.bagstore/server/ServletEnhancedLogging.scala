@@ -15,14 +15,26 @@
  */
 package nl.knaw.dans.easy.bagstore.server
 
+import javax.servlet.http.HttpServletRequest
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.scalatra.ScalatraBase
+import org.scalatra.{ ActionResult, ScalatraBase }
+
+// simplified copy of easy-deposit-api
+// hardly a library candidate because filters (personal info) on headers or other details might be required
 
 trait ServletEnhancedLogging extends DebugEnhancedLogging {
   this: ScalatraBase =>
 
-  // copied from easy-deposit-api, no library candidate because filters on the headers or other details might be required:
   before() {
     logger.info(s"${ request.getMethod } ${ request.getRequestURL } remote=${ request.getRemoteAddr } params=$params headers=${ request.headers }")
+  }
+}
+object ServletEnhancedLogging extends DebugEnhancedLogging {
+
+  implicit class RichActionResult(actionResult: ActionResult)(implicit request: HttpServletRequest) {
+    def logResponse: ActionResult = {
+      logger.info(s"${ request.getMethod } returned status=${ actionResult.status } headers=${ actionResult.headers }")
+      actionResult
+    }
   }
 }
