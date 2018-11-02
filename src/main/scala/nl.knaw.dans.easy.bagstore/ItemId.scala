@@ -35,10 +35,21 @@ abstract class ItemId(val uuid: UUID) {
 object ItemId {
   def fromString(s: String): Try[ItemId] = Try {
     s.split("/", 2) match {
-      case Array(uuidStr) => BagId(UUID.fromString(uuidStr))
+      case Array(uuidStr) => BagId(UUID.fromString(validateUuid(uuidStr)))
       case Array(uuidStr, path) =>
-        FileId(UUID.fromString(uuidStr), Paths.get(URLDecoder.decode(path, "UTF-8")))
+        FileId(UUID.fromString(validateUuid(uuidStr)), Paths.get(URLDecoder.decode(path, "UTF-8")))
     }
+  }
+
+  def validateUuid(uuidAsString: String): String = {
+    // accept both upper and lower case? https://stackoverflow.com/questions/8258480/type-of-character-generated-by-uuid
+    if (!(uuidAsString.trim.length == 36)) {
+      throw new IllegalArgumentException(s"A UUID should contain 36 characters, this UUID has ${uuidAsString.trim.length}")
+    }
+    if (!uuidAsString.matches("[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}")) {
+      throw new IllegalArgumentException(s"The UUID $uuidAsString is not formatted correctly")
+    }
+    uuidAsString.trim
   }
 }
 
@@ -55,7 +66,7 @@ case class FileId(bagId: BagId, path: Path, isDirectory: Boolean = false) extend
   private val pathEscaper = UrlEscapers.urlPathSegmentEscaper()
 
   override def toString: String = {
-    s"$bagId/${ path.asScala.map(_.toString).map(pathEscaper.escape).mkString("/") }"
+    s"$bagId/${path.asScala.map(_.toString).map(pathEscaper.escape).mkString("/")}"
   }
 
   override def toBagId: Try[BagId] = Failure(NoBagIdException(this))
