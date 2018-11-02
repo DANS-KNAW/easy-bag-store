@@ -66,7 +66,7 @@ case class FileId(bagId: BagId, path: Path, isDirectory: Boolean = false) extend
   private val pathEscaper = UrlEscapers.urlPathSegmentEscaper()
 
   override def toString: String = {
-    s"$bagId/${path.asScala.map(_.toString).map(pathEscaper.escape).mkString("/")}"
+    s"$bagId/${ path.asScala.map(_.toString).map(pathEscaper.escape).mkString("/") }"
   }
 
   override def toBagId: Try[BagId] = Failure(NoBagIdException(this))
