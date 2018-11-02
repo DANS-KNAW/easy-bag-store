@@ -73,7 +73,7 @@ class ItemIdSpec extends TestSupportFixture {
     }
   }
 
-  it should "not trigger an IllegalArgumentException when presented a valid uuid" in {
+  "validateUuid" should "not trigger an IllegalArgumentException when presented a valid uuid" in {
     val validUuid = UUID.randomUUID().toString
     val allUpperUuid = mixedCaseUuid.toUpperCase
     val allLowerUuid = mixedCaseUuid.toLowerCase
