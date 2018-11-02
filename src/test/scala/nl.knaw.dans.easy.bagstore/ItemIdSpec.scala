@@ -21,10 +21,10 @@ import java.util.UUID
 import scala.util.{ Failure, Success }
 
 class ItemIdSpec extends TestSupportFixture {
-  val uuid: UUID = UUID.randomUUID()
-  private val IncorrectLengthMessage = "A UUID should contain 36 characters"
-  private val MixedUuid = "1234abcd-12AB-12ab-12AB-123456abcdef"
-  private val BadFormattedMessage = "is not formatted correctly"
+  private val uuid: UUID = UUID.randomUUID()
+  private val mixedCaseUuid = "1234abcd-12AB-12ab-12AB-123456abcdef"
+  private val incorrectLengthMessage = "A UUID should contain 36 characters"
+  private val badFormattedMessage = "is not formatted correctly"
 
   import ItemId._
 
@@ -75,36 +75,38 @@ class ItemIdSpec extends TestSupportFixture {
 
   it should "not trigger an IllegalArgumentException when presented a valid uuid" in {
     val validUuid = UUID.randomUUID().toString
-    val allUpperUuid = MixedUuid.toUpperCase
-    val allLowerUuid = MixedUuid.toLowerCase
+    val allUpperUuid = mixedCaseUuid.toUpperCase
+    val allLowerUuid = mixedCaseUuid.toLowerCase
     validateUuid(validUuid)
     validateUuid(allLowerUuid)
     validateUuid(allUpperUuid)
-    validateUuid(MixedUuid)
+    validateUuid(mixedCaseUuid)
   }
 
   it should "trigger an IllegalArgumentException when presented a too short UUID should" in {
     val tooShortUuid = UUID.randomUUID().toString.substring(5)
-    expectValidationToFailWithMessage(tooShortUuid, IncorrectLengthMessage)
+    expectValidationToFailWithMessage(tooShortUuid, incorrectLengthMessage)
   }
 
   it should "trigger an IllegalArgumentException when presented a too long UUID should" in {
-    val tooLongUuid = UUID.randomUUID().toString.concat("bunch of characters")
-    expectValidationToFailWithMessage(tooLongUuid, IncorrectLengthMessage)
+    val tooLongUuidAtEnd = uuid.toString.concat("1278713487134")
+    val tooLongUuidAtStart = "1278713487134".concat(uuid.toString)
+    expectValidationToFailWithMessage(tooLongUuidAtEnd, incorrectLengthMessage)
+    expectValidationToFailWithMessage(tooLongUuidAtStart, incorrectLengthMessage)
   }
 
   it should "trigger an IllegalArgumentException when presented a badly formatted UUID should" in {
     val nonsenseUuid = "a badly formatted uuid with 36 chars"
     val uuidWithUnderScore = "____ab12-1234-ascd-1234-123456abcdef"
-    val uuidWithHash = MixedUuid.replaceAll("A", "#")
-    val uuidWithExclamation = MixedUuid.replaceAll("A", "!")
-    val uuidWithWhiteSpace = MixedUuid.replaceAll("2", " ")
+    val uuidWithHash = mixedCaseUuid.replaceAll("A", "#")
+    val uuidWithExclamation = mixedCaseUuid.replaceAll("A", "!")
+    val uuidWithWhiteSpace = mixedCaseUuid.replaceAll("2", " ")
 
-    expectValidationToFailWithMessage(nonsenseUuid, BadFormattedMessage)
-    expectValidationToFailWithMessage(uuidWithUnderScore, BadFormattedMessage)
-    expectValidationToFailWithMessage(uuidWithHash, BadFormattedMessage)
-    expectValidationToFailWithMessage(uuidWithExclamation, BadFormattedMessage)
-    expectValidationToFailWithMessage(uuidWithWhiteSpace, BadFormattedMessage)
+    expectValidationToFailWithMessage(nonsenseUuid, badFormattedMessage)
+    expectValidationToFailWithMessage(uuidWithUnderScore, badFormattedMessage)
+    expectValidationToFailWithMessage(uuidWithHash, badFormattedMessage)
+    expectValidationToFailWithMessage(uuidWithExclamation, badFormattedMessage)
+    expectValidationToFailWithMessage(uuidWithWhiteSpace, badFormattedMessage)
 }
 
 
