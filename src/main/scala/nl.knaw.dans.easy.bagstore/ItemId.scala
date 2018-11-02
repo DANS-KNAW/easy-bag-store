@@ -33,15 +33,14 @@ abstract class ItemId(val uuid: UUID) {
 }
 
 object ItemId {
-  // accept both upper and lower case? https://stackoverflow.com/questions/8258480/type-of-character-generated-by-uuid
-  val uuidRegex = "[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}"
+  // FIXME the exact same pattern is also used in dans-bag-lib, share value?
+  val uuidRegex = "[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}"
 
   def fromString(s: String): Try[ItemId] = Try {
     s.split("/", 2) match {
-      //FIXME is this the best spot to validate uuid?
-      case Array(uuidStr) => BagId(UUID.fromString(validateUuid(uuidStr)))
+      case Array(uuidStr) => BagId(UUID.fromString(validateUuid(uuidStr.toLowerCase)))
       case Array(uuidStr, path) =>
-        FileId(UUID.fromString(validateUuid(uuidStr)), Paths.get(URLDecoder.decode(path, "UTF-8")))
+        FileId(UUID.fromString(validateUuid(uuidStr.toLowerCase())), Paths.get(URLDecoder.decode(path, "UTF-8")))
     }
   }
 
@@ -49,7 +48,8 @@ object ItemId {
     if (!(uuidAsString.trim.length == 36)) { //FIXME length of 36 is implicitly checked in pattern below
       throw new IllegalArgumentException(s"A UUID should contain 36 characters, this UUID has ${uuidAsString.trim.length}")
     }
-    if (!uuidAsString.matches(uuidRegex)) { //FIXME need pattern or is length check sufficient?
+    if (!uuidAsString.trim.matches(uuidRegex)) {
+      println(s"thrown for ${ uuidAsString}")
       throw new IllegalArgumentException(s"The UUID $uuidAsString is not formatted correctly")
     }
     uuidAsString.trim

@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagstore
 import java.nio.file.Paths
 import java.util.UUID
 
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success, Try}
 
 class ItemIdSpec extends TestSupportFixture {
   private val uuid: UUID = UUID.randomUUID()
@@ -75,24 +75,21 @@ class ItemIdSpec extends TestSupportFixture {
 
   "validateUuid" should "not trigger an IllegalArgumentException when presented a valid uuid" in {
     val validUuid = UUID.randomUUID().toString
-    val allUpperUuid = mixedCaseUuid.toUpperCase
     val allLowerUuid = mixedCaseUuid.toLowerCase
     validateUuid(validUuid)
     validateUuid(allLowerUuid)
-    validateUuid(allUpperUuid)
-    validateUuid(mixedCaseUuid)
   }
 
   it should "trigger an IllegalArgumentException when presented a too short UUID should" in {
     val tooShortUuid = UUID.randomUUID().toString.substring(5)
-    expectValidationToFailWithMessage(tooShortUuid, incorrectLengthMessage)
+    expectValidationToFailContainingMessage(tooShortUuid, incorrectLengthMessage)
   }
 
   it should "trigger an IllegalArgumentException when presented a too long UUID should" in {
     val tooLongUuidAtEnd = uuid.toString.concat("1278713487134")
     val tooLongUuidAtStart = "1278713487134".concat(uuid.toString)
-    expectValidationToFailWithMessage(tooLongUuidAtEnd, incorrectLengthMessage)
-    expectValidationToFailWithMessage(tooLongUuidAtStart, incorrectLengthMessage)
+    expectValidationToFailContainingMessage(tooLongUuidAtEnd, incorrectLengthMessage)
+    expectValidationToFailContainingMessage(tooLongUuidAtStart, incorrectLengthMessage)
   }
 
   it should "trigger an IllegalArgumentException when presented a badly formatted UUID should" in {
@@ -102,11 +99,13 @@ class ItemIdSpec extends TestSupportFixture {
     val uuidWithExclamation = mixedCaseUuid.replaceAll("A", "!")
     val uuidWithWhiteSpace = mixedCaseUuid.replaceAll("2", " ")
 
-    expectValidationToFailWithMessage(nonsenseUuid, badFormattedMessage)
-    expectValidationToFailWithMessage(uuidWithUnderScore, badFormattedMessage)
-    expectValidationToFailWithMessage(uuidWithHash, badFormattedMessage)
-    expectValidationToFailWithMessage(uuidWithExclamation, badFormattedMessage)
-    expectValidationToFailWithMessage(uuidWithWhiteSpace, badFormattedMessage)
+    expectValidationToFailContainingMessage(nonsenseUuid, badFormattedMessage)
+    expectValidationToFailContainingMessage(uuidWithUnderScore, badFormattedMessage)
+    expectValidationToFailContainingMessage(uuidWithHash, badFormattedMessage)
+    expectValidationToFailContainingMessage(uuidWithExclamation, badFormattedMessage)
+    expectValidationToFailContainingMessage(uuidWithWhiteSpace, badFormattedMessage)
+    expectValidationToFailContainingMessage(mixedCaseUuid, badFormattedMessage)
+    expectValidationToFailContainingMessage(mixedCaseUuid.toUpperCase, badFormattedMessage)
 }
 
 
@@ -162,12 +161,11 @@ class ItemIdSpec extends TestSupportFixture {
     }
   }
 
-  private def expectValidationToFailWithMessage(nonsenseUuid: String, expectedMessage: String) = {
-    try {
-      validateUuid(nonsenseUuid)
-      fail("too short uuid should throw an illegal argument exception")
-    } catch {
-      case iae: IllegalArgumentException => assert(iae.getMessage.contains(expectedMessage))
+  private def expectValidationToFailContainingMessage(nonsenseUuid: String, expectedMessage: String)  = {
+     Try {
+       validateUuid(nonsenseUuid)
+     }  should matchPattern {
+       case Failure(e: IllegalArgumentException) if e.getMessage.contains(expectedMessage) =>
     }
   }
 }
