@@ -24,6 +24,7 @@ class ItemIdSpec extends TestSupportFixture {
   val uuid: UUID = UUID.randomUUID()
   private val IncorrectLengthMessage = "A UUID should contain 36 characters"
   private val MixedUuid = "1234abcd-12AB-12ab-12AB-123456abcdef"
+  private val BadFormattedMessage = "is not formatted correctly"
 
   import ItemId._
 
@@ -72,7 +73,7 @@ class ItemIdSpec extends TestSupportFixture {
     }
   }
 
-  it should "not trigger an illegalArgument exception when presented a valid uuid" in {
+  it should "not trigger an IllegalArgumentException when presented a valid uuid" in {
     val validUuid = UUID.randomUUID().toString
     val allUpperUuid = MixedUuid.toUpperCase
     val allLowerUuid = MixedUuid.toLowerCase
@@ -82,28 +83,30 @@ class ItemIdSpec extends TestSupportFixture {
     validateUuid(MixedUuid)
   }
 
-  it should "trigger an illegalArgument exception when presented a too short UUID should" in {
+  it should "trigger an IllegalArgumentException when presented a too short UUID should" in {
     val tooShortUuid = UUID.randomUUID().toString.substring(5)
-    doTestValidateUuid(tooShortUuid, IncorrectLengthMessage)
+    expectValidationToFailWithMessage(tooShortUuid, IncorrectLengthMessage)
   }
 
-  it should "trigger an illegalArgument exception when presented a too long UUID should" in {
+  it should "trigger an IllegalArgumentException when presented a too long UUID should" in {
     val tooLongUuid = UUID.randomUUID().toString.concat("bunch of characters")
-    doTestValidateUuid(tooLongUuid, IncorrectLengthMessage)
+    expectValidationToFailWithMessage(tooLongUuid, IncorrectLengthMessage)
   }
 
-  it should "trigger an illegalArgument exception when presented a badly formatted UUID should" in {
+  it should "trigger an IllegalArgumentException when presented a badly formatted UUID should" in {
     val nonsenseUuid = "a badly formatted uuid with 36 chars"
     val uuidWithUnderScore = "____ab12-1234-ascd-1234-123456abcdef"
     val uuidWithHash = MixedUuid.replaceAll("A", "#")
     val uuidWithExclamation = MixedUuid.replaceAll("A", "!")
     val uuidWithWhiteSpace = MixedUuid.replaceAll("2", " ")
-    doTestValidateUuid(nonsenseUuid, "is not formatted correctly")
-    doTestValidateUuid(uuidWithUnderScore, "is not formatted correctly")
-    doTestValidateUuid(uuidWithHash, "is not formatted correctly")
-    doTestValidateUuid(uuidWithExclamation, "is not formatted correctly")
-    doTestValidateUuid(uuidWithWhiteSpace, "is not formatted correctly")
-  }
+
+    expectValidationToFailWithMessage(nonsenseUuid, BadFormattedMessage)
+    expectValidationToFailWithMessage(uuidWithUnderScore, BadFormattedMessage)
+    expectValidationToFailWithMessage(uuidWithHash, BadFormattedMessage)
+    expectValidationToFailWithMessage(uuidWithExclamation, BadFormattedMessage)
+    expectValidationToFailWithMessage(uuidWithWhiteSpace, BadFormattedMessage)
+}
+
 
   "BagId.toString" should "print UUID" in {
     BagId(uuid).toString shouldBe uuid.toString
@@ -157,7 +160,7 @@ class ItemIdSpec extends TestSupportFixture {
     }
   }
 
-  private def doTestValidateUuid(nonsenseUuid: String, expectedMessage: String) = {
+  private def expectValidationToFailWithMessage(nonsenseUuid: String, expectedMessage: String) = {
     try {
       validateUuid(nonsenseUuid)
       fail("too short uuid should throw an illegal argument exception")
