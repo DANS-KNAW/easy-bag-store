@@ -18,13 +18,11 @@ package nl.knaw.dans.easy.bagstore
 import java.nio.file.Paths
 import java.util.UUID
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 class ItemIdSpec extends TestSupportFixture {
   private val uuid: UUID = UUID.randomUUID()
   private val mixedCaseUuid = "1234abcd-12AB-12ab-12AB-123456abcdef"
-  private val incorrectLengthMessage = "A UUID should contain 36 characters"
-  private val badFormattedMessage = "is not formatted correctly"
 
   import ItemId._
 
@@ -73,41 +71,35 @@ class ItemIdSpec extends TestSupportFixture {
     }
   }
 
-  "validateUuid" should "not trigger an IllegalArgumentException when presented a valid uuid" in {
+  "fromString" should "not trigger an IllegalArgumentException when presented a valid uuid" in {
     val validUuid = UUID.randomUUID().toString
     val allLowerUuid = mixedCaseUuid.toLowerCase
-    validateUuid(validUuid)
-    validateUuid(allLowerUuid)
-  }
-
-  it should "trigger an IllegalArgumentException when presented a too short UUID should" in {
-    val tooShortUuid = UUID.randomUUID().toString.substring(5)
-    expectValidationToFailContainingMessage(tooShortUuid, incorrectLengthMessage)
+    fromString(validUuid)
+    fromString(allLowerUuid)
   }
 
   it should "trigger an IllegalArgumentException when presented a too long UUID should" in {
-    val tooLongUuidAtEnd = uuid.toString.concat("1278713487134")
-    val tooLongUuidAtStart = "1278713487134".concat(uuid.toString)
-    expectValidationToFailContainingMessage(tooLongUuidAtEnd, incorrectLengthMessage)
-    expectValidationToFailContainingMessage(tooLongUuidAtStart, incorrectLengthMessage)
+    val tooLongUuidAtEnd = "1234abcd-12AB-12ab-12AB-123456abcdef1278713487134"
+    val tooLongUuidAtStart = "12787134871341234abcd-12AB-12ab-12AB-123456abcdef"
+    expectValidationToFail(tooLongUuidAtEnd)
+    expectValidationToFail(tooLongUuidAtStart)
   }
 
-  it should "trigger an IllegalArgumentException when presented a badly formatted UUID should" in {
+  it should "trigger an IllegalArgumentException when presented a nonsense UUID with the right amount of characters" in {
     val nonsenseUuid = "a badly formatted uuid with 36 chars"
-    val uuidWithUnderScore = "____ab12-1234-ascd-1234-123456abcdef"
-    val uuidWithHash = mixedCaseUuid.replaceAll("A", "#")
-    val uuidWithExclamation = mixedCaseUuid.replaceAll("A", "!")
-    val uuidWithWhiteSpace = mixedCaseUuid.replaceAll("2", " ")
+    fromString(nonsenseUuid) shouldBe a[Failure[_]]
+  }
 
-    expectValidationToFailContainingMessage(nonsenseUuid, badFormattedMessage)
-    expectValidationToFailContainingMessage(uuidWithUnderScore, badFormattedMessage)
-    expectValidationToFailContainingMessage(uuidWithHash, badFormattedMessage)
-    expectValidationToFailContainingMessage(uuidWithExclamation, badFormattedMessage)
-    expectValidationToFailContainingMessage(uuidWithWhiteSpace, badFormattedMessage)
-    expectValidationToFailContainingMessage(mixedCaseUuid, badFormattedMessage)
-    expectValidationToFailContainingMessage(mixedCaseUuid.toUpperCase, badFormattedMessage)
-}
-
+  it should "trigger an IllegalArgumentException when presented an UUID with special characters" in {
+    val uuidWithExclamationMark = "1234abcd-12AB-12ab-12AB-123456abcde!"
+    val uuidWithAtSymbol = "1234abcd-12AB-12ab-12AB-123456abcde!"
+    fromString(uuidWithExclamationMark) should matchPattern {
+      case Failure(e: NumberFormatException) if e.getMessage.contains(s"For input string: ") =>
+    }
+    fromString(uuidWithAtSymbol) should matchPattern {
+      case Failure(e: NumberFormatException) if e.getMessage.contains("For input string: ",) =>
+    }
+  }
 
   "BagId.toString" should "print UUID" in {
     BagId(uuid).toString shouldBe uuid.toString
@@ -161,11 +153,9 @@ class ItemIdSpec extends TestSupportFixture {
     }
   }
 
-  private def expectValidationToFailContainingMessage(nonsenseUuid: String, expectedMessage: String)  = {
-     Try {
-       validateUuid(nonsenseUuid)
-     }  should matchPattern {
-       case Failure(e: IllegalArgumentException) if e.getMessage.contains(expectedMessage) =>
+  private def expectValidationToFail(nonsenseUuid: String)  = {
+       fromString(nonsenseUuid)should matchPattern {
+          case Failure(e: IllegalArgumentException) if e.getMessage.contains(s"An UUID should not contain more than 36 characters, this UUID has ${ nonsenseUuid.length }") =>
     }
   }
 }

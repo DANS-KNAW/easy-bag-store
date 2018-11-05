@@ -44,15 +44,15 @@ object ItemId {
     }
   }
 
-  def validateUuid(uuidAsString: String): String = {
-    if (!(uuidAsString.trim.length == 36)) { //FIXME length of 36 is implicitly checked in pattern below
-      throw new IllegalArgumentException(s"A UUID should contain 36 characters, this UUID has ${uuidAsString.trim.length}")
+  private def validateUuid(uuidAsString: String): String = {
+    val uuid = uuidAsString.trim.toLowerCase
+    if (uuid.length > 36) { //FIXME length of 36 is implicitly checked in pattern below
+      throw new IllegalArgumentException(s"An UUID should not contain more than 36 characters, this UUID has ${uuid.length}")
     }
-    if (!uuidAsString.trim.matches(uuidRegex)) {
-      println(s"thrown for ${ uuidAsString}")
+    /*if (!uuid.matches(uuidRegex)) {
       throw new IllegalArgumentException(s"The UUID $uuidAsString is not formatted correctly")
-    }
-    uuidAsString.trim
+    }*/
+    uuid
   }
 }
 
