@@ -97,7 +97,7 @@ class ItemIdSpec extends TestSupportFixture {
       case Failure(e: NumberFormatException) if e.getMessage.contains(s"For input string: ") =>
     }
     fromString(uuidWithAtSymbol) should matchPattern {
-      case Failure(e: NumberFormatException) if e.getMessage.contains("For input string: ",) =>
+      case Failure(e: NumberFormatException) if e.getMessage.contains("For input string: ") =>
     }
   }
 
