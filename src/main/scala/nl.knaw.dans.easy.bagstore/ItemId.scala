@@ -33,26 +33,20 @@ abstract class ItemId(val uuid: UUID) {
 }
 
 object ItemId {
-  // FIXME the exact same pattern is also used in dans-bag-lib, share value?
-  val uuidRegex = "[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}"
 
   def fromString(s: String): Try[ItemId] = Try {
     s.split("/", 2) match {
-      case Array(uuidStr) => BagId(UUID.fromString(validateUuid(uuidStr.toLowerCase)))
+      case Array(uuidStr) => BagId(UUID.fromString(validateUuidLength(uuidStr)))
       case Array(uuidStr, path) =>
-        FileId(UUID.fromString(validateUuid(uuidStr.toLowerCase())), Paths.get(URLDecoder.decode(path, "UTF-8")))
+        FileId(UUID.fromString(validateUuidLength(uuidStr)), Paths.get(URLDecoder.decode(path, "UTF-8")))
     }
   }
 
-  private def validateUuid(uuidAsString: String): String = {
-    val uuid = uuidAsString.trim.toLowerCase
-    if (uuid.length > 36) { //FIXME length of 36 is implicitly checked in pattern below
-      throw new IllegalArgumentException(s"An UUID should not contain more than 36 characters, this UUID has ${uuid.length}")
+  private def validateUuidLength(uuidAsString: String): String = {
+        if (uuidAsString.length > 36) {
+      throw new IllegalArgumentException(s"An UUID should not contain more than 36 characters, this UUID has ${uuidAsString.length}")
     }
-    /*if (!uuid.matches(uuidRegex)) {
-      throw new IllegalArgumentException(s"The UUID $uuidAsString is not formatted correctly")
-    }*/
-    uuid
+    uuidAsString
   }
 }
 
