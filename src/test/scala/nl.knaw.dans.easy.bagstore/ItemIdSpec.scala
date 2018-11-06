@@ -19,7 +19,7 @@ import java.nio.file.Paths
 import java.util.UUID
 
 
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 class ItemIdSpec extends TestSupportFixture {
   private val uuid: UUID = UUID.randomUUID()
@@ -161,9 +161,9 @@ class ItemIdSpec extends TestSupportFixture {
     }
   }
 
-  private def expectValidationToFailOnUuidLength(nonsenseUuid: String)  = {
-       fromString(nonsenseUuid)should matchPattern {
-          case Failure(e: IllegalArgumentException) if e.getMessage.contains(s"A UUID should contain exactly 36 characters, this UUID has ${ nonsenseUuid.length } characters") =>
+  private def expectValidationToFailOnUuidLength(nonsenseUuid: String) = {
+    fromString(nonsenseUuid) should matchPattern {
+      case Failure(e: IllegalArgumentException) if e.getMessage.contains(s"A UUID should contain exactly 36 characters, this UUID has ${ nonsenseUuid.length } characters") =>
     }
   }
 }
