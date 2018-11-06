@@ -73,7 +73,7 @@ class ItemIdSpec extends TestSupportFixture {
 
   "fromString" should "not trigger an IllegalArgumentException when presented a valid uuid" in {
     fromString(uuid.toString) should matchPattern {
-      case Success(id: BagId) if id.uuid.equals(uuid) =>
+      case Success(BagId(`uuid`)) =>
     }
   }
 
