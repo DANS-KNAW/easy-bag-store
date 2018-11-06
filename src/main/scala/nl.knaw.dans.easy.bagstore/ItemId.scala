@@ -43,10 +43,11 @@ object ItemId {
   }
 
   private def validateUuidLength(uuidAsString: String): String = {
-        if (uuidAsString.length > 36) {
-      throw new IllegalArgumentException(s"A UUID should not contain more than 36 characters, this UUID has ${uuidAsString.length}")
+    val uuid = uuidAsString.trim
+    if (!(uuid.length == 36)) {
+      throw new IllegalArgumentException(s"A UUID should contain exactly 36 characters, this UUID has ${uuid.length} characters")
     }
-    uuidAsString
+    uuid
   }
 }
 

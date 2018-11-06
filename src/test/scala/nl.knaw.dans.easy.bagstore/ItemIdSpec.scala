@@ -18,11 +18,11 @@ package nl.knaw.dans.easy.bagstore
 import java.nio.file.Paths
 import java.util.UUID
 
+
 import scala.util.{Failure, Success}
 
 class ItemIdSpec extends TestSupportFixture {
   private val uuid: UUID = UUID.randomUUID()
-  private val mixedCaseUuid = "1234abcd-12AB-12ab-12AB-123456abcdef"
 
   import ItemId._
 
@@ -72,10 +72,9 @@ class ItemIdSpec extends TestSupportFixture {
   }
 
   "fromString" should "not trigger an IllegalArgumentException when presented a valid uuid" in {
-    val validUuid = UUID.randomUUID().toString
-    val allLowerUuid = mixedCaseUuid.toLowerCase
-    fromString(validUuid)
-    fromString(allLowerUuid)
+    fromString(uuid.toString) should matchPattern {
+      case Success(id: BagId) if id.uuid.equals(uuid) =>
+    }
   }
 
   it should "trigger an IllegalArgumentException when presented a too long UUID should" in {
@@ -92,13 +91,17 @@ class ItemIdSpec extends TestSupportFixture {
 
   it should "trigger an IllegalArgumentException when presented an UUID with special characters" in {
     val uuidWithExclamationMark = "1234abcd-12AB-12ab-12AB-123456abcde!"
-    val uuidWithAtSymbol = "1234abcd-12AB-12ab-12AB-123456abcde!"
     fromString(uuidWithExclamationMark) should matchPattern {
-      case Failure(e: NumberFormatException) if e.getMessage.contains(s"For input string: ") =>
+      case Failure(e: NumberFormatException) if e.getMessage.equals("""For input string: "123456abcde!"""") =>
     }
-    fromString(uuidWithAtSymbol) should matchPattern {
-      case Failure(e: NumberFormatException) if e.getMessage.contains("For input string: ") =>
-    }
+  }
+
+  it should "trigger an IllegalArgumentException when presented a too short UUID" in {
+    val tooShortUuidAtEnd = "1234abcd-12AB-12ab-12AB-123456abc"
+    expectValidationToFail(tooShortUuidAtEnd)
+
+    val tooShortUuidAtStart = "bcd-12AB-12ab-12AB-123456abcdef"
+    expectValidationToFail(tooShortUuidAtStart)
   }
 
   "BagId.toString" should "print UUID" in {
@@ -155,7 +158,7 @@ class ItemIdSpec extends TestSupportFixture {
 
   private def expectValidationToFail(nonsenseUuid: String)  = {
        fromString(nonsenseUuid)should matchPattern {
-          case Failure(e: IllegalArgumentException) if e.getMessage.contains(s"A UUID should not contain more than 36 characters, this UUID has ${ nonsenseUuid.length }") =>
+          case Failure(e: IllegalArgumentException) if e.getMessage.contains(s"A UUID should contain exactly 36 characters, this UUID has ${ nonsenseUuid.length } characters") =>
     }
   }
 }
