@@ -80,8 +80,8 @@ class ItemIdSpec extends TestSupportFixture {
   it should "trigger an IllegalArgumentException when presented a too long UUID should" in {
     val tooLongUuidAtEnd = "1234abcd-12AB-12ab-12AB-123456abcdef1278713487134"
     val tooLongUuidAtStart = "12787134871341234abcd-12AB-12ab-12AB-123456abcdef"
-    expectValidationToFail(tooLongUuidAtEnd)
-    expectValidationToFail(tooLongUuidAtStart)
+    expectValidationToFailOnUuidLength(tooLongUuidAtEnd)
+    expectValidationToFailOnUuidLength(tooLongUuidAtStart)
   }
 
   it should "trigger an IllegalArgumentException when presented a nonsense UUID with the right amount of characters" in {
@@ -98,10 +98,10 @@ class ItemIdSpec extends TestSupportFixture {
 
   it should "trigger an IllegalArgumentException when presented a too short UUID" in {
     val tooShortUuidAtEnd = "1234abcd-12AB-12ab-12AB-123456abc"
-    expectValidationToFail(tooShortUuidAtEnd)
+    expectValidationToFailOnUuidLength(tooShortUuidAtEnd)
 
     val tooShortUuidAtStart = "bcd-12AB-12ab-12AB-123456abcdef"
-    expectValidationToFail(tooShortUuidAtStart)
+    expectValidationToFailOnUuidLength(tooShortUuidAtStart)
   }
 
   "BagId.toString" should "print UUID" in {
@@ -156,7 +156,7 @@ class ItemIdSpec extends TestSupportFixture {
     }
   }
 
-  private def expectValidationToFail(nonsenseUuid: String)  = {
+  private def expectValidationToFailOnUuidLength(nonsenseUuid: String)  = {
        fromString(nonsenseUuid)should matchPattern {
           case Failure(e: IllegalArgumentException) if e.getMessage.contains(s"A UUID should contain exactly 36 characters, this UUID has ${ nonsenseUuid.length } characters") =>
     }
