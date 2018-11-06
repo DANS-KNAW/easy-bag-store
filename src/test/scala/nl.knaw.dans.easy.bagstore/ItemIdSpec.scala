@@ -77,10 +77,13 @@ class ItemIdSpec extends TestSupportFixture {
     }
   }
 
-  it should "trigger an IllegalArgumentException when presented a too long UUID should" in {
+  it should "trigger an IllegalArgumentException when presented a too long UUID at the end should" in {
     val tooLongUuidAtEnd = "1234abcd-12AB-12ab-12AB-123456abcdef1278713487134"
-    val tooLongUuidAtStart = "12787134871341234abcd-12AB-12ab-12AB-123456abcdef"
     expectValidationToFailOnUuidLength(tooLongUuidAtEnd)
+  }
+
+  it should "trigger an IllegalArgumentException when presented a too long UUID at the start should" in {
+    val tooLongUuidAtStart = "12787134871341234abcd-12AB-12ab-12AB-123456abcdef"
     expectValidationToFailOnUuidLength(tooLongUuidAtStart)
   }
 
@@ -96,12 +99,14 @@ class ItemIdSpec extends TestSupportFixture {
     }
   }
 
-  it should "trigger an IllegalArgumentException when presented a too short UUID" in {
-    val tooShortUuidAtEnd = "1234abcd-12AB-12ab-12AB-123456abc"
-    expectValidationToFailOnUuidLength(tooShortUuidAtEnd)
-
+  it should "trigger an IllegalArgumentException when presented a too short UUID at start" in {
     val tooShortUuidAtStart = "bcd-12AB-12ab-12AB-123456abcdef"
     expectValidationToFailOnUuidLength(tooShortUuidAtStart)
+  }
+
+  it should "trigger an IllegalArgumentException when presented a too short UUID at the end" in {
+    val tooShortUuidAtEnd = "1234abcd-12AB-12ab-12AB-123456abc"
+    expectValidationToFailOnUuidLength(tooShortUuidAtEnd)
   }
 
   "BagId.toString" should "print UUID" in {
