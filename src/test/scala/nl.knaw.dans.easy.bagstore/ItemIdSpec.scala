@@ -162,7 +162,7 @@ class ItemIdSpec extends TestSupportFixture {
   }
 
   private def expectValidationToFailOnUuidLength(nonsenseUuid: String)  = {
-       fromString(nonsenseUuid)should matchPattern {
+       fromString(nonsenseUuid) should matchPattern {
           case Failure(e: IllegalArgumentException) if e.getMessage.contains(s"A UUID should contain exactly 36 characters, this UUID has ${ nonsenseUuid.length } characters") =>
     }
   }
