@@ -33,7 +33,6 @@ abstract class ItemId(val uuid: UUID) {
 }
 
 object ItemId {
-
   def fromString(s: String): Try[ItemId] = Try {
     s.split("/", 2) match {
       case Array(uuidStr) => BagId(UUID.fromString(validateUuidLength(uuidStr)))
