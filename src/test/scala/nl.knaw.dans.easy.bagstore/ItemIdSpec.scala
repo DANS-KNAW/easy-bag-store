@@ -73,7 +73,7 @@ class ItemIdSpec extends TestSupportFixture {
 
   "fromString" should "not trigger an IllegalArgumentException when presented a valid uuid" in {
     fromString(uuid.toString) should matchPattern {
-      case Success(id: BagId) if id.uuid.equals(uuid) =>
+      case Success(BagId(`uuid`)) =>
     }
   }
 
@@ -161,9 +161,9 @@ class ItemIdSpec extends TestSupportFixture {
     }
   }
 
-  private def expectValidationToFailOnUuidLength(nonsenseUuid: String) = {
-    fromString(nonsenseUuid) should matchPattern {
-      case Failure(e: IllegalArgumentException) if e.getMessage.contains(s"A UUID should contain exactly 36 characters, this UUID has ${ nonsenseUuid.length } characters") =>
+  private def expectValidationToFailOnUuidLength(nonsenseUuid: String)  = {
+       fromString(nonsenseUuid) should matchPattern {
+          case Failure(e: IllegalArgumentException) if e.getMessage.contains(s"A UUID should contain exactly 36 characters, this UUID has ${ nonsenseUuid.length } characters") =>
     }
   }
 }
