@@ -176,6 +176,22 @@ class BagsServletSpec extends TestSupportFixture
     }
   }
 
+  it should "fail when the given uuid is too long" in {
+    val tooLongUuid = "01000000-0000-0000-0000-0000000000011234465565"
+    get(s"/${ tooLongUuid }") {
+      status shouldBe 400
+      body shouldBe s"invalid UUID string: $tooLongUuid"
+    }
+  }
+
+  it should "fail when the given uuid is too short" in {
+    val tooShortUuid = "01000000-0000-0000-0000-0000"
+    get(s"/${ tooShortUuid }") {
+      status shouldBe 400
+      body shouldBe s"invalid UUID string: $tooShortUuid"
+    }
+  }
+
   it should "fail when the bag is not found" in {
     get(s"/${ UUID.randomUUID() }") {
       status shouldBe 404

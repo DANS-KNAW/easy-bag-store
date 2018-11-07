@@ -18,10 +18,11 @@ package nl.knaw.dans.easy.bagstore
 import java.nio.file.Paths
 import java.util.UUID
 
+
 import scala.util.{ Failure, Success }
 
 class ItemIdSpec extends TestSupportFixture {
-  val uuid: UUID = UUID.randomUUID()
+  private val uuid: UUID = UUID.randomUUID()
 
   import ItemId._
 
@@ -68,6 +69,44 @@ class ItemIdSpec extends TestSupportFixture {
         id shouldBe uuid
         path shouldBe Paths.get("path/to/file with spaces")
     }
+  }
+
+  "fromString" should "not trigger an IllegalArgumentException when presented a valid uuid" in {
+    fromString(uuid.toString) should matchPattern {
+      case Success(BagId(`uuid`)) =>
+    }
+  }
+
+  it should "trigger an IllegalArgumentException when presented a too long UUID at the end should" in {
+    val tooLongUuidAtEnd = "1234abcd-12AB-12ab-12AB-123456abcdef1278713487134"
+    expectValidationToFailOnUuidLength(tooLongUuidAtEnd)
+  }
+
+  it should "trigger an IllegalArgumentException when presented a too long UUID at the start should" in {
+    val tooLongUuidAtStart = "12787134871341234abcd-12AB-12ab-12AB-123456abcdef"
+    expectValidationToFailOnUuidLength(tooLongUuidAtStart)
+  }
+
+  it should "trigger an IllegalArgumentException when presented a nonsense UUID with the right amount of characters" in {
+    val nonsenseUuid = "a badly formatted uuid with 36 chars"
+    fromString(nonsenseUuid) shouldBe a[Failure[_]]
+  }
+
+  it should "trigger an IllegalArgumentException when presented an UUID with special characters" in {
+    val uuidWithExclamationMark = "1234abcd-12AB-12ab-12AB-123456abcde!"
+    fromString(uuidWithExclamationMark) should matchPattern {
+      case Failure(e: NumberFormatException) if e.getMessage.equals("""For input string: "123456abcde!"""") =>
+    }
+  }
+
+  it should "trigger an IllegalArgumentException when presented a too short UUID at start" in {
+    val tooShortUuidAtStart = "bcd-12AB-12ab-12AB-123456abcdef"
+    expectValidationToFailOnUuidLength(tooShortUuidAtStart)
+  }
+
+  it should "trigger an IllegalArgumentException when presented a too short UUID at the end" in {
+    val tooShortUuidAtEnd = "1234abcd-12AB-12ab-12AB-123456abc"
+    expectValidationToFailOnUuidLength(tooShortUuidAtEnd)
   }
 
   "BagId.toString" should "print UUID" in {
@@ -119,6 +158,12 @@ class ItemIdSpec extends TestSupportFixture {
 
     inside(bagId.toBagId) {
       case Success(b) => b shouldBe bagId
+    }
+  }
+
+  private def expectValidationToFailOnUuidLength(nonsenseUuid: String) = {
+    fromString(nonsenseUuid) should matchPattern {
+      case Failure(e: IllegalArgumentException) if e.getMessage.contains(s"A UUID should contain exactly 36 characters, this UUID has ${ nonsenseUuid.length } characters") =>
     }
   }
 }

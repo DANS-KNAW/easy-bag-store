@@ -421,7 +421,7 @@ class StoresServletSpec extends TestSupportFixture
     }
   }
 
-  it should "fail when another type of credentials is provided" in  {
+  it should "fail when another type of credentials is provided" in {
     val uuid = "11111111-1111-1111-1111-111111111111"
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), authenticationHeader("foo", "bar", "Bearer")) {
       status shouldBe 400
@@ -429,7 +429,7 @@ class StoresServletSpec extends TestSupportFixture
     }
   }
 
-  it should "fail when invalid BasicAuth credentials are provided" in  {
+  it should "fail when invalid BasicAuth credentials are provided" in {
     val uuid = "11111111-1111-1111-1111-111111111111"
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), authenticationHeader("wrong-username", "wrong-password")) {
       status shouldBe 401
@@ -438,7 +438,7 @@ class StoresServletSpec extends TestSupportFixture
     }
   }
 
-  it should "fail when a second call does not provide credentials" in  {
+  it should "fail when a second call does not provide credentials" in {
     val uuid = "11111111-1111-1111-1111-111111111111"
     putBag(uuid, testBagUnprunedA)
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA)) {

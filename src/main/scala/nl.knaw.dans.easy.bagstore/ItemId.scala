@@ -35,10 +35,18 @@ abstract class ItemId(val uuid: UUID) {
 object ItemId {
   def fromString(s: String): Try[ItemId] = Try {
     s.split("/", 2) match {
-      case Array(uuidStr) => BagId(UUID.fromString(uuidStr))
+      case Array(uuidStr) => BagId(UUID.fromString(validateUuidLength(uuidStr)))
       case Array(uuidStr, path) =>
-        FileId(UUID.fromString(uuidStr), Paths.get(URLDecoder.decode(path, "UTF-8")))
+        FileId(UUID.fromString(validateUuidLength(uuidStr)), Paths.get(URLDecoder.decode(path, "UTF-8")))
     }
+  }
+
+  private def validateUuidLength(uuidAsString: String): String = {
+    val uuid = uuidAsString.trim
+    if (uuid.length != 36) {
+      throw new IllegalArgumentException(s"A UUID should contain exactly 36 characters, this UUID has ${ uuid.length } characters")
+    }
+    uuid
   }
 }
 
