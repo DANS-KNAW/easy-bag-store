@@ -7,6 +7,9 @@ ExecStart=/bin/java \
  -Dapp.home=/opt/dans.knaw.nl/easy-bag-store \
  -jar /opt/dans.knaw.nl/easy-bag-store/bin/easy-bag-store.jar run-service
 
+# Java returns 143 even if the SIGTERM was handled correctly.
+SuccessExitStatus=143
+
 User=easy-bag-store
 Group=easy-bag-store
 
