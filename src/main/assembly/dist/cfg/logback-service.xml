@@ -17,7 +17,7 @@
         <syslogIdentifier>easy-bag-store</syslogIdentifier>
     </appender>
     <root level="warn">	    <root level="warn">
-        <appender-ref ref="FILE"/>	        <appender-ref ref="FILE"/>
+        <appender-ref ref="FILE"/>
         <appender-ref ref="journal"/>
     </root>	    </root>
     <logger name="nl.knaw.dans.easy" level="info"/>
