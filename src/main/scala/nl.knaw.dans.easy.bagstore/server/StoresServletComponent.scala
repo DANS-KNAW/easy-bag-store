@@ -161,7 +161,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
             )))
             .getOrRecover {
               case e: IllegalArgumentException => BadRequest(e.getMessage)
-              case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage)
+              case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage) //Todo This code is not reached?
               case e: NoBagException => BadRequest(e.getMessage)
               case e: InvalidBagException => BadRequest(e.getMessage)
               case e =>
