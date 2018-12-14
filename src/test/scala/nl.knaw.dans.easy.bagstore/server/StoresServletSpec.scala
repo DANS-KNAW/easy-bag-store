@@ -352,14 +352,13 @@ class StoresServletSpec extends TestSupportFixture
     putBag(uuid, testBagUnprunedA)
   }
 
-  it should "return a bad request when a second put is done on the same uuid" in {
+  it should "fail, returning a bad request when a second put is done on the same uuid" in {
     val uuid = "11111111-1111-1111-1111-111111111111"
     putBag(uuid, testBagUnprunedA)
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), basicAuthentication) {
       status shouldBe 400
     }
   }
-
 
   it should "store and prune multiple revisions of a bagsequence" in {
     val uuid1 = "11111111-1111-1111-1111-111111111111"
