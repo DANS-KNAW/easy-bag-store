@@ -357,6 +357,7 @@ class StoresServletSpec extends TestSupportFixture
     putBag(uuid, testBagUnprunedA)
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), basicAuthentication) {
       status shouldBe 400
+      body should include(s"$uuid already exists in BagStore store1 (bag-ids must be globally unique)")
     }
   }
 
