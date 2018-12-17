@@ -125,7 +125,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
           if (itemIdPath.getNameCount > 1)
             Try(FileId(bagId, itemIdPath.subpath(1, itemIdPath.getNameCount)))
           else if (uri.toString.endsWith("/"))
-            Try(FileId(bagId, Paths.get("")))
+                 Try(FileId(bagId, Paths.get("")))
           else
             Try(bagId)
         }
@@ -224,6 +224,8 @@ trait FileSystemComponent extends DebugEnhancedLogging {
             fileId <- id.toFileId
             location <- toRealLocation(fileId)
           } yield (bagDir.toAbsolutePath.resolve(item.path), location)
+        } recoverWith {
+          case e: Exception => Failure(new IllegalArgumentException(s"Bag-id found in fetch.txt can not be found in the bag-store: ${ e.getMessage }"))
         }).collectResults
       } yield mapping
     }
@@ -264,7 +266,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
     /**
      * Creates a copy of a directory tree, in which every 'regular' file is a symlink back to the source tree.
      *
-     * @param src the root of the tree to copy
+     * @param src    the root of the tree to copy
      * @param target the root of the copy
      * @return
      */
