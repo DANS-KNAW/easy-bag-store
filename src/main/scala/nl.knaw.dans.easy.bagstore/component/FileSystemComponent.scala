@@ -125,7 +125,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
           if (itemIdPath.getNameCount > 1)
             Try(FileId(bagId, itemIdPath.subpath(1, itemIdPath.getNameCount)))
           else if (uri.toString.endsWith("/"))
-                 Try(FileId(bagId, Paths.get("")))
+            Try(FileId(bagId, Paths.get("")))
           else
             Try(bagId)
         }
