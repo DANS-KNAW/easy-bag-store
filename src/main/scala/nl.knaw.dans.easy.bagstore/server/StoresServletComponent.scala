@@ -159,7 +159,6 @@ trait StoresServletComponent extends DebugEnhancedLogging {
             .map(bagId => Created(headers = Map(
               "Location" -> externalBaseUri.resolve(s"stores/$bagstore/bags/${ fileSystem.toUri(bagId).getPath }").toASCIIString
             )))
-
             .getOrRecover {
               case e: CompositeException if e.throwables.exists(_.isInstanceOf[BagIdAlreadyAssignedException]) => BadRequest(e.getMessage) //TODO this is little hacky, can't this be done in a nicer way?
               case e: IllegalArgumentException => BadRequest(e.getMessage)
