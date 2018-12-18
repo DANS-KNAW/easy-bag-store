@@ -175,11 +175,10 @@ class BagStoreSpec extends TestSupportFixture
     val fetchFile = File(testBagPrunedB.resolve("fetch.txt"))
     val exceptionMessageSuffix = "Bag-id found in fetch.txt can not be found in the bag-store:"
 
-    Files.write(fetchFile.path,  fetchFile.contentAsString.replaceAll("01", "10").getBytes())
+    Files.write(fetchFile.path, fetchFile.contentAsString.replaceAll("01", "10").getBytes())
 
     bagStore.add(testBagPrunedB, Some(uuid1)) should matchPattern {
       case Failure(CompositeException(errors)) if errors.head.getMessage contains exceptionMessageSuffix =>
     }
   }
-
 }
