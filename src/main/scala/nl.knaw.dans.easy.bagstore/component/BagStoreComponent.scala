@@ -104,7 +104,7 @@ trait BagStoreComponent {
      * @param skipCompletion if `true` no files will be fetched from other locations
      * @return
      */
-    def copyToDirectory(itemId: ItemId, output: Path, skipCompletion: Boolean = false): Try[(Path, BaseDir)] = {
+    def copyToDirectory(itemId: ItemId, output: Path, skipCompletion: Boolean = false, forceInactive: Boolean = false): Try[(Path, BaseDir)] = {
       trace(itemId, output)
       if (Files.isRegularFile(output)) Failure(OutputNotADirectoryException(output))
       else {
@@ -114,6 +114,7 @@ trait BagStoreComponent {
             case bagId: BagId =>
               fileSystem.toLocation(bagId)
                 .map(path => {
+                  if (Files.isHidden(path) && !forceInactive) throw InactiveException(itemId, forceInactive)
                   val resultDir = output.resolve(path.getFileName).toAbsolutePath
                   if (Files.exists(resultDir)) throw OutputAlreadyExists(resultDir)
                   debug(s"Copying bag from $path to $output")
@@ -127,6 +128,7 @@ trait BagStoreComponent {
               else {
                 fileSystem.toRealLocation(fileId)
                   .map(path => {
+                    if (Files.isHidden(path) && !forceInactive) throw InactiveException(itemId, forceInactive)
                     val resultFile = output.resolve(path.getFileName).toAbsolutePath
                     if (Files.exists(resultFile)) throw OutputAlreadyExists(resultFile)
                     FileUtils.copyFile(path.toFile, resultFile.toFile)

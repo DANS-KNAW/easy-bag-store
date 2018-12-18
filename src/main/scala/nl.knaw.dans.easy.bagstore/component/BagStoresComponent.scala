@@ -37,12 +37,12 @@ trait BagStoresComponent {
     def storeShortnames: Map[String, BaseDir]
     def getBaseDirByShortname(name: String): Option[BaseDir] = storeShortnames.get(name)
 
-    def copyToDirectory(itemId: ItemId, output: Path, skipCompletion: Boolean = false, fromStore: Option[BaseDir] = None): Try[(Path, BaseDir)] = {
+    def copyToDirectory(itemId: ItemId, output: Path, skipCompletion: Boolean = false, fromStore: Option[BaseDir] = None, forceInactive: Boolean = false): Try[(Path, BaseDir)] = {
       fromStore
-        .map(BagStore(_).copyToDirectory(itemId, output, skipCompletion))
+        .map(BagStore(_).copyToDirectory(itemId, output, skipCompletion, forceInactive))
         .getOrElse {
           storeShortnames.values.toStream
-            .map(BagStore(_).copyToDirectory(itemId, output, skipCompletion))
+            .map(BagStore(_).copyToDirectory(itemId, output, skipCompletion, forceInactive))
             .find {
               case Failure(_: NoSuchBagException) => false
               case _ => true

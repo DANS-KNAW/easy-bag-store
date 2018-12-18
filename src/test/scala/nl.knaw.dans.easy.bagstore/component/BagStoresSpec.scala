@@ -88,12 +88,42 @@ class BagStoresSpec extends TestSupportFixture
   it should "result in failure if Bag is specifically looked for in the wrong BagStore" in {
     inside(bagStore1.add(testBagPrunedA)) { case Success(bagId1) =>
       inside(bagStore2.add(testBagPrunedA)) { case Success(bagId2) =>
-        bagStores.copyToDirectory(bagId2, testDir.resolve("bag-from-store1-wrong"), skipCompletion = false,  Some(store1)) should matchPattern {
+        bagStores.copyToDirectory(bagId2, testDir.resolve("bag-from-store1-wrong"), skipCompletion = false, Some(store1)) should matchPattern {
           case Failure(NoSuchBagException(_)) =>
         }
 
         bagStores.copyToDirectory(bagId1, testDir.resolve("bag-from-store2-wrong"), skipCompletion = false, Some(store2)) should matchPattern {
           case Failure(NoSuchBagException(_)) =>
+        }
+      }
+    }
+  }
+
+  it should "result in a failure when a get is done on a hidden file with forceInactive=false" in {
+    val output = testDir.resolve("pruned-output")
+    inside(bagStore1.add(testBagPrunedA)) { case Success(result) =>
+      bagStores.copyToDirectory(result, output, skipCompletion = true) shouldBe a[Success[_]]
+      pathsEqual(testBagPrunedA, output.resolve("a")) shouldBe true
+      inside(bagStore1.deactivate(result)) { case Success(()) =>
+        // without force option results in failure
+        inside(bagStore1.copyToDirectory(result, output.resolve("a1"), false, false)) {
+           case Failure(e: InactiveException) => Success(())
+        }
+        // with force option results in a success
+        inside(bagStore1.copyToDirectory(result, output.resolve("a2"), false, true)) {
+          case Success(_) =>
+        }
+        // make deposit active again
+        inside(bagStore1.reactivate(result)) {
+          case Success(_) =>
+        }
+        // now it works again without the force option
+        inside(bagStore1.copyToDirectory(result, output.resolve("a3"), false, false)) {
+          case Success(_) =>
+        }
+        // it also works  with the force option
+        inside(bagStore1.copyToDirectory(result, output.resolve("a4"), false, false)) {
+          case Success(_) =>
         }
       }
     }
