@@ -15,18 +15,17 @@
  */
 package nl.knaw.dans.easy.bagstore.component
 
-import java.io.PrintWriter
 import java.net.URI
 import java.nio.file.attribute.{ PosixFilePermission, PosixFilePermissions }
 import java.nio.file.{ Files, Path, Paths }
 import java.util.UUID
 
+import better.files.File
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error.CompositeException
 import org.apache.commons.io.FileUtils
 import org.scalatest.OneInstancePerTest
 
-import scala.io.Source
 import scala.util.{ Failure, Success }
 
 class BagStoreSpec extends TestSupportFixture
@@ -173,22 +172,13 @@ class BagStoreSpec extends TestSupportFixture
 
   it should "result in a failure when the fetch.txt is invalid" in {
     val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
-    val tmpFile = testBagPrunedB.resolve("fetch2.txt").toFile
-    val fetchFilePath = testBagPrunedB.resolve("fetch.txt")
-    val exceptionSuffixMessage = "Bag-id found in fetch.txt can not be found in the bag-store:"
-    val printWriter = new PrintWriter(tmpFile)
+    val fetchFile = File(testBagPrunedB.resolve("fetch.txt"))
+    val exceptionMessageSuffix = "Bag-id found in fetch.txt can not be found in the bag-store:"
 
-    Source
-      .fromFile(fetchFilePath.toFile)
-      .getLines()
-      .map(line => line.replaceAll("01", "10"))
-      .foreach(printWriter.println)
-
-    printWriter.close()
-    tmpFile.renameTo(fetchFilePath.toFile)
+    Files.write(fetchFile.path,  fetchFile.contentAsString.replaceAll("01", "10").getBytes())
 
     bagStore.add(testBagPrunedB, Some(uuid1)) should matchPattern {
-      case Failure(ce: CompositeException) if ce.throwables.head.getMessage contains exceptionSuffixMessage =>
+      case Failure(CompositeException(errors)) if errors.head.getMessage contains exceptionMessageSuffix =>
     }
   }
 
