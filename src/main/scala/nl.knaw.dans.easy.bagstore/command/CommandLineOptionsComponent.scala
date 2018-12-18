@@ -45,7 +45,7 @@ trait CommandLineOptionsComponent {
          |${ _________ }# operations on items in a bag store
          |${ _________ }| list
          |${ _________ }| add [-m,--move] [-u,--uuid <uuid>] <bag>
-         |${ _________ }| get [-d,--directory <dir>] [-f, --force-inactive] [-s,--skip-completion] <item-id>
+         |${ _________ }| get [-invalid,--directory <dir>] [-f, --force-inactive] [-s,--skip-completion] <item-id>
          |${ _________ }| stream [-f, --force-inactive] [-f,--format zip|tar] <item-id>
          |${ _________ }| enum [[-a,--all] [-e,--exclude-directories] [-i,--inactive] <bag-id>]
          |${ _________ }| locate [-f,--file-data-location] <item-id>
