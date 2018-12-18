@@ -100,17 +100,19 @@ class BagStoresSpec extends TestSupportFixture
   }
 
   it should "result in a failure when a get is done on a hidden file with forceInactive=false" in {
-    val output = testDir.resolve("pruned-output")
+    val output = testDir.resolve("pruned-output/hidden/test")
     inside(bagStore1.add(testBagPrunedA)) { case Success(result) =>
       bagStores.copyToDirectory(result, output, skipCompletion = true) shouldBe a[Success[_]]
       pathsEqual(testBagPrunedA, output.resolve("a")) shouldBe true
+
+      // deactivate deposit
       inside(bagStore1.deactivate(result)) { case Success(()) =>
         // without force option results in failure
         inside(bagStore1.copyToDirectory(result, output.resolve("a1"), false, false)) {
            case Failure(e: InactiveException) => Success(())
         }
         // with force option results in a success
-        inside(bagStore1.copyToDirectory(result, output.resolve("a2"), false, true)) {
+        inside(bagStore1.copyToDirectory(result, output.resolve("a1"), false, true)) {
           case Success(_) =>
         }
         // make deposit active again
@@ -118,17 +120,16 @@ class BagStoresSpec extends TestSupportFixture
           case Success(_) =>
         }
         // now it works again without the force option
-        inside(bagStore1.copyToDirectory(result, output.resolve("a3"), false, false)) {
+        inside(bagStore1.copyToDirectory(result, output.resolve("a2"), false, false)) {
           case Success(_) =>
         }
         // it also works  with the force option
-        inside(bagStore1.copyToDirectory(result, output.resolve("a4"), false, false)) {
+        inside(bagStore1.copyToDirectory(result, output.resolve("a3"), false, false)) {
           case Success(_) =>
         }
       }
     }
   }
-
 
   // TODO: add tests for failures
   // TODO: add tests for file permissions
