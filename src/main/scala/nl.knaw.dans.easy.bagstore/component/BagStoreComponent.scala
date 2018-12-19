@@ -162,7 +162,7 @@ trait BagStoreComponent {
         for {
           bagDir <- fileSystem.toLocation(bagId)
           itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
-          _ <- activeStatusMatchesRequestParams(itemPath, itemId)
+          _ <- validateThatFileIsActive(itemPath, itemId)
           fileIds <- enumFiles(itemId)
           fileSpecs <- fileIds.filter(!_.isDirectory).map {
             fileId =>
@@ -194,7 +194,7 @@ trait BagStoreComponent {
       }
     }
 
-    private def activeStatusMatchesRequestParams(path: Path, itemId: ItemId): Try[Unit] = {
+    private def validateThatFileIsActive(path: Path, itemId: ItemId): Try[Unit] = {
         if (Files.isHidden(path)) Failure(InactiveException(itemId, forceInactive = false))
         else Success(())
     }
