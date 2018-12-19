@@ -339,7 +339,7 @@ class StoresServletSpec extends TestSupportFixture
       case Success(_) =>
     }
     get(s"/store1/bags/${ bagId }", params = Map.empty, headers = Map("Accept" -> "application/zip")) {
-      status shouldBe 400
+      status shouldBe 409
       body shouldBe InactiveException(bagId, forceInactive = false).getMessage
     }
   }
