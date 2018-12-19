@@ -23,7 +23,6 @@ import nl.knaw.dans.easy.bagstore.component.{ BagStoresComponent, FileSystemComp
 import nl.knaw.dans.easy.bagstore.server.ServletEnhancedLogging._
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.apache.commons.lang3.BooleanUtils
 import org.joda.time.DateTime
 import org.scalatra._
 
