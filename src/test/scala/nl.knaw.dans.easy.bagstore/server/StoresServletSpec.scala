@@ -340,7 +340,7 @@ class StoresServletSpec extends TestSupportFixture
     }
     get(s"/store1/bags/${ bagId }", params = Map.empty, headers = Map("Accept" -> "application/zip")) {
       status shouldBe 400
-      body shouldBe InactiveException(bagId, false).getMessage
+      body shouldBe InactiveException(bagId, forceInactive = false).getMessage
     }
   }
 
@@ -349,7 +349,7 @@ class StoresServletSpec extends TestSupportFixture
     inside(bagStore1.deactivate(bagId)) {
       case Success(_) =>
     }
-    get(s"/store1/bags/${ bagId }?forceInactive=true", params = Map.empty, headers = Map("Accept" -> "application/zip")) {
+    get(s"/store1/bags/$bagId", params = Map("forceInactive" -> "true"), headers = Map("Accept" -> "application/zip")) {
       status shouldBe 200
     }
   }
