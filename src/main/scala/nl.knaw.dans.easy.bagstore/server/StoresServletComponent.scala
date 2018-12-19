@@ -23,6 +23,7 @@ import nl.knaw.dans.easy.bagstore.component.{ BagStoresComponent, FileSystemComp
 import nl.knaw.dans.easy.bagstore.server.ServletEnhancedLogging._
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.apache.commons.lang3.BooleanUtils
 import org.joda.time.DateTime
 import org.scalatra._
 
@@ -80,6 +81,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
       val bagstore = params("bagstore")
       val uuidStr = params("uuid")
       val accept = request.getHeader("Accept")
+      val forceInactive = BooleanUtils.toBoolean(params.getOrElse("forceInactive", "false"))
       bagStores.getBaseDirByShortname(bagstore)
         .map(baseDir => ItemId.fromString(uuidStr)
           .recoverWith {
@@ -92,11 +94,12 @@ trait StoresServletComponent extends DebugEnhancedLogging {
               .enumFiles(bagId, includeDirectories = false, Some(baseDir))
               .map(files => Ok(files.toList.mkString("\n")))
             else bagStores
-              .copyToStream(bagId, accept, response.outputStream, Some(baseDir))
+              .copyToStream(bagId, accept, response.outputStream, Some(baseDir), forceInactive)
               .map(_ => Ok())
           })
           .getOrRecover {
             case e: NoBagIdException => InternalServerError(e.getMessage)
+            case e : InactiveException => BadRequest(e.getMessage)
             case e: IllegalArgumentException => BadRequest(e.getMessage)
             case e: NoRegularFileException => BadRequest(e.getMessage)
             case e: NoSuchItemException => NotFound(e.getMessage)

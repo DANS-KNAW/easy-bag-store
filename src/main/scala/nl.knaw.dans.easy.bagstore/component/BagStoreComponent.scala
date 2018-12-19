@@ -28,6 +28,7 @@ import resource._
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
 import scala.util.control.NonFatal
+import scala.util.parsing.combinator.Parsers
 import scala.util.{ Failure, Success, Try }
 
 trait BagStoreComponent {
@@ -153,7 +154,7 @@ trait BagStoreComponent {
      * @param outputStream      the output stream to write to
      * @return whether the call was successful
      */
-    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream): Try[Unit] = {
+    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream, forceInactive: Boolean = false): Try[Unit] = {
       trace(itemId)
       val bagId = BagId(itemId.uuid)
 
@@ -161,6 +162,7 @@ trait BagStoreComponent {
         for {
           bagDir <- fileSystem.toLocation(bagId)
           itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
+          _ <- activeStatusMatchesRequestParams(itemPath, forceInactive, itemId)
           fileIds <- enumFiles(itemId)
           fileSpecs <- fileIds.filter(!_.isDirectory).map {
             fileId =>
@@ -190,6 +192,11 @@ trait BagStoreComponent {
           }
         } yield ()
       }
+    }
+
+    private def activeStatusMatchesRequestParams(path: Path, forceInactive: Boolean, itemId: ItemId): Try[Unit] = {
+        if (Files.isHidden(path) && !forceInactive) Failure(InactiveException(itemId, forceInactive))
+        else Success(())
     }
 
     private def createEntrySpec(source: Option[Path], bagDir: Path, itemPath: Path, fileId: FileId): EntrySpec = {
