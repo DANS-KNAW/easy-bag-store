@@ -81,7 +81,6 @@ trait StoresServletComponent extends DebugEnhancedLogging {
       val bagstore = params("bagstore")
       val uuidStr = params("uuid")
       val accept = request.getHeader("Accept")
-      val forceInactive = BooleanUtils.toBoolean(params.getOrElse("forceInactive", "false"))
       bagStores.getBaseDirByShortname(bagstore)
         .map(baseDir => ItemId.fromString(uuidStr)
           .recoverWith {
@@ -94,7 +93,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
               .enumFiles(bagId, includeDirectories = false, Some(baseDir))
               .map(files => Ok(files.toList.mkString("\n")))
             else bagStores
-              .copyToStream(bagId, accept, response.outputStream, Some(baseDir), forceInactive)
+              .copyToStream(bagId, accept, response.outputStream, Some(baseDir))
               .map(_ => Ok())
           })
           .getOrRecover {

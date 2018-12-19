@@ -344,16 +344,6 @@ class StoresServletSpec extends TestSupportFixture
     }
   }
 
-  it should "succeed when an inactive bag is requested  and the querParams forceInactive=true are supplied" in {
-    val bagId = BagId(UUID.fromString("01000000-0000-0000-0000-000000000001"))
-    inside(bagStore1.deactivate(bagId)) {
-      case Success(_) =>
-    }
-    get(s"/store1/bags/$bagId", params = Map("forceInactive" -> "true"), headers = Map("Accept" -> "application/zip")) {
-      status shouldBe 200
-    }
-  }
-
   def authenticationHeader(username: String, password: String, authType: String = "Basic"): List[(String, String)] = {
     val encoded = Base64.getEncoder.encodeToString(s"$username:$password")
     List("Authorization" -> s"$authType $encoded")

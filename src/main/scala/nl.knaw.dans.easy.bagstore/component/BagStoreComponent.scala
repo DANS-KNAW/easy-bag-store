@@ -154,7 +154,7 @@ trait BagStoreComponent {
      * @param outputStream      the output stream to write to
      * @return whether the call was successful
      */
-    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream, forceInactive: Boolean = false): Try[Unit] = {
+    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream): Try[Unit] = {
       trace(itemId)
       val bagId = BagId(itemId.uuid)
 
@@ -162,7 +162,7 @@ trait BagStoreComponent {
         for {
           bagDir <- fileSystem.toLocation(bagId)
           itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
-          _ <- activeStatusMatchesRequestParams(itemPath, forceInactive, itemId)
+          _ <- activeStatusMatchesRequestParams(itemPath, itemId)
           fileIds <- enumFiles(itemId)
           fileSpecs <- fileIds.filter(!_.isDirectory).map {
             fileId =>
@@ -194,8 +194,8 @@ trait BagStoreComponent {
       }
     }
 
-    private def activeStatusMatchesRequestParams(path: Path, forceInactive: Boolean, itemId: ItemId): Try[Unit] = {
-        if (Files.isHidden(path) && !forceInactive) Failure(InactiveException(itemId, forceInactive))
+    private def activeStatusMatchesRequestParams(path: Path, itemId: ItemId): Try[Unit] = {
+        if (Files.isHidden(path)) Failure(InactiveException(itemId, forceInactive = false))
         else Success(())
     }
 

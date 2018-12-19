@@ -51,12 +51,12 @@ trait BagStoresComponent {
         }
     }
 
-    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream, fromStore: Option[BaseDir] = None, forceInactive: Boolean = false): Try[Unit] = {
+    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream, fromStore: Option[BaseDir] = None): Try[Unit] = {
       fromStore
-        .map(BagStore(_).copyToStream(itemId, archiveStreamType, outputStream, forceInactive))
+        .map(BagStore(_).copyToStream(itemId, archiveStreamType, outputStream))
         .getOrElse {
           storeShortnames.values.toStream
-            .map(BagStore(_).copyToStream(itemId, archiveStreamType, outputStream, forceInactive))
+            .map(BagStore(_).copyToStream(itemId, archiveStreamType, outputStream))
             .find {
               case Failure(_: NoSuchBagException) => false
               case _ => true
