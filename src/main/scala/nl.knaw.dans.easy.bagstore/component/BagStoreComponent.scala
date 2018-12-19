@@ -28,7 +28,6 @@ import resource._
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
 import scala.util.control.NonFatal
-import scala.util.parsing.combinator.Parsers
 import scala.util.{ Failure, Success, Try }
 
 trait BagStoreComponent {
