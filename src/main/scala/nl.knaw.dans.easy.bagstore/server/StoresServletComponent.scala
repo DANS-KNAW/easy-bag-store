@@ -24,7 +24,6 @@ import nl.knaw.dans.easy.bagstore.server.ServletEnhancedLogging._
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
-import org.scalatra
 import org.scalatra._
 
 import scala.util.control.NonFatal
@@ -172,14 +171,6 @@ trait StoresServletComponent extends DebugEnhancedLogging {
         })
         .getOrElse(NotFound(s"No such bag-store: $bagstore"))
         .logResponse
-    }
-  }
-
-  private def analyzeCompositeException(e: CompositeException): ActionResult = {
-    if (e.throwables.exists(_.isInstanceOf[BagIdAlreadyAssignedException])) BadRequest(e.getMessage())
-    else {
-      logger.error("Unexpected type of failure", e)
-      InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
     }
   }
 }
