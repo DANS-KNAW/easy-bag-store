@@ -114,9 +114,7 @@ trait BagStoreComponent {
             case bagId: BagId =>
               fileSystem.toLocation(bagId)
                 .map(path => {
-                  if (Files.isHidden(path) && !forceInactive) throw InactiveException(itemId, forceInactive)
-                  val resultDir = output.resolve(path.getFileName).toAbsolutePath
-                  if (Files.exists(resultDir)) throw OutputAlreadyExists(resultDir)
+                  val resultDir: BaseDir = validatePathAndResolveResultDirectory(itemId, output, forceInactive, path)
                   debug(s"Copying bag from $path to $output")
                   FileUtils.copyDirectory(path.toFile, resultDir.toFile)
                   if (!skipCompletion) bagProcessing.complete(resultDir)
@@ -284,6 +282,12 @@ trait BagStoreComponent {
     }
   }
 
+  private def validatePathAndResolveResultDirectory(itemId: ItemId, output: BaseDir, forceInactive: Boolean, path: BaseDir) = {
+    if (Files.isHidden(path) && !forceInactive) throw InactiveException(itemId, forceInactive)
+    val resultDir = output.resolve(path.getFileName).toAbsolutePath
+    if (Files.exists(resultDir)) throw OutputAlreadyExists(resultDir)
+    resultDir
+  }
   object BagStore {
     def apply(dir: BaseDir): BagStore = new BagStore {
       implicit val baseDir: BaseDir = dir

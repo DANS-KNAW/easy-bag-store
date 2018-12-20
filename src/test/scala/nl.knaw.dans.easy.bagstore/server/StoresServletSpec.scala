@@ -337,6 +337,7 @@ class StoresServletSpec extends TestSupportFixture
     val bagId = BagId(UUID.fromString("01000000-0000-0000-0000-000000000001"))
     inside(bagStore1.deactivate(bagId)) {
       case Success(_) =>
+      case _ => fail
     }
     get(s"/store1/bags/${ bagId }", params = Map.empty, headers = Map("Accept" -> "application/zip")) {
       status shouldBe 409
