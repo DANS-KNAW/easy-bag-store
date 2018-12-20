@@ -178,7 +178,7 @@ class BagStoreSpec extends TestSupportFixture
     Files.write(fetchFile.path, fetchFile.contentAsString.replaceAll("01", "10").getBytes())
 
     bagStore.add(testBagPrunedB, Some(uuid1)) should matchPattern {
-      case Failure(CompositeException(errors)) if errors.head.getMessage contains exceptionMessageSuffix =>
+       case Failure(CompositeException(errors)) if errors.headOption.getOrElse(new Exception()).getMessage contains exceptionMessageSuffix =>
     }
   }
 }
