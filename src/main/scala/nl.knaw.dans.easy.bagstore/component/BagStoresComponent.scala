@@ -104,7 +104,7 @@ trait BagStoresComponent {
     }
 
     private def checkBagDoesNotExist(bagId: BagId): Try[Unit] = {
-      storeShortnames.map { case (name, store) =>
+      storeShortnames.toStream.map { case (name, store) =>
         implicit val baseDir: BaseDir = store
         fileSystem.toContainer(bagId)
           .flatMap {
