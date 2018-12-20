@@ -112,7 +112,7 @@ class BagStoresSpec extends TestSupportFixture
            case Failure(e: InactiveException) => Success(())
         }
         // with force option results in a success
-        inside(bagStore1.copyToDirectory(result, output.resolve("a1"), false, true)) {
+         bagStore1.copyToDirectory(result, output.resolve("a1"), false, true) shouldBe a[Success[_]]
           case Success(_) =>
         }
         // make deposit active again
