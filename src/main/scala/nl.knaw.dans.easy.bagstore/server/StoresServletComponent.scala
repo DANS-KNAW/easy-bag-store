@@ -24,6 +24,7 @@ import nl.knaw.dans.easy.bagstore.server.ServletEnhancedLogging._
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
+import org.scalatra
 import org.scalatra._
 
 import scala.util.control.NonFatal
@@ -160,9 +161,8 @@ trait StoresServletComponent extends DebugEnhancedLogging {
               "Location" -> externalBaseUri.resolve(s"stores/$bagstore/bags/${ fileSystem.toUri(bagId).getPath }").toASCIIString
             )))
             .getOrRecover {
-              case e: CompositeException if e.throwables.exists(_.isInstanceOf[BagIdAlreadyAssignedException]) => BadRequest(e.getMessage) //TODO this is little hacky, can't this be done in a nicer way?
+              case e: CompositeException if e.throwables.exists(_.isInstanceOf[BagIdAlreadyAssignedException]) => BadRequest(e.getMessage)
               case e: IllegalArgumentException => BadRequest(e.getMessage)
-              case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage)
               case e: NoBagException => BadRequest(e.getMessage)
               case e: InvalidBagException => BadRequest(e.getMessage)
               case e =>
@@ -172,6 +172,14 @@ trait StoresServletComponent extends DebugEnhancedLogging {
         })
         .getOrElse(NotFound(s"No such bag-store: $bagstore"))
         .logResponse
+    }
+  }
+
+  private def analyzeCompositeException(e: CompositeException): ActionResult = {
+    if (e.throwables.exists(_.isInstanceOf[BagIdAlreadyAssignedException])) BadRequest(e.getMessage())
+    else {
+      logger.error("Unexpected type of failure", e)
+      InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
     }
   }
 }
