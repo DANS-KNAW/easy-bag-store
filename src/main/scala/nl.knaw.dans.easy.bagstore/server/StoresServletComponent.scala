@@ -97,7 +97,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
           })
           .getOrRecover {
             case e: NoBagIdException => InternalServerError(e.getMessage)
-            case e : InactiveException => Conflict(e.getMessage)
+            case e: InactiveException => Conflict(e.getMessage)
             case e: IllegalArgumentException => BadRequest(e.getMessage)
             case e: NoRegularFileException => BadRequest(e.getMessage)
             case e: NoSuchItemException => NotFound(e.getMessage)
