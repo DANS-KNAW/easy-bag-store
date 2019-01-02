@@ -161,9 +161,9 @@ trait StoresServletComponent extends DebugEnhancedLogging {
             )))
             .getOrRecover {
               case e: IllegalArgumentException => BadRequest(e.getMessage)
+              case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage)
               case e: NoBagException => BadRequest(e.getMessage)
               case e: InvalidBagException => BadRequest(e.getMessage)
-              case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage)
               case e =>
                 logger.error("Unexpected type of failure", e)
                 InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
