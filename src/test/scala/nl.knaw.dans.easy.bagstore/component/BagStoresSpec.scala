@@ -106,21 +106,13 @@ class BagStoresSpec extends TestSupportFixture
       case Failure(_: InactiveException) =>
     }
     // with force option results bagId a success
-    bagStore1.copyToDirectory(bagId, output.resolve("a1"), false, true) should matchPattern {
-      case Success(_) =>
-    }
+    bagStore1.copyToDirectory(bagId, output.resolve("a1"), false, true) shouldBe a[Success[_]]
     // make deposit active again
-    bagStore1.reactivate(bagId) should matchPattern {
-      case Success(_) =>
-    }
+    bagStore1.reactivate(bagId) shouldBe a[Success[_]]
     // now it works again without the force option
-    bagStore1.copyToDirectory(bagId, output.resolve("a2"), false, false) should matchPattern {
-      case Success(_) =>
-    }
+    bagStore1.copyToDirectory(bagId, output.resolve("a2"), false, false) shouldBe a[Success[_]]
     // it also works  with the force option
-    bagStore1.copyToDirectory(bagId, output.resolve("a3"), false, false) should matchPattern {
-      case Success(_) =>
-    }
+    bagStore1.copyToDirectory(bagId, output.resolve("a3"), false, false) shouldBe a[Success[_]]
   }
 
   // TODO: add tests for failures
