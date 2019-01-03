@@ -18,13 +18,14 @@ package nl.knaw.dans.easy.bagstore.server
 import java.net.URI
 
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
-import nl.knaw.dans.easy.bagstore.{ BagitFixture, ServletFixture, TestSupportFixture }
+import nl.knaw.dans.easy.bagstore.{ BagitFixture, TestSupportFixture }
 import org.scalamock.scalatest.MockFactory
+import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
 
 class DefaultServletSpec extends TestSupportFixture
   with BagitFixture
-  with ServletFixture
+  with EmbeddedJettyContainer
   with ScalatraSuite
   with MockFactory
   with DefaultServletComponent
