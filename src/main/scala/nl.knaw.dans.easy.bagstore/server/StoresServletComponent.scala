@@ -160,10 +160,12 @@ trait StoresServletComponent extends DebugEnhancedLogging {
               "Location" -> externalBaseUri.resolve(s"stores/$bagstore/bags/${ fileSystem.toUri(bagId).getPath }").toASCIIString
             )))
             .getOrRecover {
+              case e: CompositeException if e.throwables.exists(_.isInstanceOf[IncorrectNumberOfFilesInBagZipRootException]) => BadRequest(e.getMessage())
               case e: IllegalArgumentException => BadRequest(e.getMessage)
               case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage)
               case e: NoBagException => BadRequest(e.getMessage)
               case e: InvalidBagException => BadRequest(e.getMessage)
+              case e: IncorrectNumberOfFilesInBagZipRootException => BadRequest(e.getMessage)
               case e =>
                 logger.error("Unexpected type of failure", e)
                 InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")

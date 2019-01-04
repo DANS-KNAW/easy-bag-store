@@ -59,6 +59,7 @@ class StoresServletSpec extends TestSupportFixture
   private val testBagUnprunedA = bagInput.resolve("unpruned-with-refbags-a.zip")
   private val testBagUnprunedB = bagInput.resolve("unpruned-with-refbags-b.zip")
   private val testBagUnprunedC = bagInput.resolve("unpruned-with-refbags-c.zip")
+  private val testBagUnprunedInvalid = bagInput.resolve("unpruned-with-refbags-invalid.zip")
 
   new ZipFile(testBagUnprunedA.toFile) {
     addFolder(testBagsUnpruned.resolve("a").toFile, new ZipParameters)
@@ -68,6 +69,10 @@ class StoresServletSpec extends TestSupportFixture
   }
   new ZipFile(testBagUnprunedC.toFile) {
     addFolder(testBagsUnpruned.resolve("c").toFile, new ZipParameters)
+  }
+  new ZipFile(testBagUnprunedInvalid.toFile) {
+    addFolder(testBagsUnpruned.resolve("invalid").toFile, new ZipParameters)
+    addFile(testBagsUnpruned.resolve("invalid/deposit.properties").toFile, new ZipParameters)
   }
 
   override def beforeAll(): Unit = {
@@ -351,6 +356,22 @@ class StoresServletSpec extends TestSupportFixture
   "put /:bagstore/bags/:uuid" should "store a bag in the given bag-store" in {
     val uuid = "11111111-1111-1111-1111-111111111111"
     putBag(uuid, testBagUnprunedA)
+  }
+
+  it should "fail, returning a bad request when a second put is done on the same uuid" in {
+    val uuid = "11111111-1111-1111-1111-111111111111"
+    putBag(uuid, testBagUnprunedA)
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), basicAuthentication) {
+      status shouldBe 400
+      body should include(s"$uuid already exists in BagStore store1 (bag-ids must be globally unique)")
+    }
+  } 
+  
+  it should "should fail and return a badrequest if there are multiple files in the root directory of the zipped bag" in {
+    val uuid = "11111111-1111-1111-1111-111111111114"
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedInvalid), basicAuthentication)  {
+        status shouldBe 400
+    }
   }
 
   it should "store and prune multiple revisions of a bagsequence" in {
