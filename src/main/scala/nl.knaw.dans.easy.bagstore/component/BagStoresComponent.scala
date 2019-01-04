@@ -104,7 +104,7 @@ trait BagStoresComponent {
     }
 
     private def checkBagDoesNotExist(bagId: BagId): Try[Unit] = {
-      storeShortnames.map { case (name, store) =>
+      storeShortnames.toStream.map { case (name, store) =>
         implicit val baseDir: BaseDir = store
         fileSystem.toContainer(bagId)
           .flatMap {
@@ -112,7 +112,7 @@ trait BagStoresComponent {
             case file if Files.exists(file) => Failure(CorruptBagStoreException("Regular file in the place of a container: $f"))
             case _ => Success(())
           }
-      }.collectResults.map(_ => ())
+      }.find(_.isFailure).getOrElse(Success(()))
     }
 
     def deactivate(bagId: BagId, fromStore: Option[BaseDir] = None): Try[Unit] = {
