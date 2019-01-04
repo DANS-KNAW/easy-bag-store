@@ -19,7 +19,7 @@ import java.nio.file.{ Files, Paths }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
-import nl.knaw.dans.easy.bagstore.{ BagStoresFixture, BagitFixture, ServletFixture, TestSupportFixture }
+import nl.knaw.dans.easy.bagstore._
 import org.apache.commons.io.FileUtils
 import org.scalatra.test.scalatest.ScalatraSuite
 
@@ -195,6 +195,14 @@ class BagsServletSpec extends TestSupportFixture
   it should "fail when the bag is not found" in {
     get(s"/${ UUID.randomUUID() }") {
       status shouldBe 404
+    }
+  }
+
+  it should "fail if a file within a bag cannot be found" in {
+    val itemId = "01000000-0000-0000-0000-000000000001/bag-info2.txt"
+    get(s"/$itemId", headers = Map("Accept" -> "text/plain")) {
+      status shouldBe 404
+      body shouldBe s"Item $itemId not found"
     }
   }
 }

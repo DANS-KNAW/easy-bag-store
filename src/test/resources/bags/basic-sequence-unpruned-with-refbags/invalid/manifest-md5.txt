@@ -1,0 +1,8 @@
+f17a8c16d88784eb3853dc4ae6633ad2  data/sub/w
+4377fdf3a848177e41cbd9316f2172f2  data/x
+83bcb3dcc9006d791f82ce04d1e00b2d  data/z
+0bc204d0474463beb1a116fc67b0c53f  data/y
+b2fa761d13ce7dcb0f3738a4dcbfd9e8  data/y-old
+a7849536df2c23380bd0997b737db506  data/sub-copy/u
+a2d461a2feb3c414a1d0152be8c69e33  data/p
+6266ed8807da0878dd1e17940ab899e2  data/sub/q
