@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagstore.component
 
 import java.net.URI
 import java.nio.file.attribute.{ PosixFilePermission, PosixFilePermissions }
-import java.nio.file.{ Files, Path, Paths }
+import java.nio.file.{ Files, NoSuchFileException, Path, Paths }
 import java.util.UUID
 
 import better.files.File
@@ -173,16 +173,11 @@ class BagStoreSpec extends TestSupportFixture
   it should "result in a failure when the fetch.txt is invalid" in {
     val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val fetchFile = File(testBagPrunedB.resolve("fetch.txt"))
-    val exceptionMessageSuffix = "Bag-id found in fetch.txt can not be found in the bag-store:"
 
     Files.write(fetchFile.path, fetchFile.contentAsString.replaceAll("01", "10").getBytes())
 
     bagStore.add(testBagPrunedB, Some(uuid1)) should matchPattern {
-       case Failure(CompositeException(errors)) if oneOfTheErrorsContainsMessage(exceptionMessageSuffix, errors) =>
+       case Failure(CompositeException(errors)) if errors.exists(_.isInstanceOf[IllegalArgumentException]) =>
     }
-  }
-
-  private def oneOfTheErrorsContainsMessage(exceptionMessageSuffix: String, errors: List[Throwable]) = {
-    errors.headOption.getOrElse(new Exception()).getMessage contains exceptionMessageSuffix
   }
 }
