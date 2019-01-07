@@ -225,7 +225,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
             location <- toRealLocation(fileId)
           } yield (bagDir.toAbsolutePath.resolve(item.path), location)
         } recoverWith {
-          case nsfe: NoSuchFileException => Failure(new IllegalArgumentException(s"Bag-id found in fetch.txt can not be found in the bag-store: ${ nsfe.getMessage }"))
+          case nsfe: NoSuchFileException => Failure(new IllegalArgumentException(s"Local-file-uri found in fetch.txt can not be found in the bag-store: ${ nsfe.getMessage }"))
         }).collectResults
       } yield mapping
     }
