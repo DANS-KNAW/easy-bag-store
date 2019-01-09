@@ -180,7 +180,7 @@ class BagStoreSpec extends TestSupportFixture
       case Failure(CompositeException(errors)) if errors
         .find(_.isInstanceOf[IllegalArgumentException])
         .getOrElse(new TestFailedException(1)) // if no IllegalStateException is present the test has failed
-        .getMessage.contains("Local-file-uri found in fetch.txt can not be found in the bag-store: 123") =>
+        .getMessage.contains("Local-file-uri found in fetch.txt can not be found in the bag-store: ") =>
     }
   }
 }
