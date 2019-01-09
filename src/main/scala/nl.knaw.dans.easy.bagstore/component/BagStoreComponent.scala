@@ -99,8 +99,8 @@ trait BagStoreComponent {
      * The file and directory permissions on the result are changed recursively to the values configured in
      * `cli.output.bag-file-permissions` and `cli.output.bag-dir-permissions`.
      *
-     * @param itemId the item to copy
-     * @param output the directory to copy it to
+     * @param itemId         the item to copy
+     * @param output         the directory to copy it to
      * @param skipCompletion if `true` no files will be fetched from other locations
      * @return
      */
@@ -184,7 +184,7 @@ trait BagStoreComponent {
                   Files.copy(path, outputStream)
                 })
             }
-            else if(allEntries.isEmpty) Failure(NoSuchItemException(itemId))
+            else if (allEntries.isEmpty) Failure(NoSuchItemException(itemId))
             else Failure(NoRegularFileException(itemId))
           }
         } yield ()
@@ -192,8 +192,8 @@ trait BagStoreComponent {
     }
 
     private def validateThatFileIsActive(path: Path, itemId: ItemId): Try[Unit] = {
-        if (Files.isHidden(path)) Failure(InactiveException(itemId, forceInactive = false))
-        else Success(())
+      if (Files.isHidden(path)) Failure(InactiveException(itemId, forceInactive = false))
+      else Success(())
     }
 
     private def createEntrySpec(source: Option[Path], bagDir: Path, itemPath: Path, fileId: FileId): EntrySpec = {

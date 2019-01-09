@@ -35,6 +35,7 @@ trait BagStoresComponent {
 
   trait BagStores {
     def storeShortnames: Map[String, BaseDir]
+
     def getBaseDirByShortname(name: String): Option[BaseDir] = storeShortnames.get(name)
 
     def copyToDirectory(itemId: ItemId, output: Path, skipCompletion: Boolean = false, fromStore: Option[BaseDir] = None, forceInactive: Boolean = false): Try[(Path, BaseDir)] = {

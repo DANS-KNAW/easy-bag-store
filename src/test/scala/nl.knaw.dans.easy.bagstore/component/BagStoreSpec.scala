@@ -152,7 +152,6 @@ class BagStoreSpec extends TestSupportFixture
     fileSystem.bagDirPermissions.clear()
     fileSystem.bagDirPermissions.addAll(dirPermissions)
 
-
     val uuid1 = UUID.fromString("11111111-1111-1111-1111-111111111111")
     testSuccessfulAdd(testValidBag, uuid1)
 
