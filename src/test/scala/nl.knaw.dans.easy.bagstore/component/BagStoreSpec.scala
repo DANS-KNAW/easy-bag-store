@@ -25,6 +25,7 @@ import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error.CompositeException
 import org.apache.commons.io.FileUtils
 import org.scalatest.OneInstancePerTest
+import org.scalatest.exceptions.TestFailedException
 
 import scala.util.{ Failure, Success }
 
@@ -154,7 +155,6 @@ class BagStoreSpec extends TestSupportFixture
     fileSystem.bagDirPermissions.clear()
     fileSystem.bagDirPermissions.addAll(dirPermissions)
 
-
     val uuid1 = UUID.fromString("11111111-1111-1111-1111-111111111111")
     testSuccessfulAdd(testValidBag, uuid1)
 
@@ -177,7 +177,10 @@ class BagStoreSpec extends TestSupportFixture
     Files.write(fetchFile.path, fetchFile.contentAsString.replaceAll("01", "10").getBytes())
 
     bagStore.add(testBagPrunedB, Some(uuid1)) should matchPattern {
-       case Failure(CompositeException(errors)) if errors.exists(_.isInstanceOf[IllegalArgumentException]) =>
+      case Failure(CompositeException(errors)) if errors
+        .find(_.isInstanceOf[IllegalArgumentException])
+        .getOrElse(new TestFailedException(1)) // if no IllegalStateException is present the test has failed
+        .getMessage.contains("Local-file-uri found in fetch.txt can not be found in the bag-store: 123") =>
     }
   }
 }
