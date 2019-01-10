@@ -25,6 +25,7 @@ import net.lingala.zip4j.model.ZipParameters
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
 import org.apache.commons.io.FileUtils
+import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
 
 import scala.io.Source
@@ -33,7 +34,7 @@ import scala.util.{ Success, Try }
 class StoresServletSpec extends TestSupportFixture
   with BagitFixture
   with BagStoresFixture
-  with ServletFixture
+  with EmbeddedJettyContainer
   with ScalatraSuite
   with StoresServletComponent
   with BagStoresComponent

@@ -21,12 +21,13 @@ import java.util.UUID
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
 import nl.knaw.dans.easy.bagstore._
 import org.apache.commons.io.FileUtils
+import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
 
 class BagsServletSpec extends TestSupportFixture
   with BagitFixture
   with BagStoresFixture
-  with ServletFixture
+  with EmbeddedJettyContainer
   with ScalatraSuite
   with BagsServletComponent
   with BagStoresComponent
