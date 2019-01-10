@@ -17,15 +17,14 @@ package nl.knaw.dans.easy.bagstore.component
 
 import java.net.URI
 import java.nio.file.attribute.{ PosixFilePermission, PosixFilePermissions }
-import java.nio.file.{ Files, NoSuchFileException, Path, Paths }
+import java.nio.file.{ Files, Path, Paths }
 import java.util.UUID
 
 import better.files.File
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error.CompositeException
 import org.apache.commons.io.FileUtils
-import org.scalatest.OneInstancePerTest
-import org.scalatest.exceptions.TestFailedException
+import org.scalatest.{ Inspectors, OneInstancePerTest }
 
 import scala.util.{ Failure, Success }
 
@@ -36,6 +35,7 @@ class BagStoreSpec extends TestSupportFixture
    * could affect subsequent tests.
    */
   with OneInstancePerTest
+  with Inspectors
   with BagStoreFixture
   with BagitFixture
   with BagStoreComponent
@@ -176,11 +176,12 @@ class BagStoreSpec extends TestSupportFixture
 
     Files.write(fetchFile.path, fetchFile.contentAsString.replaceAll("01", "10").getBytes())
 
-    bagStore.add(testBagPrunedB, Some(uuid1)) should matchPattern {
-      case Failure(CompositeException(errors)) if errors
-        .find(_.isInstanceOf[IllegalArgumentException])
-        .getOrElse(new TestFailedException(1)) // if no IllegalStateException is present the test has failed
-        .getMessage.contains("Local-file-uri found in fetch.txt can not be found in the bag-store: ") =>
+    inside(bagStore.add(testBagPrunedB, Some(uuid1))) {
+      case Failure(CompositeException(errors)) =>
+        forEvery(errors)(e => {
+          e shouldBe an[IllegalArgumentException]
+          e.getMessage should include("Local-file-uri found in fetch.txt can not be found in the bag-store: ")
+        })
     }
   }
 }
