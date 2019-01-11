@@ -15,12 +15,12 @@
  */
 package nl.knaw.dans.easy.bagstore.component
 
-import java.nio.file.{ Files, Paths }
+import java.nio.file.{ Files, Path, Paths }
 
 import nl.knaw.dans.easy.bagstore._
 import org.apache.commons.io.FileUtils
 
-import scala.util.{ Failure, Success }
+import scala.util.{ Failure, Success, Try }
 
 class BagStoresSpec extends TestSupportFixture
   with BagStoresFixture
@@ -88,7 +88,7 @@ class BagStoresSpec extends TestSupportFixture
   it should "result in failure if Bag is specifically looked for in the wrong BagStore" in {
     inside(bagStore1.add(testBagPrunedA)) { case Success(bagId1) =>
       inside(bagStore2.add(testBagPrunedA)) { case Success(bagId2) =>
-        bagStores.copyToDirectory(bagId2, testDir.resolve("bag-from-store1-wrong"), skipCompletion = false,  Some(store1)) should matchPattern {
+        bagStores.copyToDirectory(bagId2, testDir.resolve("bag-from-store1-wrong"), skipCompletion = false, Some(store1)) should matchPattern {
           case Failure(NoSuchBagException(_)) =>
         }
 
@@ -99,9 +99,32 @@ class BagStoresSpec extends TestSupportFixture
     }
   }
 
+  it should "result in a failure when a get is done on a hidden bag with forceInactive=false" in {
+    val (bagId: BagId, output: BagPath) = setupTestDeactivateBag
+    // without force option results in failure
+    bagStore1.copyToDirectory(bagId, output.resolve("a1"), false, false) should matchPattern {
+      case Failure(_: InactiveException) =>
+    }
+    // with force option results bagId a success
+    bagStore1.copyToDirectory(bagId, output.resolve("a1"), false, true) shouldBe a[Success[_]]
+    // make deposit active again
+    bagStore1.reactivate(bagId) shouldBe a[Success[_]]
+    // now it works again without the force option
+    bagStore1.copyToDirectory(bagId, output.resolve("a2"), false, false) shouldBe a[Success[_]]
+    // it also works  with the force option
+    bagStore1.copyToDirectory(bagId, output.resolve("a3"), false, false) shouldBe a[Success[_]]
+  }
 
   // TODO: add tests for failures
   // TODO: add tests for file permissions
+
+  private def setupTestDeactivateBag = {
+    val bagId = bagStore1.add(testBagPrunedA).getOrElse(fail)
+    val output = testDir.resolve("pruned-output/hidden/test")
+    bagStores.copyToDirectory(bagId, output, skipCompletion = true).getOrElse(fail)
+    bagStore1.deactivate(bagId).getOrElse(fail)
+    (bagId, output)
+  }
 
   "enumBags" should "return all BagIds" in {
     inside(bagStore1.add(testBagUnprunedA)) { case Success(ais) =>

@@ -99,12 +99,12 @@ trait BagStoreComponent {
      * The file and directory permissions on the result are changed recursively to the values configured in
      * `cli.output.bag-file-permissions` and `cli.output.bag-dir-permissions`.
      *
-     * @param itemId the item to copy
-     * @param output the directory to copy it to
+     * @param itemId         the item to copy
+     * @param output         the directory to copy it to
      * @param skipCompletion if `true` no files will be fetched from other locations
      * @return
      */
-    def copyToDirectory(itemId: ItemId, output: Path, skipCompletion: Boolean = false): Try[(Path, BaseDir)] = {
+    def copyToDirectory(itemId: ItemId, output: Path, skipCompletion: Boolean = false, forceInactive: Boolean = false): Try[(Path, BaseDir)] = {
       trace(itemId, output)
       if (Files.isRegularFile(output)) Failure(OutputNotADirectoryException(output))
       else {
@@ -114,8 +114,7 @@ trait BagStoreComponent {
             case bagId: BagId =>
               fileSystem.toLocation(bagId)
                 .map(path => {
-                  val resultDir = output.resolve(path.getFileName).toAbsolutePath
-                  if (Files.exists(resultDir)) throw OutputAlreadyExists(resultDir)
+                  val resultDir: BaseDir = validatePathAndResolveResultDirectory(itemId, output, forceInactive, path)
                   debug(s"Copying bag from $path to $output")
                   FileUtils.copyDirectory(path.toFile, resultDir.toFile)
                   if (!skipCompletion) bagProcessing.complete(resultDir)
@@ -127,6 +126,7 @@ trait BagStoreComponent {
               else {
                 fileSystem.toRealLocation(fileId)
                   .map(path => {
+                    if (Files.isHidden(path) && !forceInactive) throw InactiveException(itemId, forceInactive)
                     val resultFile = output.resolve(path.getFileName).toAbsolutePath
                     if (Files.exists(resultFile)) throw OutputAlreadyExists(resultFile)
                     FileUtils.copyFile(path.toFile, resultFile.toFile)
@@ -159,6 +159,7 @@ trait BagStoreComponent {
         for {
           bagDir <- fileSystem.toLocation(bagId)
           itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
+          _ <- validateThatFileIsActive(itemPath, itemId)
           fileIds <- enumFiles(itemId)
           fileSpecs <- fileIds.filter(!_.isDirectory).map {
             fileId =>
@@ -183,11 +184,16 @@ trait BagStoreComponent {
                   Files.copy(path, outputStream)
                 })
             }
-            else if(allEntries.isEmpty) Failure(NoSuchItemException(itemId))
+            else if (allEntries.isEmpty) Failure(NoSuchItemException(itemId))
             else Failure(NoRegularFileException(itemId))
           }
         } yield ()
       }
+    }
+
+    private def validateThatFileIsActive(path: Path, itemId: ItemId): Try[Unit] = {
+      if (Files.isHidden(path)) Failure(InactiveException(itemId, forceInactive = false))
+      else Success(())
     }
 
     private def createEntrySpec(source: Option[Path], bagDir: Path, itemPath: Path, fileId: FileId): EntrySpec = {
@@ -276,6 +282,12 @@ trait BagStoreComponent {
     }
   }
 
+  private def validatePathAndResolveResultDirectory(itemId: ItemId, output: BaseDir, forceInactive: Boolean, path: BaseDir) = {
+    if (Files.isHidden(path) && !forceInactive) throw InactiveException(itemId, forceInactive)
+    val resultDir = output.resolve(path.getFileName).toAbsolutePath
+    if (Files.exists(resultDir)) throw OutputAlreadyExists(resultDir)
+    resultDir
+  }
   object BagStore {
     def apply(dir: BaseDir): BagStore = new BagStore {
       implicit val baseDir: BaseDir = dir

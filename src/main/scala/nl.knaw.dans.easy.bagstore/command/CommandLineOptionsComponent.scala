@@ -62,7 +62,6 @@ trait CommandLineOptionsComponent {
          |Options:
          |""".stripMargin)
 
-
     private implicit val fileConverter: ValueConverter[Path] = singleArgConverter[Path](s => Paths.get(resolveTildeToHomeDir(s)))
     private implicit val uuidParser: ValueConverter[UUID] = singleArgConverter(UUID.fromString)
     private implicit val archiveStreamTypeParser: ValueConverter[ArchiveStreamType.Value] = singleArgConverter {
@@ -175,9 +174,10 @@ trait CommandLineOptionsComponent {
     addSubcommand(reactivate)
 
     val prune = new Subcommand("prune") {
-      descr("""Removes Files from bag, that are already found in reference bags, replacing them with
-              |fetch.txt references.
-              |""".stripMargin)
+      descr(
+        """Removes Files from bag, that are already found in reference bags, replacing them with
+          |fetch.txt references.
+          |""".stripMargin)
       val bagDir: ScallopOption[Path] = trailArg[Path](name = "<bag-dir>",
         descr = "bag directory to prune",
         required = true)
@@ -198,7 +198,6 @@ trait CommandLineOptionsComponent {
       footer(SUBCOMMAND_SEPARATOR)
     }
     addSubcommand(complete)
-
 
     val validate = new Subcommand("validate") {
       descr("Checks that <bag-dir> is a virtually-valid bag")

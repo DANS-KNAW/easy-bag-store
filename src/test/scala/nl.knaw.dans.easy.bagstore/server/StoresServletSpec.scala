@@ -339,6 +339,15 @@ class StoresServletSpec extends TestSupportFixture
     }
   }
 
+  it should "fail when an inactive bag is requested with the wrong queryParams" in {
+    val bagId = BagId(UUID.fromString("01000000-0000-0000-0000-000000000001"))
+    bagStore1.deactivate(bagId) shouldBe a[Success[_]]
+    get(s"/store1/bags/${ bagId }", params = Map.empty, headers = Map("Accept" -> "application/zip")) {
+      status shouldBe 409
+      body shouldBe InactiveException(bagId, forceInactive = false).getMessage
+    }
+  }
+
   def authenticationHeader(username: String, password: String, authType: String = "Basic"): List[(String, String)] = {
     val encoded = Base64.getEncoder.encodeToString(s"$username:$password")
     List("Authorization" -> s"$authType $encoded")

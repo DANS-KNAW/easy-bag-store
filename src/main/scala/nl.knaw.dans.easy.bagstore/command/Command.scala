@@ -49,7 +49,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     case Some(cmd @ commandLine.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
-        (path, store) <- bagStores.copyToDirectory(itemId, cmd.outputDir(), cmd.skipCompletion(), bagStoreBaseDir)
+        (path, store) <- bagStores.copyToDirectory(itemId, cmd.outputDir(), cmd.skipCompletion(), bagStoreBaseDir, cmd.forceInactive())
         storeName = getStoreName(store)
       } yield s"Retrieved item with item-id: $itemId to ${ path } from bag store: $storeName"
     case Some(cmd @ commandLine.stream) =>
