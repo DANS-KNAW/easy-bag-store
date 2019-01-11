@@ -224,6 +224,8 @@ trait FileSystemComponent extends DebugEnhancedLogging {
             fileId <- id.toFileId
             location <- toRealLocation(fileId)
           } yield (bagDir.toAbsolutePath.resolve(item.path), location)
+        } recoverWith {
+          case nsfe: NoSuchFileException => Failure(new IllegalArgumentException(s"Local-file-uri found in fetch.txt can not be found in the bag-store: ${ nsfe.getMessage }"))
         }).collectResults
       } yield mapping
     }
@@ -264,7 +266,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
     /**
      * Creates a copy of a directory tree, in which every 'regular' file is a symlink back to the source tree.
      *
-     * @param src the root of the tree to copy
+     * @param src    the root of the tree to copy
      * @param target the root of the copy
      * @return
      */

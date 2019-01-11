@@ -20,9 +20,11 @@ import java.nio.file.attribute.{ PosixFilePermission, PosixFilePermissions }
 import java.nio.file.{ Files, Path, Paths }
 import java.util.UUID
 
+import better.files.File
 import nl.knaw.dans.easy.bagstore._
+import nl.knaw.dans.lib.error.CompositeException
 import org.apache.commons.io.FileUtils
-import org.scalatest.OneInstancePerTest
+import org.scalatest.{ Inspectors, OneInstancePerTest }
 
 import scala.util.{ Failure, Success }
 
@@ -33,6 +35,7 @@ class BagStoreSpec extends TestSupportFixture
    * could affect subsequent tests.
    */
   with OneInstancePerTest
+  with Inspectors
   with BagStoreFixture
   with BagitFixture
   with BagStoreComponent
@@ -152,7 +155,6 @@ class BagStoreSpec extends TestSupportFixture
     fileSystem.bagDirPermissions.clear()
     fileSystem.bagDirPermissions.addAll(dirPermissions)
 
-
     val uuid1 = UUID.fromString("11111111-1111-1111-1111-111111111111")
     testSuccessfulAdd(testValidBag, uuid1)
 
@@ -166,5 +168,21 @@ class BagStoreSpec extends TestSupportFixture
     Files.getPosixFilePermissions(bagInStore) shouldBe dirPermissions
     Files.getPosixFilePermissions(bagInStore.resolve("data")) shouldBe dirPermissions
     Files.getPosixFilePermissions(bagInStore.resolve("data/sub")) shouldBe dirPermissions
+  }
+
+  it should "result in a failure when the fetch.txt is invalid" in {
+    val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    val fetchFile = File(testBagPrunedB.resolve("fetch.txt"))
+
+    Files.write(fetchFile.path, fetchFile.contentAsString.replaceAll("01", "10").getBytes())
+
+    inside(bagStore.add(testBagPrunedB, Some(uuid1))) {
+      case Failure(CompositeException(errors)) =>
+        errors should have size 4
+        forEvery(errors)(e => {
+          e shouldBe an[IllegalArgumentException]
+          e.getMessage should include("Local-file-uri found in fetch.txt can not be found in the bag-store: ")
+        })
+    }
   }
 }
