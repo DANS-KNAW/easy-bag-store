@@ -178,6 +178,7 @@ class BagStoreSpec extends TestSupportFixture
 
     inside(bagStore.add(testBagPrunedB, Some(uuid1))) {
       case Failure(CompositeException(errors)) =>
+        errors should have size 4
         forEvery(errors)(e => {
           e shouldBe an[IllegalArgumentException]
           e.getMessage should include("Local-file-uri found in fetch.txt can not be found in the bag-store: ")
