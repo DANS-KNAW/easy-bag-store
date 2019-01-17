@@ -174,9 +174,10 @@ trait BagStoreComponent {
             }
           }
           allEntries <- Try { (dirSpecs ++ fileSpecs).sortBy(_.entryPath) }
-          _ <- archiveStreamType.map { st =>
-            new ArchiveStream(st, allEntries).writeTo(outputStream)
-          }.getOrElse {
+          _ <- archiveStreamType.map(streamType => {
+            if (allEntries.isEmpty) Failure(NoSuchItemException(itemId))
+            else new ArchiveStream(streamType, allEntries).writeTo(outputStream)
+          }).getOrElse {
             if (allEntries.size == 1) Try {
               fileSystem.toRealLocation(fileIds.head)
                 .map(f = path => {
