@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstore.component
 
-import java.io.{ ByteArrayOutputStream, PrintStream, StringWriter }
+import java.io.ByteArrayOutputStream
 import java.nio.file.{ Files, Paths }
 
 import nl.knaw.dans.easy.bagstore._
