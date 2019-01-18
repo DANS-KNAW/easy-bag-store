@@ -24,6 +24,8 @@ import org.apache.commons.io.FileUtils
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
 
+import scala.util.Success
+
 class BagsServletSpec extends TestSupportFixture
   with BagitFixture
   with BagStoresFixture
@@ -204,6 +206,43 @@ class BagsServletSpec extends TestSupportFixture
     get(s"/$itemId", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 404
       body shouldBe s"Item $itemId not found"
+    }
+  }
+
+  it should "fail when done on an inactive/ hidden bag" in {
+    val bagID = "01000000-0000-0000-0000-000000000001"
+    bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
+    get(s"/$bagID") {
+      println(body)
+      status shouldBe 410
+      body.lines.mkString should include(s"Tried to retrieve an inactive bag: $bagID")
+    }
+  }
+
+  it should "fail when done on an item within an inactive/ hidden bag" in {
+    val bagID = "01000000-0000-0000-0000-000000000001"
+    bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
+    get(s"/$bagID/bag-info2.txt") {
+      status shouldBe 410
+      body.lines.mkString should include(s"Tried to retrieve an inactive bag: $bagID")
+    }
+  }
+
+  //TODO are these two cases below correct?
+  it should "not fail when done on an inactive/ hidden bag when headers text/plain is provided" in {
+    val bagID = "01000000-0000-0000-0000-000000000001"
+    bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
+    get(s"/$bagID", headers = Map("Accept" -> "text/plain")) {
+      status shouldBe 200
+    }
+  }
+
+  it should "not when done on an item in an inactive/ hidden bag even when headers text/plain is provided" in {
+    val bagID = "01000000-0000-0000-0000-000000000001"
+    bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
+    get(s"/$bagID/bag-info2.txt", headers = Map("Accept" -> "text/plain")) {
+      status shouldBe 410
+      body.lines.mkString should include(s"Tried to retrieve an inactive bag: $bagID")
     }
   }
 }
