@@ -18,8 +18,8 @@ package nl.knaw.dans.easy.bagstore.server
 import java.nio.file.{ Files, Paths }
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
 import nl.knaw.dans.easy.bagstore._
+import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
 import org.apache.commons.io.FileUtils
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
@@ -230,7 +230,6 @@ class BagsServletSpec extends TestSupportFixture
 
   //TODO are these two cases below correct?
   // this calls enumFiles
-
   it should "not fail when done on an inactive/ hidden bag when headers text/plain is provided" in {
     val bagID = "01000000-0000-0000-0000-000000000001"
     bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
