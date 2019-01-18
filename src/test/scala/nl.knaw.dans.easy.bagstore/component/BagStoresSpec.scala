@@ -292,12 +292,7 @@ class BagStoresSpec extends TestSupportFixture
     implicit val baseDir: BaseDir = store1
     val bagID = bagStore1.add(testBagMinimal).getOrElse(fail())
     val baos = new ByteArrayOutputStream()
-    val ps = new PrintStream(baos)
-    try {
-      bagStores.copyToStream(bagID, Some(ArchiveStreamType.TAR), baos, Some(baseDir)) shouldBe a[Success[_]]
-    } finally {
-      ps.close()
-    }
+    bagStores.copyToStream(bagID, Some(ArchiveStreamType.TAR), baos, Some(baseDir)) shouldBe a[Success[_]]
     val content = baos.toString
     content should include("9e5ad981e0d29adc278f6a294b8c2aca  bagit.txt")
     content should include("ae4573c51c28ac09546cd7fc55422ae4  manifest-md5.txt")
@@ -308,12 +303,7 @@ class BagStoresSpec extends TestSupportFixture
     val bagID = bagStore1.add(testBagMinimal).getOrElse(fail())
     bagStores.deactivate(bagID) shouldBe a[Success[_]]
     val baos = new ByteArrayOutputStream()
-    val ps = new PrintStream(baos)
-    try {
-      bagStores.copyToStream(bagID, Some(ArchiveStreamType.TAR), baos, Some(baseDir)) shouldBe Failure(InactiveException(bagID))
-    } finally {
-      ps.close()
-    }
+    bagStores.copyToStream(bagID, Some(ArchiveStreamType.TAR), baos, Some(baseDir)) shouldBe Failure(InactiveException(bagID))
   }
 
   it should "a stream containing the content of the files if the bag is made inactive beforehand, but the forceInactive param is given" in {
@@ -321,13 +311,8 @@ class BagStoresSpec extends TestSupportFixture
     val bagID = bagStore1.add(testBagMinimal).getOrElse(fail())
     bagStores.deactivate(bagID) shouldBe a[Success[_]]
     val baos = new ByteArrayOutputStream()
-    val ps = new PrintStream(baos)
-    val forceInactive = true // explicitly declared for clarity
-    try {
-      bagStores.copyToStream(bagID, Some(ArchiveStreamType.TAR), baos, Some(baseDir), forceInactive) shouldBe a[Success[_]]
-    } finally {
-      ps.close()
-    }
+    val forceInactive = true // explicit declared for clarity
+    bagStores.copyToStream(bagID, Some(ArchiveStreamType.TAR), baos, Some(baseDir), forceInactive) shouldBe a[Success[_]]
     val content = baos.toString
     content should include("9e5ad981e0d29adc278f6a294b8c2aca  bagit.txt")
     content should include("ae4573c51c28ac09546cd7fc55422ae4  manifest-md5.txt")
