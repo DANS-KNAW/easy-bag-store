@@ -80,9 +80,9 @@ trait BagsServletComponent extends DebugEnhancedLogging {
             .recoverWith {
               case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
             }.flatMap(itemId => {
-              debug(s"Retrieving item $itemId")
-              bagStores.copyToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType) , response.outputStream)
-            })
+            debug(s"Retrieving item $itemId")
+            bagStores.copyToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType), response.outputStream)
+          })
             .map(_ => Ok())
             .getOrRecover {
               case e: IllegalArgumentException => BadRequest(e.getMessage)
