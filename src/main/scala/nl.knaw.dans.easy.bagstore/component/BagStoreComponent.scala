@@ -151,7 +151,7 @@ trait BagStoreComponent {
      * @param outputStream      the output stream to write to
      * @return whether the call was successful
      */
-    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream): Try[Unit] = {
+    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream, forceInactive: Boolean = false): Try[Unit] = {
       trace(itemId)
       val bagId = BagId(itemId.uuid)
 
@@ -159,7 +159,7 @@ trait BagStoreComponent {
         for {
           bagDir <- fileSystem.toLocation(bagId)
           itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
-          _ <- validateThatFileIsActive(itemPath, itemId)
+          _ <- validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive) // if the bag is hidden, also don't return items from the bag
           fileIds <- enumFiles(itemId)
           fileSpecs <- fileIds.filter(!_.isDirectory).map {
             fileId =>
@@ -191,9 +191,8 @@ trait BagStoreComponent {
       }
     }
 
-    private def validateThatFileIsActive(path: Path, itemId: ItemId): Try[Unit] = {
-      if (Files.isHidden(path)) Failure(InactiveException(itemId, forceInactive = false))
-      else Success(())
+    private def validateThatBagDirIsNotHidden(bagDirPath: Path, itemId: ItemId, forceInactive: Boolean): Try[Unit] = Try {
+      if (!forceInactive && Files.isHidden(bagDirPath)) throw InactiveException(itemId, forceInactive = forceInactive)
     }
 
     private def createEntrySpec(source: Option[Path], bagDir: Path, itemPath: Path, fileId: FileId): EntrySpec = {

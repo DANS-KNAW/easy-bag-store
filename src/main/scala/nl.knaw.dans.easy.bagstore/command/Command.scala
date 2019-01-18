@@ -55,7 +55,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     case Some(cmd @ commandLine.stream) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
-        _ <- bagStores.copyToStream(itemId, cmd.format.toOption, Console.out, bagStoreBaseDir)
+        _ <- bagStores.copyToStream(itemId, cmd.format.toOption, Console.out, bagStoreBaseDir, cmd.forceInactive())
       } yield s"Retrieved item with item-id: $itemId to stream."
       // TODO: Also report from which bag store, as with get
     case Some(cmd @ commandLine.enum) =>

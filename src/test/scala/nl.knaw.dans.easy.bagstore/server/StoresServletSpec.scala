@@ -339,11 +339,20 @@ class StoresServletSpec extends TestSupportFixture
     }
   }
 
-  it should "fail when an inactive bag is requested with the wrong queryParams" in {
+  it should "fail when an inactive bag is requested" in {
     val bagId = BagId(UUID.fromString("01000000-0000-0000-0000-000000000001"))
     bagStore1.deactivate(bagId) shouldBe a[Success[_]]
     get(s"/store1/bags/${ bagId }", params = Map.empty, headers = Map("Accept" -> "application/zip")) {
-      status shouldBe 409
+      status shouldBe 410
+      body shouldBe InactiveException(bagId, forceInactive = false).getMessage
+    }
+  }
+
+  it should "fail when an item from an inactive bag is requested" in {
+    val bagId = BagId(UUID.fromString("01000000-0000-0000-0000-000000000001"))
+    bagStore1.deactivate(bagId) shouldBe a[Success[_]]
+    get(s"/store1/bags/${ bagId }/bag-revision-1/metadata/files.xml", params = Map.empty, headers = Map("Accept" -> "application/zip")) {
+      status shouldBe 410
       body shouldBe InactiveException(bagId, forceInactive = false).getMessage
     }
   }

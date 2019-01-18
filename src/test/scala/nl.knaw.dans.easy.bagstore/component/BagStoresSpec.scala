@@ -15,12 +15,13 @@
  */
 package nl.knaw.dans.easy.bagstore.component
 
-import java.nio.file.{ Files, Path, Paths }
+import java.io.{ ByteArrayOutputStream, PrintStream, StringWriter }
+import java.nio.file.{ Files, Paths }
 
 import nl.knaw.dans.easy.bagstore._
 import org.apache.commons.io.FileUtils
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.{ Failure, Success }
 
 class BagStoresSpec extends TestSupportFixture
   with BagStoresFixture
@@ -285,5 +286,50 @@ class BagStoresSpec extends TestSupportFixture
         case Failure(NotInactiveException(_)) =>
       }
     }
+  }
+
+  "copyToStream" should "a stream containing the content of the files" in {
+    implicit val baseDir: BaseDir = store1
+    val bagID = bagStore1.add(testBagMinimal).getOrElse(fail())
+    val baos = new ByteArrayOutputStream()
+    val ps = new PrintStream(baos)
+    try {
+      bagStores.copyToStream(bagID, Some(ArchiveStreamType.TAR), baos, Some(baseDir)) shouldBe a[Success[_]]
+    } finally {
+      ps.close()
+    }
+    val content = baos.toString
+    content should include("9e5ad981e0d29adc278f6a294b8c2aca  bagit.txt")
+    content should include("ae4573c51c28ac09546cd7fc55422ae4  manifest-md5.txt")
+  }
+
+  it should "fail if the bag is made inactive beforehand" in {
+    implicit val baseDir: BaseDir = store1
+    val bagID = bagStore1.add(testBagMinimal).getOrElse(fail())
+    bagStores.deactivate(bagID) shouldBe a[Success[_]]
+    val baos = new ByteArrayOutputStream()
+    val ps = new PrintStream(baos)
+    try {
+      bagStores.copyToStream(bagID, Some(ArchiveStreamType.TAR), baos, Some(baseDir)) shouldBe Failure(InactiveException(bagID))
+    } finally {
+      ps.close()
+    }
+  }
+
+  it should "a stream containing the content of the files if the bag is made inactive beforehand, but the forceInactive param is given" in {
+    implicit val baseDir: BaseDir = store1
+    val bagID = bagStore1.add(testBagMinimal).getOrElse(fail())
+    bagStores.deactivate(bagID) shouldBe a[Success[_]]
+    val baos = new ByteArrayOutputStream()
+    val ps = new PrintStream(baos)
+    val forceInactive = true // explicitly declared for clarity
+    try {
+      bagStores.copyToStream(bagID, Some(ArchiveStreamType.TAR), baos, Some(baseDir), forceInactive) shouldBe a[Success[_]]
+    } finally {
+      ps.close()
+    }
+    val content = baos.toString
+    content should include("9e5ad981e0d29adc278f6a294b8c2aca  bagit.txt")
+    content should include("ae4573c51c28ac09546cd7fc55422ae4  manifest-md5.txt")
   }
 }

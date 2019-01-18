@@ -97,7 +97,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
           })
           .getOrRecover {
             case e: NoBagIdException => InternalServerError(e.getMessage)
-            case e: InactiveException => Conflict(e.getMessage)
+            case e: InactiveException => Gone(e.getMessage)
             case e: IllegalArgumentException => BadRequest(e.getMessage)
             case e: NoRegularFileException => BadRequest(e.getMessage)
             case e: NoSuchItemException => NotFound(e.getMessage)
@@ -132,6 +132,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
                 case e: NoSuchItemException => NotFound(e.getMessage)
                 case e: NoSuchBagException => NotFound(e.getMessage)
                 case e: NoSuchFileItemException => NotFound(e.getMessage)
+                case e: InactiveException => Gone(e.getMessage)
                 case NonFatal(e) =>
                   logger.error("Error retrieving bag", e)
                   InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
