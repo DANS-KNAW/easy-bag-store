@@ -189,15 +189,15 @@ trait BagStoreComponent {
     }
 
     private def copyToOutputStream(itemId: ItemId, fileIds: Seq[FileId], entriesCount: Int, outputStream: => OutputStream) = {
-      if (entriesCount == 0) Failure(NoSuchItemException(itemId))
-      else if (entriesCount == 1) {
-        fileSystem.toRealLocation(fileIds.head)
+      entriesCount match {
+        case 0 => Failure(NoSuchItemException(itemId))
+        case 1 => fileSystem.toRealLocation(fileIds.head)
           .map(path => {
             debug(s"Copying $path to outputstream")
             Files.copy(path, outputStream)
           })
+        case _ => Failure(NoRegularFileException(itemId))
       }
-      else Failure(NoRegularFileException(itemId))
     }
 
     private def validateThatFileIsActive(path: Path, itemId: ItemId): Try[Unit] = {
