@@ -75,14 +75,14 @@ trait BagsServletComponent extends DebugEnhancedLogging {
       val uuidStr = params("uuid")
       (multiParams("splat") match {
         case Seq(path) =>
-          ItemId
-            .fromString(s"""$uuidStr/${ path }""")
+          ItemId.fromString(s"""$uuidStr/${ path }""")
             .recoverWith {
               case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
-            }.flatMap(itemId => {
-            debug(s"Retrieving item $itemId")
-            bagStores.copyToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType), response.outputStream)
-          })
+            }
+            .flatMap(itemId => {
+              debug(s"Retrieving item $itemId")
+              bagStores.copyToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType), response.outputStream)
+            })
             .map(_ => Ok())
             .getOrRecover {
               case e: IllegalArgumentException => BadRequest(e.getMessage)
