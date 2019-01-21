@@ -163,9 +163,10 @@ trait BagStoreComponent {
           fileIds <- enumFiles(itemId)
           fileSpecs <- createFileSpecs(bagDir, itemPath, fileIds)
           dirSpecs <- createDirectorySpecs(bagDir, itemPath, fileIds)
-          allEntries <- Try { (dirSpecs ++ fileSpecs).sortBy(_.entryPath) }
-          _ <- archiveStreamType.map(copyToArchiveStream(itemId, allEntries, outputStream))
-            .getOrElse(copyToOutputStream(itemId, fileIds, allEntries, outputStream))
+          allEntriesCount = fileSpecs.length + dirSpecs.length
+          allEntries = () => (dirSpecs ++ fileSpecs).sortBy(_.entryPath) // only concat and sort if necessary, hence as a function here
+          _ <- archiveStreamType.map(copyToArchiveStream(itemId, allEntriesCount, outputStream)(allEntries))
+            .getOrElse(copyToOutputStream(itemId, fileIds, allEntriesCount, outputStream))
         } yield ()
       }
     }
@@ -182,21 +183,21 @@ trait BagStoreComponent {
       fileIds.collect { case fileId if fileId.isDirectory => createEntrySpec(None, bagDir, itemPath, fileId) }
     }
 
-    private def copyToArchiveStream(itemId: ItemId, entries: Seq[EntrySpec], outputStream: => OutputStream)(archiveStreamType: ArchiveStreamType) = {
-      if (entries.isEmpty) Failure(NoSuchItemException(itemId))
-      else new ArchiveStream(archiveStreamType, entries).writeTo(outputStream)
+    private def copyToArchiveStream(itemId: ItemId, entriesCount: Int, outputStream: => OutputStream)(entries: () => Seq[EntrySpec])(archiveStreamType: ArchiveStreamType) = {
+      if (entriesCount == 0) Failure(NoSuchItemException(itemId))
+      else new ArchiveStream(archiveStreamType, entries()).writeTo(outputStream)
     }
 
-    private def copyToOutputStream(itemId: ItemId, fileIds: Seq[FileId], entries: Seq[EntrySpec], outputStream: => OutputStream) = {
-      entries match {
-        case Seq() => Failure(NoSuchItemException(itemId))
-        case Seq(_) => fileSystem.toRealLocation(fileIds.head)
+    private def copyToOutputStream(itemId: ItemId, fileIds: Seq[FileId], entriesCount: Int, outputStream: => OutputStream) = {
+      if (entriesCount == 0) Failure(NoSuchItemException(itemId))
+      else if (entriesCount == 1) {
+        fileSystem.toRealLocation(fileIds.head)
           .map(path => {
             debug(s"Copying $path to outputstream")
             Files.copy(path, outputStream)
           })
-        case _ => Failure(NoRegularFileException(itemId))
       }
+      else Failure(NoRegularFileException(itemId))
     }
 
     private def validateThatFileIsActive(path: Path, itemId: ItemId): Try[Unit] = {
