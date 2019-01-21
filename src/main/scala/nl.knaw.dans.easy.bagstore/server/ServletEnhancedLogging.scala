@@ -31,7 +31,7 @@ trait ServletEnhancedLogging extends DebugEnhancedLogging {
       case(key,value) if key.toLowerCase.endsWith("authorization") => (key,"*****")
       case keyValue => keyValue
     }
-    logger.info(s"${ request.getMethod } ${ request.getRequestURL } remote=${ request.getRemoteAddr } params=$params headers=$headers")
+    logger.info(s"${ request.getMethod } ${ request.getRequestURL } remote=${ request.getRemoteAddr } params=$multiParams headers=$headers")
   }
 }
 object ServletEnhancedLogging extends DebugEnhancedLogging {
