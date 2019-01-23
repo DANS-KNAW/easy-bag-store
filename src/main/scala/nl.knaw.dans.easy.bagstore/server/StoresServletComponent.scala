@@ -162,10 +162,10 @@ trait StoresServletComponent extends DebugEnhancedLogging {
             )))
             .getOrRecover {
               case e: CompositeException if e.throwables.exists(_.isInstanceOf[IncorrectNumberOfFilesInBagZipRootException]) => BadRequest(e.getMessage())
+              case e: InvalidBagException => BadRequest(e.getMessage)
               case e: IllegalArgumentException => BadRequest(e.getMessage)
               case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage)
               case e: NoBagException => BadRequest(e.getMessage)
-              case e: InvalidBagException => BadRequest(e.getMessage)
               case e: IncorrectNumberOfFilesInBagZipRootException => BadRequest(e.getMessage)
               case e =>
                 logger.error("Unexpected type of failure", e)

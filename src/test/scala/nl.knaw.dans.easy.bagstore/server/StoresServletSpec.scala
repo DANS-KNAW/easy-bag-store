@@ -15,6 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstore.server
 
+import java.io.PrintWriter
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.{ Files, Path, Paths }
@@ -60,6 +61,7 @@ class StoresServletSpec extends TestSupportFixture
   private val testBagUnprunedB = bagInput.resolve("unpruned-with-refbags-b.zip")
   private val testBagUnprunedC = bagInput.resolve("unpruned-with-refbags-c.zip")
   private val testBagUnprunedInvalid = bagInput.resolve("unpruned-with-refbags-invalid.zip")
+  private val testBagUnprunedEmptyRefBag = bagInput.resolve("no-refbag.zip")
 
   new ZipFile(testBagUnprunedA.toFile) {
     addFolder(testBagsUnpruned.resolve("a").toFile, new ZipParameters)
@@ -516,6 +518,41 @@ class StoresServletSpec extends TestSupportFixture
       status shouldBe 400
       body shouldBe "The provided input did not contain a bag"
     }
+  }
+
+  it should "fail when a an empty refbags.txt is provided" in {
+    createZipWithInvalidOrEmptyRefBag("")
+    val uuid = "11111111-1111-1111-1111-111111111111"
+    val bagId = BagId(UUID.fromString(uuid))
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedEmptyRefBag), basicAuthentication) {
+      status shouldBe 400
+      body should include(s"[$uuid] the bag contains an empty refbags.txt")
+    }
+  }
+
+  it should "fail when an invalid refbags.txt is provided" in {
+    val content = "invalid content"
+    createZipWithInvalidOrEmptyRefBag(content)
+    val uuid = "11111111-1121-1111-1111-111111111111"
+    val bagId = BagId(UUID.fromString(uuid))
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedEmptyRefBag), basicAuthentication) {
+      status shouldBe 400
+      body should include(s"Invalid UUID string: $content")
+    }
+  }
+
+  private def createZipWithInvalidOrEmptyRefBag(content: String) = {
+    Files.createFile(testBagsUnpruned.resolve("a").resolve("refbags.txt"))
+    val pw = new PrintWriter(testBagsUnpruned.resolve("a").resolve("refbags.txt").toFile)
+    try {
+      pw.write(content)
+    } finally {
+      pw.close()
+    }
+    new ZipFile(testBagUnprunedEmptyRefBag.toFile) {
+      addFolder(testBagsUnpruned.resolve("a").toFile, new ZipParameters)
+    }
+    Files.delete(testBagsUnpruned.resolve("a").resolve("refbags.txt"))
   }
 
   it should "fail when the input stream contains a zip-file that doesn't represent a bag" in {

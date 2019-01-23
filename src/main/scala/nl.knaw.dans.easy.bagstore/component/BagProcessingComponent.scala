@@ -20,7 +20,7 @@ import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.attribute.{ BasicFileAttributes, PosixFilePermission }
 import java.nio.file.{ FileVisitResult, FileVisitor, Files, Path }
-import java.util.{ Set => JSet }
+import java.util.{ UUID, Set => JSet }
 
 import net.lingala.zip4j.core.ZipFile
 import net.lingala.zip4j.exception.ZipException
@@ -29,8 +29,10 @@ import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
+import resource.managed
 
 import scala.collection.mutable
+import scala.io.Source
 import scala.util.{ Failure, Success, Try }
 
 trait BagProcessingComponent extends DebugEnhancedLogging {
@@ -175,11 +177,12 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       }
     }
 
-    def getReferenceBags(bagDir: Path): Try[Option[Path]] = Try {
+    def getReferenceBags(bagDir: Path, uuid: Option[UUID]): Try[Option[Path]] = Try {
       trace(bagDir)
       val refbags = bagDir.resolve("refbags.txt")
       if (Files.exists(refbags)) {
         // copy to tempDir
+        assertRefbagsFileIsNotEmpty(uuid, refbags).unsafeGetOrThrow
         val tempRefbags = Files.createTempFile(stagingBaseDir, "refbags-", "")
         Files.deleteIfExists(tempRefbags)
         Files.move(refbags, tempRefbags)
@@ -262,6 +265,12 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
     private def getSupportedAlgorithmsPerBag(bagDirs: Seq[Path]): Try[Set[Set[Algorithm]]] = {
       trace(bagDirs)
       bagDirs.map(bagFacade.getSupportedManifestAlgorithms).collectResults.map(_.toSet)
+    }
+  }
+  private def assertRefbagsFileIsNotEmpty(uuid: Option[UUID], refbags: Path): Try[Unit] = Try {
+    if (managed(Source.fromFile(refbags.toFile)).acquireAndGet(_.mkString.trim.isEmpty)) {
+      val uuidValue = uuid.getOrElse("UNKNOWN")
+      throw new IllegalArgumentException(s"[$uuidValue] the bag contains an empty refbags.txt")
     }
   }
 }
