@@ -217,7 +217,7 @@ trait BagStoreComponent {
           staging <- if (skipStage) Try { bagDir.getParent }
                      else bagProcessing.stageBagDir(bagDir)
           path = staging.resolve(bagDir.getFileName)
-          maybeRefbags <- bagProcessing.getReferenceBags(path, uuid)
+          maybeRefbags <- bagProcessing.getReferenceBags(path, bagId)
           _ = debug(s"refbags tempfile: $maybeRefbags")
           valid <- fileSystem.isVirtuallyValid(path).recover { case _: BagReaderException => Left("Could not read bag") }
           _ <- valid.fold(msg => Failure(InvalidBagException(bagId, msg)), _ => Success(()))

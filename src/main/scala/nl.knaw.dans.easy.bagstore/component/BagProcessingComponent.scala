@@ -177,23 +177,22 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       }
     }
 
-    def getReferenceBags(bagDir: Path, uuid: Option[UUID]): Try[Option[Path]] = Try {
+    def getReferenceBags(bagDir: Path, bagId: BagId): Try[Option[Path]] = {
       trace(bagDir)
       val refbags = bagDir.resolve("refbags.txt")
       if (Files.exists(refbags)) {
         // copy to tempDir
-        assertRefbagsFileIsNotEmpty(uuid, refbags).unsafeGetOrThrow
-        val tempRefbags = Files.createTempFile(stagingBaseDir, "refbags-", "")
-        Files.deleteIfExists(tempRefbags)
-        Files.move(refbags, tempRefbags)
-        assert(!Files.exists(refbags), s"$refbags should have been moved to $tempRefbags, however, it appears to still be present here")
-
-        // remove refbags.txt from all tagmanifests (if it was present there)
-        bagFacade.removeFromTagManifests(bagDir, "refbags.txt")
-
-        Some(tempRefbags)
+        for {
+          _ <- assertRefbagsFileIsNotEmpty(bagId, refbags)
+          tempRefbags = Files.createTempFile(stagingBaseDir, "refbags-", "")
+          _ = Files.deleteIfExists(tempRefbags)
+          _ = Files.move(refbags, tempRefbags)
+          _ = assert(!Files.exists(refbags), s"$refbags should have been moved to $tempRefbags, however, it appears to still be present here")
+          _ <-  // remove refbags.txt from all tagmanifests (if it was present there)
+            bagFacade.removeFromTagManifests(bagDir, "refbags.txt")
+        } yield Some(tempRefbags)
       }
-      else None
+      else Success(None)
     }
 
     /**
@@ -267,10 +266,9 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       bagDirs.map(bagFacade.getSupportedManifestAlgorithms).collectResults.map(_.toSet)
     }
   }
-  private def assertRefbagsFileIsNotEmpty(uuid: Option[UUID], refbags: Path): Try[Unit] = Try {
+  private def assertRefbagsFileIsNotEmpty(bagId: BagId, refbags: Path): Try[Unit] = Try {
     if (managed(Source.fromFile(refbags.toFile)).acquireAndGet(_.mkString.trim.isEmpty)) {
-      val uuidValue = uuid.getOrElse("UNKNOWN")
-      throw new IllegalArgumentException(s"[$uuidValue] the bag contains an empty refbags.txt")
+      throw InvalidBagException(bagId,"the bag contains an empty refbags.txt")
     }
   }
 }
