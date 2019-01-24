@@ -204,7 +204,7 @@ class BagProcessingSpec extends BagProcessingFixture {
 
   "getReferenceBags" should "fail when an empty refbag.txt is found in the bag" in {
     // first create dir with empty refbag.txt
-    val bagDir = makeBagDirForRefbagText("")
+    val bagDir = makeBagDirForRefbagTests("")
 
     val bagId = BagId(UUID.randomUUID())
     bagProcessing.getReferenceBags(bagDir.path, bagId) should matchPattern {
@@ -221,7 +221,7 @@ class BagProcessingSpec extends BagProcessingFixture {
   }
 
   it should "fail when an refbag.txt with only whitespaces is found in the bag" in {
-    val bagDir = makeBagDirForRefbagText("                           ")
+    val bagDir = makeBagDirForRefbagTests("                           ")
     val bagId = BagId(UUID.randomUUID())
     bagProcessing.getReferenceBags(bagDir.path, bagId) should matchPattern {
       case Failure(e: InvalidBagException) if e == InvalidBagException(bagId, "the bag contains an empty refbags.txt") =>
@@ -229,12 +229,12 @@ class BagProcessingSpec extends BagProcessingFixture {
   }
 
   it should "succeed a non-empty refbag.txt is found in the bag" in {
-    val bagDir = makeBagDirForRefbagText("refbag content")
+    val bagDir = makeBagDirForRefbagTests("refbag content")
     val bagId = BagId(UUID.randomUUID())
     bagProcessing.getReferenceBags(bagDir.path, bagId) shouldBe a[Success[_]]
   }
 
-  private def makeBagDirForRefbagText(content: String): File = {
+  private def makeBagDirForRefbagTests(content: String): File = {
     val bagDir = File(testDir.toString) / "refbag"
     bagDir.createDirectories()
     bagDir.clear()
