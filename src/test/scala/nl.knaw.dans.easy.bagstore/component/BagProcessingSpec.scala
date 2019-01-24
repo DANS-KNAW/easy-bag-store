@@ -20,6 +20,7 @@ import java.net.URI
 import java.nio.file.Paths
 import java.util.UUID
 
+import better.files.File
 import nl.knaw.dans.easy.bagstore._
 import org.apache.commons.io.FileUtils
 
@@ -199,5 +200,54 @@ class BagProcessingSpec extends BagProcessingFixture {
         testBagUnprunedC.resolve("data/z").toFile shouldNot exist
       }
     }
+  }
+
+  "getReferenceBags" should "fail when an empty refbag.txt is found in the bag" in {
+    // first create dir with empty refbag.txt
+    val bagDir = makeBagDirForRefbagText("")
+
+    val bagId = BagId(UUID.randomUUID())
+    bagProcessing.getReferenceBags(bagDir.path, bagId) should matchPattern {
+      case Failure(e: InvalidBagException) if e == InvalidBagException(bagId, "the bag contains an empty refbags.txt") =>
+    }
+  }
+
+  it should "succeed if no refbag.txt is found in the bag" in {
+    val bagDir = File(testDir.toString) / "refbag"
+    bagDir.createDirectories()
+    bagDir.clear()
+    val bagId = BagId(UUID.randomUUID())
+    bagProcessing.getReferenceBags(bagDir.path, bagId) shouldBe a[Success[_]]
+  }
+
+  it should "fail when an refbag.txt with only whitespaces is found in the bag" in {
+    val bagDir = makeBagDirForRefbagText("                           ")
+    val bagId = BagId(UUID.randomUUID())
+    bagProcessing.getReferenceBags(bagDir.path, bagId) should matchPattern {
+      case Failure(e: InvalidBagException) if e == InvalidBagException(bagId, "the bag contains an empty refbags.txt") =>
+    }
+  }
+
+  it should "succeed a non-empty refbag.txt is found in the bag" in {
+    val bagDir = makeBagDirForRefbagText("refbag content")
+    val bagId = BagId(UUID.randomUUID())
+    bagProcessing.getReferenceBags(bagDir.path, bagId) shouldBe a[Success[_]]
+  }
+
+  private def makeBagDirForRefbagText(content: String): File = {
+    val bagDir = File(testDir.toString) / "refbag"
+    bagDir.createDirectories()
+    bagDir.clear()
+
+    (bagDir / "refbags.txt")
+      .createFile()
+      .write(content)
+
+    (bagDir / "bagit.txt")
+      .createFile()
+      .write(
+        """BagIt-Version: 0.97
+          |Tag-File-Character-Encoding: UTF-8""".stripMargin)
+    bagDir
   }
 }

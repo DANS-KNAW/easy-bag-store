@@ -20,7 +20,7 @@ import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.attribute.{ BasicFileAttributes, PosixFilePermission }
 import java.nio.file.{ FileVisitResult, FileVisitor, Files, Path }
-import java.util.{ UUID, Set => JSet }
+import java.util.{ Set => JSet }
 
 import net.lingala.zip4j.core.ZipFile
 import net.lingala.zip4j.exception.ZipException
@@ -188,7 +188,7 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
           _ = Files.deleteIfExists(tempRefbags)
           _ = Files.move(refbags, tempRefbags)
           _ = assert(!Files.exists(refbags), s"$refbags should have been moved to $tempRefbags, however, it appears to still be present here")
-          _ <-  // remove refbags.txt from all tagmanifests (if it was present there)
+          _ <- // remove refbags.txt from all tagmanifests (if it was present there)
             bagFacade.removeFromTagManifests(bagDir, "refbags.txt")
         } yield Some(tempRefbags)
       }
@@ -268,7 +268,7 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
   }
   private def assertRefbagsFileIsNotEmpty(bagId: BagId, refbags: Path): Try[Unit] = Try {
     if (managed(Source.fromFile(refbags.toFile)).acquireAndGet(_.mkString.trim.isEmpty)) {
-      throw InvalidBagException(bagId,"the bag contains an empty refbags.txt")
+      throw InvalidBagException(bagId, "the bag contains an empty refbags.txt")
     }
   }
 }
