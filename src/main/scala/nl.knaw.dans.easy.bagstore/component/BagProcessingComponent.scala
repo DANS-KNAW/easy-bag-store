@@ -188,8 +188,8 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
           _ = Files.deleteIfExists(tempRefbags)
           _ = Files.move(refbags, tempRefbags)
           _ = assert(!Files.exists(refbags), s"$refbags should have been moved to $tempRefbags, however, it appears to still be present here")
-          _ <- // remove refbags.txt from all tagmanifests (if it was present there)
-            bagFacade.removeFromTagManifests(bagDir, "refbags.txt")
+          // remove refbags.txt from all tagmanifests (if it was present there)
+          _ <- bagFacade.removeFromTagManifests(bagDir, "refbags.txt")
         } yield Some(tempRefbags)
       }
       else Success(None)
@@ -266,6 +266,7 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       bagDirs.map(bagFacade.getSupportedManifestAlgorithms).collectResults.map(_.toSet)
     }
   }
+
   private def assertRefbagsFileIsNotEmpty(bagId: BagId, refbags: Path): Try[Unit] = Try {
     if (managed(Source.fromFile(refbags.toFile)).acquireAndGet(_.mkString.trim.isEmpty)) {
       throw InvalidBagException(bagId, "the bag contains an empty refbags.txt")
