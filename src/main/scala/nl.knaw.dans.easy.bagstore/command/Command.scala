@@ -62,7 +62,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
       cmd.bagId.toOption
         .map(s => for {
           itemId <- ItemId.fromString(s)
-          files <- bagStores.enumFiles(itemId, !cmd.excludeDirectories(), bagStoreBaseDir)
+          files <- bagStores.enumFiles(itemId, !cmd.excludeDirectories(), bagStoreBaseDir, cmd.forceInactive())
         } yield files.foreach(println(_)))
         .getOrElse {
           val includeActive = cmd.all() || !cmd.inactive()

@@ -47,7 +47,7 @@ trait CommandLineOptionsComponent {
          |${ _________ }| add [-m,--move] [-u,--uuid <uuid>] <bag>
          |${ _________ }| get [-d,--directory <dir>] [-f, --force-inactive] [-s,--skip-completion] <item-id>
          |${ _________ }| stream [-f, --force-inactive] [-f,--format zip|tar] <item-id>
-         |${ _________ }| enum [[-a,--all] [-e,--exclude-directories] [-i,--inactive] <bag-id>]
+         |${ _________ }| enum [[-a,--all] [-e,--exclude-directories] [-i,--inactive] [-f, --force-inactive] <bag-id>]
          |${ _________ }| locate [-f,--file-data-location] <item-id>
          |${ _________ }| deactivate <bag-id>
          |${ _________ }| reactivate <bag-id>
@@ -136,6 +136,8 @@ trait CommandLineOptionsComponent {
         descr = "enumerate all bags, including inactive ones")
       val excludeDirectories: ScallopOption[Boolean] = opt(name = "exclude-directories",
         descr = "enumerate only regular files, not directories")
+      val forceInactive: ScallopOption[Boolean] = opt(name = "force-inactive",
+        descr = "force retrieval of an inactive item (by default inactive items are not retrieved)")
       val bagId: ScallopOption[String] = trailArg[String](name = "<bagId>",
         descr = "bag of which to enumerate the Files",
         required = false)
