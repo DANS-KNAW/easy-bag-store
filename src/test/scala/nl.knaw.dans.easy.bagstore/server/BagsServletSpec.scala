@@ -236,17 +236,24 @@ class BagsServletSpec extends TestSupportFixture
     }
   }
 
-  //TODO are these two cases below correct?
   // this calls enumFiles
-  it should "not fail when done on an inactive/ hidden bag when headers text/plain is provided" in {
+  it should " fail when done on an inactive/ hidden bag when headers text/plain is provided" in {
     val bagID = "01000000-0000-0000-0000-000000000001"
     bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
     get(s"/$bagID", headers = Map("Accept" -> "text/plain")) {
-      status shouldBe 200
+      status shouldBe 410
     }
   }
 
   // this calls copyOutputStream
+  it should "fail, returning a 404, when done on non existing item in an inactive/ hidden bag when headers text/plain is provided" in {
+    val bagID = "01000000-0000-0000-0000-000000000001"
+    bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
+    get(s"/$bagID/bag-info2.txt", headers = Map("Accept" -> "text/plain")) {
+      status shouldBe 404
+    }
+  }
+
   it should "fail when done on an item in an inactive/ hidden bag when headers text/plain is provided" in {
     val bagID = "01000000-0000-0000-0000-000000000001"
     bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]

@@ -54,7 +54,7 @@ trait BagStoreComponent {
 
     private def isHidden(bagId: BagId): Try[Boolean] = fileSystem.toLocation(bagId).map(Files.isHidden)
 
-    def enumFiles(itemId: ItemId, includeDirectories: Boolean = true): Try[Seq[FileId]] = {
+    def enumFiles(itemId: ItemId, includeDirectories: Boolean = true, forceInactive: Boolean = false): Try[Seq[FileId]] = {
       trace(itemId)
       val bagId = BagId(itemId.uuid)
 
@@ -66,6 +66,7 @@ trait BagStoreComponent {
       for {
         _ <- fileSystem.checkBagExists(bagId)
         bagDir <- fileSystem.toLocation(bagId)
+        _ <- validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive )
         payloadFiles <- bagFacade.getPayloadFilePaths(bagDir).map(_.map(bagDir.relativize))
         payloadFileIds <- Try { payloadFiles.map(FileId(bagId, _)) }
         payloadDirs <- Try {
@@ -159,7 +160,7 @@ trait BagStoreComponent {
         for {
           bagDir <- fileSystem.toLocation(bagId)
           itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
-          fileIds <- enumFiles(itemId)
+          fileIds <- enumFiles(itemId, forceInactive = true) // forceInactive = true, the check if the bag is inactive will be done later on
           fileSpecs <- fileIds.filter(!_.isDirectory).map {
             fileId =>
               fileSystem
@@ -169,7 +170,7 @@ trait BagStoreComponent {
           dirSpecs <- createDirSpecs(bagDir, itemPath, fileIds)
           allEntries <- Try { (dirSpecs ++ fileSpecs).sortBy(_.entryPath) }
           _ <- if (allEntries.isEmpty) Failure(NoSuchItemException(itemId))
-               else validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive) // if the bag is hidden, also don't return items from the bag
+               else validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive) // if the bag is hidden, also don't return a specific item from the bag
           _ <- archiveStreamType.map { st =>
             new ArchiveStream(st, allEntries).writeTo(outputStream)
           }.getOrElse {
