@@ -228,6 +228,24 @@ class BagStoresSpec extends TestSupportFixture
     }
   }
 
+  it should "fail if the bag was marked as inactive" in {
+    implicit val baseDir: BaseDir = bagStore1.baseDir
+    bagStore1.add(testBagMinimal) should matchPattern {
+      case Success(bagId: BagId) if
+      bagStore1.deactivate(bagId).isSuccess &&
+        bagStore1.enumFiles(bagId).equals(Failure(InactiveException(bagId, false))) =>
+    }
+  }
+
+  it should "not if the bag was marked as inactive, when forceActive = true" in {
+    implicit val baseDir: BaseDir = bagStore1.baseDir
+    bagStore1.add(testBagMinimal) should matchPattern {
+      case Success(bagId: BagId) if
+      bagStore1.deactivate(bagId).isSuccess &&
+        bagStore1.enumFiles(bagId, forceInactive = true).isSuccess =>
+    }
+  }
+
   /*
    * If there are multiple payload manifests the BagIt specs do not require that they all contain ALL the payload files. Therefore, it is possible that
    * there are two payload manifests, each of contains a part of the payload file paths. The enum operation should still handle this correctly. The
