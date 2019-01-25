@@ -159,7 +159,6 @@ trait BagStoreComponent {
         for {
           bagDir <- fileSystem.toLocation(bagId)
           itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
-          _ <- validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive) // if the bag is hidden, also don't return items from the bag
           fileIds <- enumFiles(itemId)
           fileSpecs <- fileIds.filter(!_.isDirectory).map {
             fileId =>
@@ -167,13 +166,10 @@ trait BagStoreComponent {
                 .toRealLocation(fileId)
                 .map(source => createEntrySpec(Some(source), bagDir, itemPath, fileId))
           }.collectResults
-          dirSpecs <- Try {
-            fileIds.filter(_.isDirectory).map {
-              dir =>
-                createEntrySpec(None, bagDir, itemPath, dir)
-            }
-          }
+          dirSpecs <- createDirSpecs(bagDir, itemPath, fileIds)
           allEntries <- Try { (dirSpecs ++ fileSpecs).sortBy(_.entryPath) }
+          _ <- if (allEntries.isEmpty) Failure(NoSuchItemException(itemId))
+               else validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive) // if the bag is hidden, also don't return items from the bag
           _ <- archiveStreamType.map { st =>
             new ArchiveStream(st, allEntries).writeTo(outputStream)
           }.getOrElse {
@@ -184,11 +180,14 @@ trait BagStoreComponent {
                   Files.copy(path, outputStream)
                 })
             }
-            else if (allEntries.isEmpty) Failure(NoSuchItemException(itemId))
             else Failure(NoRegularFileException(itemId))
           }
         } yield ()
       }
+    }
+
+    private def createDirSpecs(bagDir: BaseDir, itemPath: BaseDir, fileIds: Seq[FileId]): Try[Seq[EntrySpec]] = Try {
+      fileIds.filter(_.isDirectory).map(createEntrySpec(None, bagDir, itemPath, _))
     }
 
     private def validateThatBagDirIsNotHidden(bagDirPath: Path, itemId: ItemId, forceInactive: Boolean): Try[Unit] = Try {

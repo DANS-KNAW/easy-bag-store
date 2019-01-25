@@ -306,7 +306,7 @@ class BagStoresSpec extends TestSupportFixture
     bagStores.copyToStream(bagID, Some(ArchiveStreamType.TAR), baos, Some(baseDir)) shouldBe Failure(InactiveException(bagID))
   }
 
-  it should "a stream containing the content of the files if the bag is made inactive beforehand, but the forceInactive param is given" in {
+  it should "return a stream containing the content of all the files if the bag is made inactive beforehand, but the forceInactive param is given" in {
     implicit val baseDir: BaseDir = store1
     val bagID = bagStore1.add(testBagMinimal).getOrElse(fail())
     bagStores.deactivate(bagID) shouldBe a[Success[_]]

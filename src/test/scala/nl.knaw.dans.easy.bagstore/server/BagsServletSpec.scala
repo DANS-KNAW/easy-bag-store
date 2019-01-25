@@ -213,18 +213,26 @@ class BagsServletSpec extends TestSupportFixture
     val bagID = "01000000-0000-0000-0000-000000000001"
     bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
     get(s"/$bagID") {
-      println(body)
       status shouldBe 410
       body.lines.mkString should include(s"Tried to retrieve an inactive bag: $bagID")
     }
   }
 
-  it should "fail when done on an item within an inactive/ hidden bag" in {
+  it should "fail, returning a 410, when done on an item within an inactive/ hidden bag" in {
     val bagID = "01000000-0000-0000-0000-000000000001"
     bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
-    get(s"/$bagID/bag-info2.txt") {
+    get(s"/$bagID/bag-info.txt") {
       status shouldBe 410
       body.lines.mkString should include(s"Tried to retrieve an inactive bag: $bagID")
+    }
+  }
+
+  it should "return a 404 non-existing item within an inactive/ hidden bag is requested" in {
+    val bagID = "01000000-0000-0000-0000-000000000001"
+    bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
+    get(s"/$bagID/bag-info6.txt") {
+      status shouldBe 404
+      body.lines.mkString should include(s"Item $bagID/bag-info6.txt not found")
     }
   }
 
@@ -242,7 +250,7 @@ class BagsServletSpec extends TestSupportFixture
   it should "fail when done on an item in an inactive/ hidden bag when headers text/plain is provided" in {
     val bagID = "01000000-0000-0000-0000-000000000001"
     bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
-    get(s"/$bagID/bag-info2.txt", headers = Map("Accept" -> "text/plain")) {
+    get(s"/$bagID/bag-info.txt", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 410
       body.lines.mkString should include(s"Tried to retrieve an inactive bag: $bagID")
     }
