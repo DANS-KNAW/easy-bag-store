@@ -140,8 +140,8 @@ class BagStoresSpec extends TestSupportFixture
   }
 
   it should "return empty stream if BagStore is empty" in {
-    inside(bagStores.enumBags().map(_.toList)) {
-      case Success(bagIds) => bagIds shouldBe empty
+    bagStores.enumBags().map(_.toList) should matchPattern {
+      case Success(bagIds: List[_]) if bagIds.isEmpty  =>
     }
   }
 
@@ -233,7 +233,7 @@ class BagStoresSpec extends TestSupportFixture
     bagStore1.add(testBagMinimal) should matchPattern {
       case Success(bagId: BagId) if
       bagStore1.deactivate(bagId).isSuccess &&
-        bagStore1.enumFiles(bagId).equals(Failure(InactiveException(bagId, false))) =>
+        bagStore1.enumFiles(bagId).equals(Failure(InactiveException(bagId))) =>
     }
   }
 
