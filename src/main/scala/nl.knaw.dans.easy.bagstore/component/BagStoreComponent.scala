@@ -189,7 +189,7 @@ trait BagStoreComponent {
       fileIds.collect { case fileId if fileId.isDirectory => createEntrySpec(None, bagDir, itemPath, fileId) }
     }
 
-    private def copyToArchiveStream(itemId: ItemId, outputStream: => OutputStream)(entries: () => Seq[EntrySpec])(archiveStreamType: ArchiveStreamType) = {
+    private def copyToArchiveStream(itemId: ItemId, outputStream: => OutputStream)(entries: () => Seq[EntrySpec])(archiveStreamType: ArchiveStreamType) : Try[Unit] = {
       new ArchiveStream(archiveStreamType, entries()).writeTo(outputStream)
     }
 
