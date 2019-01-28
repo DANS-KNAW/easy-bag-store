@@ -160,30 +160,44 @@ trait BagStoreComponent {
         for {
           bagDir <- fileSystem.toLocation(bagId)
           itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
-          fileIds <- enumFiles(itemId, forceInactive = true) // forceInactive = true, the check if the bag is inactive will be done later on
-          fileSpecs <- fileIds.filter(!_.isDirectory).map {
-            fileId =>
-              fileSystem
-                .toRealLocation(fileId)
-                .map(source => createEntrySpec(Some(source), bagDir, itemPath, fileId))
-          }.collectResults
-          dirSpecs <- createDirSpecs(bagDir, itemPath, fileIds)
-          allEntries <- Try { (dirSpecs ++ fileSpecs).sortBy(_.entryPath) }
-          _ <- if (allEntries.isEmpty) Failure(NoSuchItemException(itemId))
-               else validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive) // if the bag is hidden, also don't return a specific item from the bag
-          _ <- archiveStreamType.map { st =>
-            new ArchiveStream(st, allEntries).writeTo(outputStream)
-          }.getOrElse {
-            if (allEntries.size == 1) Try {
-              fileSystem.toRealLocation(fileIds.head)
-                .map(f = path => {
-                  debug(s"Copying $path to outputstream")
-                  Files.copy(path, outputStream)
-                })
-            }
-            else Failure(NoRegularFileException(itemId))
-          }
+
+          fileIds <- enumFiles(itemId)
+          fileSpecs <- createFileSpecs(bagDir, itemPath, fileIds)
+          dirSpecs <- createDirectorySpecs(bagDir, itemPath, fileIds)
+          allEntriesCount = fileSpecs.length + dirSpecs.length
+          allEntries = () => (dirSpecs ++ fileSpecs).sortBy(_.entryPath) // only concat and sort if necessary, hence as a function here
+          _ <- archiveStreamType.map(copyToArchiveStream(itemId, allEntriesCount, outputStream)(allEntries))
+            .getOrElse(copyToOutputStream(itemId, fileIds, allEntriesCount, outputStream))
         } yield ()
+      }
+    }
+
+    private def createFileSpecs(bagDir: BaseDir, itemPath: BaseDir, fileIds: Seq[FileId]): Try[Seq[EntrySpec]] = {
+      fileIds.collect {
+        case fileId if !fileId.isDirectory =>
+          fileSystem.toRealLocation(fileId)
+            .map(source => createEntrySpec(Some(source), bagDir, itemPath, fileId))
+      }.collectResults
+    }
+
+    private def createDirectorySpecs(bagDir: BaseDir, itemPath: BaseDir, fileIds: Seq[FileId]): Try[Seq[EntrySpec]] = Try {
+      fileIds.collect { case fileId if fileId.isDirectory => createEntrySpec(None, bagDir, itemPath, fileId) }
+    }
+
+    private def copyToArchiveStream(itemId: ItemId, entriesCount: Int, outputStream: => OutputStream)(entries: () => Seq[EntrySpec])(archiveStreamType: ArchiveStreamType) = {
+      if (entriesCount == 0) Failure(NoSuchItemException(itemId))
+      else new ArchiveStream(archiveStreamType, entries()).writeTo(outputStream)
+    }
+
+    private def copyToOutputStream(itemId: ItemId, fileIds: Seq[FileId], entriesCount: Int, outputStream: => OutputStream) = {
+      entriesCount match {
+        case 0 => Failure(NoSuchItemException(itemId))
+        case 1 => fileSystem.toRealLocation(fileIds.head)
+          .map(path => {
+            debug(s"Copying $path to outputstream")
+            Files.copy(path, outputStream)
+          })
+        case _ => Failure(NoRegularFileException(itemId))
       }
     }
 
