@@ -306,7 +306,7 @@ class BagStoresSpec extends TestSupportFixture
     }
   }
 
-  "copyToStream" should "a stream containing the content of the files" in {
+  "copyToStream" should "return a stream containing the content of the files" in {
     implicit val baseDir: BaseDir = store1
     val bagID = bagStore1.add(testBagMinimal).getOrElse(fail())
     val baos = new ByteArrayOutputStream()
