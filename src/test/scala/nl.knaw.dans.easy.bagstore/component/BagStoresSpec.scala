@@ -329,8 +329,7 @@ class BagStoresSpec extends TestSupportFixture
     val bagID = bagStore1.add(testBagMinimal).getOrElse(fail())
     bagStores.deactivate(bagID) shouldBe a[Success[_]]
     val baos = new ByteArrayOutputStream()
-    val forceInactive = true // explicit declared for clarity
-    bagStores.copyToStream(bagID, Some(ArchiveStreamType.TAR), baos, Some(baseDir), forceInactive) shouldBe a[Success[_]]
+    bagStores.copyToStream(bagID, Some(ArchiveStreamType.TAR), baos, Some(baseDir), forceInactive = true) shouldBe a[Success[_]]
     val content = baos.toString
     content should include("9e5ad981e0d29adc278f6a294b8c2aca  bagit.txt")
     content should include("ae4573c51c28ac09546cd7fc55422ae4  manifest-md5.txt")

@@ -66,7 +66,7 @@ trait BagStoreComponent {
       for {
         _ <- fileSystem.checkBagExists(bagId)
         bagDir <- fileSystem.toLocation(bagId)
-        _ <- validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive )
+        _ <- validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive)
         payloadFiles <- bagFacade.getPayloadFilePaths(bagDir).map(_.map(bagDir.relativize))
         payloadFileIds <- Try { payloadFiles.map(FileId(bagId, _)) }
         payloadDirs <- Try {
@@ -160,16 +160,21 @@ trait BagStoreComponent {
         for {
           bagDir <- fileSystem.toLocation(bagId)
           itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
-
-          fileIds <- enumFiles(itemId)
+          fileIds <- enumFiles(itemId, forceInactive = true) // validation that the bagdir is active will be done later one
           fileSpecs <- createFileSpecs(bagDir, itemPath, fileIds)
           dirSpecs <- createDirectorySpecs(bagDir, itemPath, fileIds)
           allEntriesCount = fileSpecs.length + dirSpecs.length
           allEntries = () => (dirSpecs ++ fileSpecs).sortBy(_.entryPath) // only concat and sort if necessary, hence as a function here
-          _ <- archiveStreamType.map(copyToArchiveStream(itemId, allEntriesCount, outputStream)(allEntries))
+          _ <- validateBagNotHiddenAndFileIsFound(itemId, allEntriesCount, bagDir, forceInactive)
+          _ <- archiveStreamType.map(copyToArchiveStream(itemId, outputStream)(allEntries))
             .getOrElse(copyToOutputStream(itemId, fileIds, allEntriesCount, outputStream))
         } yield ()
       }
+    }
+
+    private def validateBagNotHiddenAndFileIsFound(itemId: ItemId, entriesCount: Int, bagDir: BaseDir, forceInactive: Boolean): Try[Unit] = {
+      if (entriesCount == 0) Failure(NoSuchItemException(itemId))
+      else validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive) // if the bag is hidden, also don't return a specific item from the bag
     }
 
     private def createFileSpecs(bagDir: BaseDir, itemPath: BaseDir, fileIds: Seq[FileId]): Try[Seq[EntrySpec]] = {
@@ -184,12 +189,11 @@ trait BagStoreComponent {
       fileIds.collect { case fileId if fileId.isDirectory => createEntrySpec(None, bagDir, itemPath, fileId) }
     }
 
-    private def copyToArchiveStream(itemId: ItemId, entriesCount: Int, outputStream: => OutputStream)(entries: () => Seq[EntrySpec])(archiveStreamType: ArchiveStreamType) = {
-      if (entriesCount == 0) Failure(NoSuchItemException(itemId))
-      else new ArchiveStream(archiveStreamType, entries()).writeTo(outputStream)
+    private def copyToArchiveStream(itemId: ItemId, outputStream: => OutputStream)(entries: () => Seq[EntrySpec])(archiveStreamType: ArchiveStreamType) = {
+      new ArchiveStream(archiveStreamType, entries()).writeTo(outputStream)
     }
 
-    private def copyToOutputStream(itemId: ItemId, fileIds: Seq[FileId], entriesCount: Int, outputStream: => OutputStream) = {
+    private def copyToOutputStream(itemId: ItemId, fileIds: Seq[FileId], entriesCount: Int, outputStream: => OutputStream) : Try[Long] = {
       entriesCount match {
         case 0 => Failure(NoSuchItemException(itemId))
         case 1 => fileSystem.toRealLocation(fileIds.head)
@@ -199,10 +203,6 @@ trait BagStoreComponent {
           })
         case _ => Failure(NoRegularFileException(itemId))
       }
-    }
-
-    private def createDirSpecs(bagDir: BaseDir, itemPath: BaseDir, fileIds: Seq[FileId]): Try[Seq[EntrySpec]] = Try {
-      fileIds.filter(_.isDirectory).map(createEntrySpec(None, bagDir, itemPath, _))
     }
 
     private def validateThatBagDirIsNotHidden(bagDirPath: Path, itemId: ItemId, forceInactive: Boolean): Try[Unit] = Try {
@@ -295,12 +295,13 @@ trait BagStoreComponent {
     }
   }
 
-  private def validatePathAndResolveResultDirectory(itemId: ItemId, output: BaseDir, forceInactive: Boolean, path: BaseDir) = {
+  private def validatePathAndResolveResultDirectory(itemId: ItemId, output: BaseDir, forceInactive: Boolean, path: BaseDir): Path = {
     if (Files.isHidden(path) && !forceInactive) throw InactiveException(itemId, forceInactive)
     val resultDir = output.resolve(path.getFileName).toAbsolutePath
     if (Files.exists(resultDir)) throw OutputAlreadyExists(resultDir)
     resultDir
   }
+
   object BagStore {
     def apply(dir: BaseDir): BagStore = new BagStore {
       implicit val baseDir: BaseDir = dir
