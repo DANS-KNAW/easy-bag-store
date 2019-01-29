@@ -140,8 +140,8 @@ class BagStoresSpec extends TestSupportFixture
   }
 
   it should "return empty stream if BagStore is empty" in {
-    bagStores.enumBags().map(_.toList) should matchPattern {
-      case Success(bagIds: List[_]) if bagIds.isEmpty  =>
+    bagStores.enumBags() should matchPattern {
+      case Success(Seq()) =>
     }
   }
 
@@ -230,19 +230,21 @@ class BagStoresSpec extends TestSupportFixture
 
   it should "fail if the bag was marked as inactive" in {
     implicit val baseDir: BaseDir = bagStore1.baseDir
-    bagStore1.add(testBagMinimal) should matchPattern {
-      case Success(bagId: BagId) if
-      bagStore1.deactivate(bagId).isSuccess &&
-        bagStore1.enumFiles(bagId).equals(Failure(InactiveException(bagId))) =>
+    inside(bagStore1.add(testBagMinimal)) {
+      case Success(bagId: BagId) =>
+        bagStore1.deactivate(bagId) shouldBe a[Success[_]]
+        bagStore1.enumFiles(bagId) should matchPattern {
+          case Failure(InactiveException(`bagId`, false)) =>
+        }
     }
   }
 
   it should "not if the bag was marked as inactive, when forceActive = true" in {
     implicit val baseDir: BaseDir = bagStore1.baseDir
-    bagStore1.add(testBagMinimal) should matchPattern {
-      case Success(bagId: BagId) if
-      bagStore1.deactivate(bagId).isSuccess &&
-        bagStore1.enumFiles(bagId, forceInactive = true).isSuccess =>
+    inside(bagStore1.add(testBagMinimal)) {
+      case Success(bagId: BagId) =>
+        bagStore1.deactivate(bagId) shouldBe a[Success[_]]
+        bagStore1.enumFiles(bagId, forceInactive = true) shouldBe a[Success[_]]
     }
   }
 

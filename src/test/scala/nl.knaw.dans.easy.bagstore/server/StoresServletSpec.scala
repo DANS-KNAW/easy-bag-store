@@ -344,7 +344,7 @@ class StoresServletSpec extends TestSupportFixture
     bagStore1.deactivate(bagId) shouldBe a[Success[_]]
     get(s"/store1/bags/${ bagId }", params = Map.empty, headers = Map("Accept" -> "application/zip")) {
       status shouldBe 410
-      body shouldBe InactiveException(bagId, forceInactive = false).getMessage
+      body shouldBe InactiveException(bagId).getMessage
     }
   }
 
@@ -353,7 +353,7 @@ class StoresServletSpec extends TestSupportFixture
     bagStore1.deactivate(bagId) shouldBe a[Success[_]]
     get(s"/store1/bags/${ bagId }/data/y", params = Map.empty, headers = Map("Accept" -> "application/zip")) {
       status shouldBe 410
-      body shouldBe InactiveException(bagId, forceInactive = false).getMessage
+      body shouldBe InactiveException(bagId).getMessage
     }
   }
 
@@ -381,14 +381,15 @@ class StoresServletSpec extends TestSupportFixture
     putBag(uuid, testBagUnprunedA)
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), basicAuthentication) {
       status shouldBe 400
-      body should include(s"$uuid already exists in BagStore store1 (bag-ids must be globally unique)")
+      body shouldBe s"$uuid already exists in BagStore store1 (bag-ids must be globally unique)"
     }
-  } 
-  
+  }
+
   it should "should fail and return a badrequest if there are multiple files in the root directory of the zipped bag" in {
     val uuid = "11111111-1111-1111-1111-111111111114"
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedInvalid), basicAuthentication)  {
-        status shouldBe 400
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedInvalid), basicAuthentication) {
+      status shouldBe 400
+      body shouldBe "There must be exactly one file in the root directory of the zipped bag, found 2"
     }
   }
 

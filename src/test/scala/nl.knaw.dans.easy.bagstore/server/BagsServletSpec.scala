@@ -214,7 +214,7 @@ class BagsServletSpec extends TestSupportFixture
     bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
     get(s"/$bagID") {
       status shouldBe 410
-      body.lines.mkString should include(s"Tried to retrieve an inactive bag: $bagID")
+      body shouldBe s"Tried to retrieve an inactive bag: $bagID with toggle forceInactive = false"
     }
   }
 
@@ -223,7 +223,7 @@ class BagsServletSpec extends TestSupportFixture
     bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
     get(s"/$bagID/bag-info.txt") {
       status shouldBe 410
-      body.lines.mkString should include(s"Tried to retrieve an inactive bag: $bagID")
+      body shouldBe s"Tried to retrieve an inactive bag: $bagID with toggle forceInactive = false"
     }
   }
 
@@ -232,7 +232,7 @@ class BagsServletSpec extends TestSupportFixture
     bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
     get(s"/$bagID/bag-info6.txt") {
       status shouldBe 404
-      body.lines.mkString should include(s"Item $bagID/bag-info6.txt not found")
+      body shouldBe s"Item $bagID/bag-info6.txt not found"
     }
   }
 
@@ -242,6 +242,7 @@ class BagsServletSpec extends TestSupportFixture
     bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
     get(s"/$bagID", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 410
+      body shouldBe s"Tried to retrieve an inactive bag: $bagID with toggle forceInactive = false"
     }
   }
 
@@ -251,6 +252,7 @@ class BagsServletSpec extends TestSupportFixture
     bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
     get(s"/$bagID/bag-info2.txt", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 404
+      body shouldBe s"Item $bagID/bag-info2.txt not found"
     }
   }
 
@@ -259,7 +261,7 @@ class BagsServletSpec extends TestSupportFixture
     bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
     get(s"/$bagID/bag-info.txt", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 410
-      body.lines.mkString should include(s"Tried to retrieve an inactive bag: $bagID")
+      body shouldBe s"Tried to retrieve an inactive bag: $bagID with toggle forceInactive = false"
     }
   }
 }

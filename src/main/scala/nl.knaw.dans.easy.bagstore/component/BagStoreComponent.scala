@@ -165,16 +165,17 @@ trait BagStoreComponent {
           dirSpecs <- createDirectorySpecs(bagDir, itemPath, fileIds)
           allEntriesCount = fileSpecs.length + dirSpecs.length
           allEntries = () => (dirSpecs ++ fileSpecs).sortBy(_.entryPath) // only concat and sort if necessary, hence as a function here
-          _ <- validateBagNotHiddenAndFileIsFound(itemId, allEntriesCount, bagDir, forceInactive)
-          _ <- archiveStreamType.map(copyToArchiveStream(itemId, outputStream)(allEntries))
+          _ <- fileIsFound(allEntriesCount, itemId)
+          _ <- validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive) // if the bag is hidden, also don't return a specific item from the bag
+          _ <- archiveStreamType.map(copyToArchiveStream(outputStream)(allEntries))
             .getOrElse(copyToOutputStream(itemId, fileIds, allEntriesCount, outputStream))
         } yield ()
       }
     }
 
-    private def validateBagNotHiddenAndFileIsFound(itemId: ItemId, entriesCount: Int, bagDir: BaseDir, forceInactive: Boolean): Try[Unit] = {
+    private def fileIsFound(entriesCount: Int, itemId: ItemId): Try[Unit] = {
       if (entriesCount == 0) Failure(NoSuchItemException(itemId))
-      else validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive) // if the bag is hidden, also don't return a specific item from the bag
+      else Success(())
     }
 
     private def createFileSpecs(bagDir: BaseDir, itemPath: BaseDir, fileIds: Seq[FileId]): Try[Seq[EntrySpec]] = {
@@ -189,7 +190,7 @@ trait BagStoreComponent {
       fileIds.collect { case fileId if fileId.isDirectory => createEntrySpec(None, bagDir, itemPath, fileId) }
     }
 
-    private def copyToArchiveStream(itemId: ItemId, outputStream: => OutputStream)(entries: () => Seq[EntrySpec])(archiveStreamType: ArchiveStreamType) : Try[Unit] = {
+    private def copyToArchiveStream(outputStream: => OutputStream)(entries: () => Seq[EntrySpec])(archiveStreamType: ArchiveStreamType) : Try[Unit] = {
       new ArchiveStream(archiveStreamType, entries()).writeTo(outputStream)
     }
 
