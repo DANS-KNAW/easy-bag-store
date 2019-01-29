@@ -29,7 +29,7 @@ import scala.io.Source
 import scala.util.{ Failure, Success }
 
 class BagProcessingSpec extends BagProcessingFixture
-with BeforeAndAfter {
+  with BeforeAndAfter {
 
   FileUtils.copyDirectory(
     Paths.get("src/test/resources/bags/basic-sequence-pruned").toFile,
@@ -53,7 +53,7 @@ with BeforeAndAfter {
   private val localBaseUri: URI = fileSystem.localBaseUri
   implicit val baseDir: BaseDir = bagStore.baseDir
 
-  override def beforeEach(): Unit =  {
+  override def beforeEach(): Unit = {
     val refBagDir = File(testDir.toString) / "refbag"
     refBagDir.createDirectories()
     refBagDir.clear()
