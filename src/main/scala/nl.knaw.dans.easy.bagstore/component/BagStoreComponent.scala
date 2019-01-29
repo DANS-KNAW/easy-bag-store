@@ -193,7 +193,7 @@ trait BagStoreComponent {
       new ArchiveStream(archiveStreamType, entries()).writeTo(outputStream)
     }
 
-    private def copyToOutputStream(itemId: ItemId, fileIds: Seq[FileId], entriesCount: Int, outputStream: => OutputStream) : Try[Long] = {
+    private def copyToOutputStream(itemId: ItemId, fileIds: Seq[FileId], entriesCount: Int, outputStream: => OutputStream): Try[Unit] = {
       entriesCount match {
         case 0 => Failure(NoSuchItemException(itemId))
         case 1 => fileSystem.toRealLocation(fileIds.head)
