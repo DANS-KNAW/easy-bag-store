@@ -224,7 +224,7 @@ class BagProcessingSpec extends BagProcessingFixture {
     val bagDir = makeBagDirForRefbagTests("                           ")
     val bagId = BagId(UUID.randomUUID())
     bagProcessing.getReferenceBags(bagDir.path, bagId) should matchPattern {
-      case Failure(e: InvalidBagException) if e == InvalidBagException(bagId, "the bag contains an empty refbags.txt") =>
+      case Failure(InvalidBagException(`bagId`, "the bag contains an empty refbags.txt")) =>
     }
   }
 
@@ -240,11 +240,9 @@ class BagProcessingSpec extends BagProcessingFixture {
     bagDir.clear()
 
     (bagDir / "refbags.txt")
-      .createFile()
       .write(content)
 
     (bagDir / "bagit.txt")
-      .createFile()
       .write(
         """BagIt-Version: 0.97
           |Tag-File-Character-Encoding: UTF-8""".stripMargin)
