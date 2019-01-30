@@ -198,11 +198,6 @@ paths:
         - $ref: '#/components/parameters/Uuid'
       requestBody:
         content:
-          application/tar:
-            schema:
-              description: the bag to add, serialized as TAR file
-              type: string
-              format: binary
           application/zip:
             schema:
               description: the bag to add, serialized as ZIP file
