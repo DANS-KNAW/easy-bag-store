@@ -526,7 +526,7 @@ class StoresServletSpec extends TestSupportFixture
     val bagId = BagId(UUID.fromString(uuid))
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedEmptyRefBag), basicAuthentication) {
       status shouldBe 400
-      body should include(InvalidBagException(bagId, "the bag contains an empty refbags.txt").getMessage)
+      body shouldBe InvalidBagException(bagId, "the bag contains an empty refbags.txt").getMessage
     }
   }
 
@@ -537,7 +537,7 @@ class StoresServletSpec extends TestSupportFixture
     val bagId = BagId(UUID.fromString(uuid))
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedEmptyRefBag), basicAuthentication) {
       status shouldBe 400
-      body should include(s"Invalid UUID string: $content")
+      body shouldBe s"Invalid UUID string: $content"
     }
   }
 
