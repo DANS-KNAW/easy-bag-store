@@ -28,6 +28,7 @@ import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreCo
 import org.apache.commons.io.FileUtils
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
+import resource.managed
 
 import scala.io.Source
 import scala.util.{ Success, Try }
@@ -543,12 +544,8 @@ class StoresServletSpec extends TestSupportFixture
 
   private def createZipWithInvalidOrEmptyRefBag(content: String) = {
     Files.createFile(testBagsUnpruned.resolve("a").resolve("refbags.txt"))
-    val pw = new PrintWriter(testBagsUnpruned.resolve("a").resolve("refbags.txt").toFile)
-    try {
-      pw.write(content)
-    } finally {
-      pw.close()
-    }
+    managed(new PrintWriter(testBagsUnpruned.resolve("a").resolve("refbags.txt").toFile))
+      .acquireAndGet(_.write(content))
     new ZipFile(testBagUnprunedEmptyRefBag.toFile) {
       addFolder(testBagsUnpruned.resolve("a").toFile, new ZipParameters)
     }
