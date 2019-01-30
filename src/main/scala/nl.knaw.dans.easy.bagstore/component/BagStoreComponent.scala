@@ -173,9 +173,9 @@ trait BagStoreComponent {
       }
     }
 
-    private def fileIsFound(entriesCount: Int, itemId: ItemId): Try[Unit] = {
-      if (entriesCount == 0) Failure(NoSuchItemException(itemId))
-      else Success(())
+    private def fileIsFound(entriesCount: Int, itemId: ItemId): Try[Unit] = Try {
+      if (entriesCount == 0)
+        throw NoSuchItemException(itemId)
     }
 
     private def createFileSpecs(bagDir: BaseDir, itemPath: BaseDir, fileIds: Seq[FileId]): Try[Seq[EntrySpec]] = {
