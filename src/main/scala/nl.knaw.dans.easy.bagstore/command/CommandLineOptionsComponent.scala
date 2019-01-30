@@ -118,7 +118,7 @@ trait CommandLineOptionsComponent {
 
     val stream = new Subcommand("stream") {
       descr("Retrieves an item by streaming it to the standard output")
-      val format: ScallopOption[ArchiveStreamType] = opt(name = "format",
+      val format: ScallopOption[ArchiveStreamType] = opt(name = "format", noshort = true,
         descr = "stream item packaged in this format (tar|zip)")
       val forceInactive: ScallopOption[Boolean] = opt(name = "force-inactive", short = 'f',
         descr = "force retrieval of an inactive item (by default inactive items are not retrieved)")
