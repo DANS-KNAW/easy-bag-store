@@ -52,12 +52,12 @@ trait BagStoresComponent {
         }
     }
 
-    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream, fromStore: Option[BaseDir] = None): Try[Unit] = {
+    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream, fromStore: Option[BaseDir] = None, forceInactive: Boolean = false): Try[Unit] = {
       fromStore
-        .map(BagStore(_).copyToStream(itemId, archiveStreamType, outputStream))
+        .map(BagStore(_).copyToStream(itemId, archiveStreamType, outputStream, forceInactive))
         .getOrElse {
           storeShortnames.values.toStream
-            .map(BagStore(_).copyToStream(itemId, archiveStreamType, outputStream))
+            .map(BagStore(_).copyToStream(itemId, archiveStreamType, outputStream, forceInactive))
             .find {
               case Failure(_: NoSuchBagException) => false
               case _ => true
@@ -77,12 +77,12 @@ trait BagStoresComponent {
         }
     }
 
-    def enumFiles(itemId: ItemId, includeDirectories: Boolean = true, fromStore: Option[BaseDir] = None): Try[Seq[FileId]] = {
+    def enumFiles(itemId: ItemId, includeDirectories: Boolean = true, fromStore: Option[BaseDir] = None, forceInactive: Boolean = false): Try[Seq[FileId]] = {
       fromStore
-        .map(BagStore(_).enumFiles(itemId, includeDirectories))
+        .map(BagStore(_).enumFiles(itemId, includeDirectories, forceInactive))
         .getOrElse {
           storeShortnames.values.toStream
-            .map(BagStore(_).enumFiles(itemId, includeDirectories))
+            .map(BagStore(_).enumFiles(itemId, includeDirectories, forceInactive))
             .find {
               case Failure(_: NoSuchBagException) => false
               case _ => true
