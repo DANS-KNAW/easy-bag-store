@@ -353,10 +353,15 @@ class StoresServletSpec extends TestSupportFixture
     List("Authorization" -> s"$authType $encoded")
   }
 
+  def authenticationHeaderAndContentTypeZip(username: String, password: String): List[(String, String)] = {
+    authenticationHeader(username, password) ::: List(("Content-Type", "application/zip"))
+  }
+
   private val basicAuthentication = authenticationHeader(username, password)
+  private val basicAuthenticationAndZipContentType = authenticationHeaderAndContentTypeZip(username, password)
 
   def putBag(uuid: String, bagZip: Path): Unit = {
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(bagZip), basicAuthentication) {
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(bagZip), basicAuthenticationAndZipContentType) {
       status shouldBe 201
       header should contain("Location" -> s"http://example-archive.org/stores/store1/bags/$uuid")
     }
@@ -370,16 +375,16 @@ class StoresServletSpec extends TestSupportFixture
   it should "fail, returning a bad request when a second put is done on the same uuid" in {
     val uuid = "11111111-1111-1111-1111-111111111111"
     putBag(uuid, testBagUnprunedA)
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), basicAuthentication) {
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), basicAuthenticationAndZipContentType) {
       status shouldBe 400
       body should include(s"$uuid already exists in BagStore store1 (bag-ids must be globally unique)")
     }
-  } 
-  
+  }
+
   it should "should fail and return a badrequest if there are multiple files in the root directory of the zipped bag" in {
     val uuid = "11111111-1111-1111-1111-111111111114"
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedInvalid), basicAuthentication)  {
-        status shouldBe 400
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedInvalid), basicAuthenticationAndZipContentType) {
+      status shouldBe 400
     }
   }
 
@@ -480,7 +485,7 @@ class StoresServletSpec extends TestSupportFixture
   }
 
   it should "fail when the store is unknown" in {
-    put("/unknown-store/bags/11111111-1111-1111-1111-111111111111", body = Files.readAllBytes(testBagUnprunedA), basicAuthentication) {
+    put("/unknown-store/bags/11111111-1111-1111-1111-111111111111", body = Files.readAllBytes(testBagUnprunedA), basicAuthenticationAndZipContentType) {
       status shouldBe 404
       body shouldBe "No such bag-store: unknown-store"
     }
@@ -488,7 +493,7 @@ class StoresServletSpec extends TestSupportFixture
 
   it should "fail when the given uuid is not a uuid" in {
     val uuid = "11111111111111111111111111111111"
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), basicAuthentication) {
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), basicAuthenticationAndZipContentType) {
       status shouldBe 400
       body shouldBe s"invalid UUID string: $uuid"
     }
@@ -496,7 +501,7 @@ class StoresServletSpec extends TestSupportFixture
 
   it should "fail when the given uuid is not a well-formatted uuid" in {
     val uuid = "abc-def-ghi-jkl-mno"
-    put(s"/store1/bags/$uuid", headers = basicAuthentication) {
+    put(s"/store1/bags/$uuid", headers = basicAuthenticationAndZipContentType) {
       status shouldBe 400
       body shouldBe s"invalid UUID string: $uuid"
     }
@@ -504,7 +509,7 @@ class StoresServletSpec extends TestSupportFixture
 
   it should "fail when the input stream is empty" in {
     val uuid = "11111111-1111-1111-1111-111111111111"
-    put(s"/store1/bags/$uuid", headers = basicAuthentication) {
+    put(s"/store1/bags/$uuid", headers = basicAuthenticationAndZipContentType) {
       status shouldBe 400
       body shouldBe "The provided input did not contain a bag"
     }
@@ -512,7 +517,7 @@ class StoresServletSpec extends TestSupportFixture
 
   it should "fail when the input stream contains anything else than a zip-file" in {
     val uuid = "66666666-6666-6666-6666-666666666666"
-    put(s"/store1/bags/$uuid", body = "hello world".getBytes, basicAuthentication) {
+    put(s"/store1/bags/$uuid", body = "hello world".getBytes, basicAuthenticationAndZipContentType) {
       status shouldBe 400
       body shouldBe "The provided input did not contain a bag"
     }
@@ -525,9 +530,25 @@ class StoresServletSpec extends TestSupportFixture
     }
 
     val uuid = "66666666-6666-6666-6666-666666666666"
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(zip), basicAuthentication) {
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(zip), basicAuthenticationAndZipContentType) {
       status shouldBe 400
       body should include(s"Bag $uuid is not a valid bag")
+    }
+  }
+
+  it should "fail, returning a 415 when no content-type header is given" in {
+    val uuid = "11111111-1111-1111-1111-111111111111"
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), basicAuthentication) {
+      status shouldBe 415
+      body shouldBe "media type none is not supported by this api. Supported types are 'application/zip'"
+    }
+  }
+
+  it should "fail, returning a 415 when an invalid content-type header is given" in {
+    val uuid = "11111111-1111-1111-1111-111111111111"
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), basicAuthentication ::: List(("Content-Type", "application/tar"))) {
+      status shouldBe 415
+      body shouldBe "media type application/tar is not supported by this api. Supported types are 'application/zip'"
     }
   }
 }

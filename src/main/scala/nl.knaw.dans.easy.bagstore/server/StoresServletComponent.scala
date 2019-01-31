@@ -27,7 +27,7 @@ import org.joda.time.DateTime
 import org.scalatra._
 
 import scala.util.control.NonFatal
-import scala.util.{ Failure, Try }
+import scala.util.{ Failure, Success, Try }
 
 trait StoresServletComponent extends DebugEnhancedLogging {
   this: BagStoresComponent with FileSystemComponent =>
@@ -147,21 +147,28 @@ trait StoresServletComponent extends DebugEnhancedLogging {
       trace(())
       basicAuth()
       debug("Authenticated")
-      val bagstore = params("bagstore")
+      val bagStore = params("bagstore")
       val uuidStr = params("uuid")
-      logger.info(s"Received PUT request for bagstore $bagstore and UUID $uuidStr")
-      bagStores.getBaseDirByShortname(bagstore)
+      val contentType = Option(request.getHeader("Content-Type"))
+      logger.info(s"Received PUT request for bagstore $bagStore and UUID $uuidStr")
+      bagStores.getBaseDirByShortname(bagStore)
         .map(base => {
           Try { UUID.fromString(uuidStr) }
             .recoverWith {
               case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
             }
+            .flatMap(uuid => //TODO make a method in
+              if (contentType.fold(true)(!_.equalsIgnoreCase("application/zip")))
+                Failure(UnsupportedMediaTypeException(contentType.getOrElse("none"), "application/zip"))
+              else Success(uuid)
+            )
             .flatMap(bagStores.putBag(request.getInputStream, base, _))
             .map(bagId => Created(headers = Map(
-              "Location" -> externalBaseUri.resolve(s"stores/$bagstore/bags/${ fileSystem.toUri(bagId).getPath }").toASCIIString
+              "Location" -> externalBaseUri.resolve(s"stores/$bagStore/bags/${ fileSystem.toUri(bagId).getPath }").toASCIIString
             )))
             .getOrRecover {
               case e: CompositeException if e.throwables.exists(_.isInstanceOf[IncorrectNumberOfFilesInBagZipRootException]) => BadRequest(e.getMessage())
+              case e: UnsupportedMediaTypeException => UnsupportedMediaType(e.getMessage)
               case e: IllegalArgumentException => BadRequest(e.getMessage)
               case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage)
               case e: NoBagException => BadRequest(e.getMessage)
@@ -172,7 +179,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
                 InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
             }
         })
-        .getOrElse(NotFound(s"No such bag-store: $bagstore"))
+        .getOrElse(NotFound(s"No such bag-store: $bagStore"))
         .logResponse
     }
   }
