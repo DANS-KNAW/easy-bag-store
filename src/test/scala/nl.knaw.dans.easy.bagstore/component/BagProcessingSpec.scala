@@ -20,13 +20,16 @@ import java.net.URI
 import java.nio.file.Paths
 import java.util.UUID
 
+import better.files.File
 import nl.knaw.dans.easy.bagstore._
 import org.apache.commons.io.FileUtils
+import org.scalatest.BeforeAndAfter
 
 import scala.io.Source
 import scala.util.{ Failure, Success }
 
-class BagProcessingSpec extends BagProcessingFixture {
+class BagProcessingSpec extends BagProcessingFixture
+  with BeforeAndAfter {
 
   FileUtils.copyDirectory(
     Paths.get("src/test/resources/bags/basic-sequence-pruned").toFile,
@@ -49,6 +52,12 @@ class BagProcessingSpec extends BagProcessingFixture {
   private val stagingBaseDir = bagProcessing.stagingBaseDir
   private val localBaseUri: URI = fileSystem.localBaseUri
   implicit val baseDir: BaseDir = bagStore.baseDir
+
+  override def beforeEach(): Unit = {
+    val refBagDir = File(testDir.toString) / "refbag"
+    refBagDir.createDirectories()
+    refBagDir.clear()
+  }
 
   "complete" should "make pruned Bag whole again" in {
     bagStore.add(testBagPrunedA, Some(UUID.fromString("00000000-0000-0000-0000-000000000001"))) shouldBe a[Success[_]]
@@ -199,5 +208,47 @@ class BagProcessingSpec extends BagProcessingFixture {
         testBagUnprunedC.resolve("data/z").toFile shouldNot exist
       }
     }
+  }
+
+  "getReferenceBags" should "fail when an empty refbag.txt is found in the bag" in {
+    // first create dir with empty refbag.txt
+    val bagDir = createFilesForRefbagTests("")
+
+    val bagId = BagId(UUID.randomUUID())
+    bagProcessing.getReferenceBags(bagDir.path, bagId) should matchPattern {
+      case Failure(InvalidBagException(`bagId`, "the bag contains an empty refbags.txt")) =>
+    }
+  }
+
+  it should "succeed if no refbag.txt is found in the bag" in {
+    val bagDir = File(testDir.toString) / "refbag"
+    val bagId = BagId(UUID.randomUUID())
+    bagProcessing.getReferenceBags(bagDir.path, bagId) shouldBe a[Success[_]]
+  }
+
+  it should "fail when an refbag.txt with only whitespaces is found in the bag" in {
+    val bagDir = createFilesForRefbagTests("                           ")
+    val bagId = BagId(UUID.randomUUID())
+    bagProcessing.getReferenceBags(bagDir.path, bagId) should matchPattern {
+      case Failure(InvalidBagException(`bagId`, "the bag contains an empty refbags.txt")) =>
+    }
+  }
+
+  it should "succeed a non-empty refbag.txt is found in the bag" in {
+    val bagDir = createFilesForRefbagTests("refbag content")
+    val bagId = BagId(UUID.randomUUID())
+    bagProcessing.getReferenceBags(bagDir.path, bagId) shouldBe a[Success[_]]
+  }
+
+  private def createFilesForRefbagTests(content: String): File = {
+    val bagDir = File(testDir.toString) / "refbag"
+    (bagDir / "refbags.txt")
+      .write(content)
+
+    (bagDir / "bagit.txt")
+      .write(
+        """BagIt-Version: 0.97
+          |Tag-File-Character-Encoding: UTF-8""".stripMargin)
+    bagDir
   }
 }

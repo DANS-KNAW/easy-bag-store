@@ -29,8 +29,10 @@ import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
+import resource.managed
 
 import scala.collection.mutable
+import scala.io.Source
 import scala.util.{ Failure, Success, Try }
 
 trait BagProcessingComponent extends DebugEnhancedLogging {
@@ -175,22 +177,22 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
       }
     }
 
-    def getReferenceBags(bagDir: Path): Try[Option[Path]] = Try {
+    def getReferenceBags(bagDir: Path, bagId: BagId): Try[Option[Path]] = {
       trace(bagDir)
       val refbags = bagDir.resolve("refbags.txt")
       if (Files.exists(refbags)) {
         // copy to tempDir
-        val tempRefbags = Files.createTempFile(stagingBaseDir, "refbags-", "")
-        Files.deleteIfExists(tempRefbags)
-        Files.move(refbags, tempRefbags)
-        assert(!Files.exists(refbags), s"$refbags should have been moved to $tempRefbags, however, it appears to still be present here")
-
-        // remove refbags.txt from all tagmanifests (if it was present there)
-        bagFacade.removeFromTagManifests(bagDir, "refbags.txt")
-
-        Some(tempRefbags)
+        for {
+          _ <- assertRefbagsFileIsNotEmpty(bagId, refbags)
+          tempRefbags = Files.createTempFile(stagingBaseDir, "refbags-", "")
+          _ = Files.deleteIfExists(tempRefbags)
+          _ = Files.move(refbags, tempRefbags)
+          _ = assert(!Files.exists(refbags), s"$refbags should have been moved to $tempRefbags, however, it appears to still be present here")
+          // remove refbags.txt from all tagmanifests (if it was present there)
+          _ <- bagFacade.removeFromTagManifests(bagDir, "refbags.txt")
+        } yield Some(tempRefbags)
       }
-      else None
+      else Success(None)
     }
 
     /**
@@ -262,6 +264,12 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
     private def getSupportedAlgorithmsPerBag(bagDirs: Seq[Path]): Try[Set[Set[Algorithm]]] = {
       trace(bagDirs)
       bagDirs.map(bagFacade.getSupportedManifestAlgorithms).collectResults.map(_.toSet)
+    }
+  }
+
+  private def assertRefbagsFileIsNotEmpty(bagId: BagId, refbags: Path): Try[Unit] = Try {
+    if (managed(Source.fromFile(refbags.toFile)).acquireAndGet(_.mkString.trim.isEmpty)) {
+      throw InvalidBagException(bagId, "the bag contains an empty refbags.txt")
     }
   }
 }
