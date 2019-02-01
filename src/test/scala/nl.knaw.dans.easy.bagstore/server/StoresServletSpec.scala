@@ -366,7 +366,7 @@ class StoresServletSpec extends TestSupportFixture
   }
 
   def authenticationHeaderAndContentTypeZip(username: String, password: String): List[(String, String)] = {
-    authenticationHeader(username, password) ::: List(("Content-Type", "application/zip"))
+    authenticationHeader(username, password) :+ "Content-Type" -> "application/zip"
   }
 
   private val basicAuthentication = authenticationHeader(username, password)
