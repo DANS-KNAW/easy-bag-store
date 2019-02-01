@@ -181,7 +181,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
     }
   }
 
-  private def validateContentTypeHeader(requestContentType: Option[String], uuid: UUID) = {
+  private def validateContentTypeHeader(requestContentType: Option[String], uuid: UUID): Try[UUID] = {
     requestContentType.withFilter(_.equalsIgnoreCase("application/zip"))
       .map(_ => Success(uuid))
       .getOrElse(Failure(UnsupportedMediaTypeException(requestContentType.getOrElse("none"), "application/zip")))
