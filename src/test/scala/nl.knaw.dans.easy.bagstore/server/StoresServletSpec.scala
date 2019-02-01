@@ -365,12 +365,8 @@ class StoresServletSpec extends TestSupportFixture
     List("Authorization" -> s"$authType $encoded")
   }
 
-  def authenticationHeaderAndContentTypeZip(username: String, password: String): List[(String, String)] = {
-    authenticationHeader(username, password) :+ "Content-Type" -> "application/zip"
-  }
-
   private val basicAuthentication = authenticationHeader(username, password)
-  private val basicAuthenticationAndZipContentType = authenticationHeaderAndContentTypeZip(username, password)
+  private val basicAuthenticationAndZipContentType = basicAuthentication  :+ "Content-Type" -> "application/zip"
 
   def putBag(uuid: String, bagZip: Path): Unit = {
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(bagZip), basicAuthenticationAndZipContentType) {
@@ -539,7 +535,7 @@ class StoresServletSpec extends TestSupportFixture
     createZipWithInvalidOrEmptyRefBag("")
     val uuid = "11111111-1111-1111-1111-111111111111"
     val bagId = BagId(UUID.fromString(uuid))
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedEmptyRefBag), basicAuthentication) {
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedEmptyRefBag), basicAuthenticationAndZipContentType) {
       status shouldBe 400
       body shouldBe InvalidBagException(bagId, "the bag contains an empty refbags.txt").getMessage
     }
@@ -550,7 +546,7 @@ class StoresServletSpec extends TestSupportFixture
     createZipWithInvalidOrEmptyRefBag(content)
     val uuid = "11111111-1121-1111-1111-111111111111"
     val bagId = BagId(UUID.fromString(uuid))
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedEmptyRefBag), basicAuthentication) {
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedEmptyRefBag), basicAuthenticationAndZipContentType) {
       status shouldBe 400
       body shouldBe s"Invalid UUID string: $content"
     }

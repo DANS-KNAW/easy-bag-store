@@ -150,7 +150,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
       debug("Authenticated")
       val bagStore = params("bagstore")
       val uuidStr = params("uuid")
-      val contentType = Option(request.getHeader("Content-Type"))
+      val requestContentType = Option(request.getHeader("Content-Type"))
       logger.info(s"Received PUT request for bagstore $bagStore and UUID $uuidStr")
       bagStores.getBaseDirByShortname(bagStore)
         .map(base => {
@@ -158,10 +158,10 @@ trait StoresServletComponent extends DebugEnhancedLogging {
             .recoverWith {
               case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
             }
-            .flatMap(uuid => //TODO make a method in
-              if (contentType.fold(true)(!_.equalsIgnoreCase("application/zip")))
-                Failure(UnsupportedMediaTypeException(contentType.getOrElse("none"), "application/zip"))
-              else Success(uuid)
+            .flatMap(uuid =>
+              requestContentType.withFilter(_.equalsIgnoreCase("application/zip"))
+                .map(_ => Success(uuid))
+                .getOrElse(Failure(UnsupportedMediaTypeException(requestContentType.getOrElse("none"), "application/zip")))
             )
             .flatMap(bagStores.putBag(request.getInputStream, base, _))
             .map(bagId => Created(headers = Map(
