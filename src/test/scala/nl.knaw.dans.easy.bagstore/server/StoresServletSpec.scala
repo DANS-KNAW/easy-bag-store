@@ -15,6 +15,7 @@
  */
 package nl.knaw.dans.easy.bagstore.server
 
+import java.io.PrintWriter
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.{ Files, Path, Paths }
@@ -27,6 +28,7 @@ import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreCo
 import org.apache.commons.io.FileUtils
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
+import resource.managed
 
 import scala.io.Source
 import scala.util.{ Success, Try }
@@ -60,6 +62,7 @@ class StoresServletSpec extends TestSupportFixture
   private val testBagUnprunedB = bagInput.resolve("unpruned-with-refbags-b.zip")
   private val testBagUnprunedC = bagInput.resolve("unpruned-with-refbags-c.zip")
   private val testBagUnprunedInvalid = bagInput.resolve("unpruned-with-refbags-invalid.zip")
+  private val testBagUnprunedEmptyRefBag = bagInput.resolve("no-refbag.zip")
 
   new ZipFile(testBagUnprunedA.toFile) {
     addFolder(testBagsUnpruned.resolve("a").toFile, new ZipParameters)
@@ -339,12 +342,21 @@ class StoresServletSpec extends TestSupportFixture
     }
   }
 
-  it should "fail when an inactive bag is requested with the wrong queryParams" in {
+  it should "fail when an inactive bag is requested" in {
     val bagId = BagId(UUID.fromString("01000000-0000-0000-0000-000000000001"))
     bagStore1.deactivate(bagId) shouldBe a[Success[_]]
     get(s"/store1/bags/${ bagId }", params = Map.empty, headers = Map("Accept" -> "application/zip")) {
-      status shouldBe 409
-      body shouldBe InactiveException(bagId, forceInactive = false).getMessage
+      status shouldBe 410
+      body shouldBe InactiveException(bagId).getMessage
+    }
+  }
+
+  it should "fail when an item from an inactive bag is requested" in {
+    val bagId = BagId(UUID.fromString("01000000-0000-0000-0000-000000000001"))
+    bagStore1.deactivate(bagId) shouldBe a[Success[_]]
+    get(s"/store1/bags/${ bagId }/data/y", params = Map.empty, headers = Map("Accept" -> "application/zip")) {
+      status shouldBe 410
+      body shouldBe InactiveException(bagId).getMessage
     }
   }
 
@@ -377,14 +389,14 @@ class StoresServletSpec extends TestSupportFixture
     putBag(uuid, testBagUnprunedA)
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), basicAuthenticationAndZipContentType) {
       status shouldBe 400
-      body should include(s"$uuid already exists in BagStore store1 (bag-ids must be globally unique)")
+      body shouldBe s"$uuid already exists in BagStore store1 (bag-ids must be globally unique)"
     }
   }
 
   it should "should fail and return a badrequest if there are multiple files in the root directory of the zipped bag" in {
     val uuid = "11111111-1111-1111-1111-111111111114"
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedInvalid), basicAuthenticationAndZipContentType) {
-      status shouldBe 400
+      body shouldBe "There must be exactly one file in the root directory of the zipped bag, found 2"
     }
   }
 
@@ -521,6 +533,37 @@ class StoresServletSpec extends TestSupportFixture
       status shouldBe 400
       body shouldBe "The provided input did not contain a bag"
     }
+  }
+
+  it should "fail when a an empty refbags.txt is provided" in {
+    createZipWithInvalidOrEmptyRefBag("")
+    val uuid = "11111111-1111-1111-1111-111111111111"
+    val bagId = BagId(UUID.fromString(uuid))
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedEmptyRefBag), basicAuthentication) {
+      status shouldBe 400
+      body shouldBe InvalidBagException(bagId, "the bag contains an empty refbags.txt").getMessage
+    }
+  }
+
+  it should "fail when an invalid refbags.txt is provided" in {
+    val content = "invalid content"
+    createZipWithInvalidOrEmptyRefBag(content)
+    val uuid = "11111111-1121-1111-1111-111111111111"
+    val bagId = BagId(UUID.fromString(uuid))
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedEmptyRefBag), basicAuthentication) {
+      status shouldBe 400
+      body shouldBe s"Invalid UUID string: $content"
+    }
+  }
+
+  private def createZipWithInvalidOrEmptyRefBag(content: String) = {
+    Files.createFile(testBagsUnpruned.resolve("a").resolve("refbags.txt"))
+    managed(new PrintWriter(testBagsUnpruned.resolve("a").resolve("refbags.txt").toFile))
+      .acquireAndGet(_.write(content))
+    new ZipFile(testBagUnprunedEmptyRefBag.toFile) {
+      addFolder(testBagsUnpruned.resolve("a").toFile, new ZipParameters)
+    }
+    Files.delete(testBagsUnpruned.resolve("a").resolve("refbags.txt"))
   }
 
   it should "fail when the input stream contains a zip-file that doesn't represent a bag" in {

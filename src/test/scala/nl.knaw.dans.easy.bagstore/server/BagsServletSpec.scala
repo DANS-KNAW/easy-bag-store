@@ -18,11 +18,13 @@ package nl.knaw.dans.easy.bagstore.server
 import java.nio.file.{ Files, Paths }
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
 import nl.knaw.dans.easy.bagstore._
+import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
 import org.apache.commons.io.FileUtils
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
+
+import scala.util.Success
 
 class BagsServletSpec extends TestSupportFixture
   with BagitFixture
@@ -204,6 +206,62 @@ class BagsServletSpec extends TestSupportFixture
     get(s"/$itemId", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 404
       body shouldBe s"Item $itemId not found"
+    }
+  }
+
+  it should "fail when done on an inactive/ hidden bag" in {
+    val bagID = "01000000-0000-0000-0000-000000000001"
+    bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
+    get(s"/$bagID") {
+      status shouldBe 410
+      body shouldBe s"Tried to retrieve an inactive bag: $bagID with toggle forceInactive = false"
+    }
+  }
+
+  it should "fail, returning a 410, when done on an item within an inactive/ hidden bag" in {
+    val bagID = "01000000-0000-0000-0000-000000000001"
+    bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
+    get(s"/$bagID/bag-info.txt") {
+      status shouldBe 410
+      body shouldBe s"Tried to retrieve an inactive bag: $bagID with toggle forceInactive = false"
+    }
+  }
+
+  it should "return a 404 non-existing item within an inactive/ hidden bag is requested" in {
+    val bagID = "01000000-0000-0000-0000-000000000001"
+    bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
+    get(s"/$bagID/bag-info6.txt") {
+      status shouldBe 404
+      body shouldBe s"Item $bagID/bag-info6.txt not found"
+    }
+  }
+
+  // this calls enumFiles
+  it should " fail when done on an inactive/ hidden bag when headers text/plain is provided" in {
+    val bagID = "01000000-0000-0000-0000-000000000001"
+    bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
+    get(s"/$bagID", headers = Map("Accept" -> "text/plain")) {
+      status shouldBe 410
+      body shouldBe s"Tried to retrieve an inactive bag: $bagID with toggle forceInactive = false"
+    }
+  }
+
+  // this calls copyOutputStream
+  it should "fail, returning a 404, when done on non existing item in an inactive/ hidden bag when headers text/plain is provided" in {
+    val bagID = "01000000-0000-0000-0000-000000000001"
+    bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
+    get(s"/$bagID/bag-info2.txt", headers = Map("Accept" -> "text/plain")) {
+      status shouldBe 404
+      body shouldBe s"Item $bagID/bag-info2.txt not found"
+    }
+  }
+
+  it should "fail when done on an item in an inactive/ hidden bag when headers text/plain is provided" in {
+    val bagID = "01000000-0000-0000-0000-000000000001"
+    bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
+    get(s"/$bagID/bag-info.txt", headers = Map("Accept" -> "text/plain")) {
+      status shouldBe 410
+      body shouldBe s"Tried to retrieve an inactive bag: $bagID with toggle forceInactive = false"
     }
   }
 }

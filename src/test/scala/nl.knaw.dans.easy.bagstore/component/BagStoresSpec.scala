@@ -15,12 +15,13 @@
  */
 package nl.knaw.dans.easy.bagstore.component
 
-import java.nio.file.{ Files, Path, Paths }
+import java.io.ByteArrayOutputStream
+import java.nio.file.{ Files, Paths }
 
 import nl.knaw.dans.easy.bagstore._
 import org.apache.commons.io.FileUtils
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.{ Failure, Success }
 
 class BagStoresSpec extends TestSupportFixture
   with BagStoresFixture
@@ -139,8 +140,8 @@ class BagStoresSpec extends TestSupportFixture
   }
 
   it should "return empty stream if BagStore is empty" in {
-    inside(bagStores.enumBags().map(_.toList)) {
-      case Success(bagIds) => bagIds shouldBe empty
+    bagStores.enumBags() should matchPattern {
+      case Success(Seq()) =>
     }
   }
 
@@ -227,6 +228,26 @@ class BagStoresSpec extends TestSupportFixture
     }
   }
 
+  it should "fail if the bag was marked as inactive" in {
+    implicit val baseDir: BaseDir = bagStore1.baseDir
+    inside(bagStore1.add(testBagMinimal)) {
+      case Success(bagId: BagId) =>
+        bagStore1.deactivate(bagId) shouldBe a[Success[_]]
+        bagStore1.enumFiles(bagId) should matchPattern {
+          case Failure(InactiveException(`bagId`, false)) =>
+        }
+    }
+  }
+
+  it should "not if the bag was marked as inactive, when forceActive = true" in {
+    implicit val baseDir: BaseDir = bagStore1.baseDir
+    inside(bagStore1.add(testBagMinimal)) {
+      case Success(bagId: BagId) =>
+        bagStore1.deactivate(bagId) shouldBe a[Success[_]]
+        bagStore1.enumFiles(bagId, forceInactive = true) shouldBe a[Success[_]]
+    }
+  }
+
   /*
    * If there are multiple payload manifests the BagIt specs do not require that they all contain ALL the payload files. Therefore, it is possible that
    * there are two payload manifests, each of contains a part of the payload file paths. The enum operation should still handle this correctly. The
@@ -285,5 +306,34 @@ class BagStoresSpec extends TestSupportFixture
         case Failure(NotInactiveException(_)) =>
       }
     }
+  }
+
+  "copyToStream" should "return a stream containing the content of the files" in {
+    implicit val baseDir: BaseDir = store1
+    val bagID = bagStore1.add(testBagMinimal).getOrElse(fail())
+    val baos = new ByteArrayOutputStream()
+    bagStores.copyToStream(bagID, Some(ArchiveStreamType.TAR), baos, Some(baseDir)) shouldBe a[Success[_]]
+    val content = baos.toString
+    content should include("9e5ad981e0d29adc278f6a294b8c2aca  bagit.txt")
+    content should include("ae4573c51c28ac09546cd7fc55422ae4  manifest-md5.txt")
+  }
+
+  it should "fail if the bag is made inactive beforehand" in {
+    implicit val baseDir: BaseDir = store1
+    val bagID = bagStore1.add(testBagMinimal).getOrElse(fail())
+    bagStores.deactivate(bagID) shouldBe a[Success[_]]
+    val baos = new ByteArrayOutputStream()
+    bagStores.copyToStream(bagID, Some(ArchiveStreamType.TAR), baos, Some(baseDir)) shouldBe Failure(InactiveException(bagID))
+  }
+
+  it should "return a stream containing the content of all the files if the bag is made inactive beforehand, but the forceInactive param is given" in {
+    implicit val baseDir: BaseDir = store1
+    val bagID = bagStore1.add(testBagMinimal).getOrElse(fail())
+    bagStores.deactivate(bagID) shouldBe a[Success[_]]
+    val baos = new ByteArrayOutputStream()
+    bagStores.copyToStream(bagID, Some(ArchiveStreamType.TAR), baos, Some(baseDir), forceInactive = true) shouldBe a[Success[_]]
+    val content = baos.toString
+    content should include("9e5ad981e0d29adc278f6a294b8c2aca  bagit.txt")
+    content should include("ae4573c51c28ac09546cd7fc55422ae4  manifest-md5.txt")
   }
 }

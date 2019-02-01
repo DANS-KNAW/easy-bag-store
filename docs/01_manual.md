@@ -25,7 +25,7 @@ SYNOPSIS
                     | add [-m,--move] [-u,--uuid <uuid>] <bag>
                     | get [-d,--directory <dir>] [-f, --force-inactive] [-s,--skip-completion] <item-id>
                     | stream [-f, --force-inactive] [-f,--format zip|tar] <item-id>
-                    | enum [[-a,--all] [-e,--exclude-directories] [-i,--inactive] <bag-id>]
+                    | enum [[-a,--all] [-f, --force-inactive] [-e,--exclude-directories] [-i,--inactive] <bag-id>]
                     | locate [-f,--file-data-location] <item-id>
                     | deactivate <bag-id>
                     | reactivate <bag-id>
@@ -110,7 +110,7 @@ ARGUMENTS
     ---
     
     Subcommand: stream - Retrieves an item by streaming it to the standard output
-      -f, --format  <arg>   stream item packaged in this format (tar|zip)
+          --format  <arg>   stream item packaged in this format (tar|zip)
           --help            Show help message
     
      trailing arguments:
