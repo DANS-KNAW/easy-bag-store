@@ -216,6 +216,8 @@ paths:
             * The bag is not virtually-valid.
             * The bag contained a `refbags.txt` file but it contained no data, or malformed data or
               references to non-existent bags.
+        415:
+          description: The request did not contain the appropiate Content-Type header ('application/zip')
         503:
           description: |
             The server cannot fulfil the request because of a temporary situation. If possible, the

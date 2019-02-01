@@ -158,11 +158,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
             .recoverWith {
               case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
             }
-            .flatMap(uuid =>
-              requestContentType.withFilter(_.equalsIgnoreCase("application/zip"))
-                .map(_ => Success(uuid))
-                .getOrElse(Failure(UnsupportedMediaTypeException(requestContentType.getOrElse("none"), "application/zip")))
-            )
+            .flatMap(validateContentTypeHeader(requestContentType, _))
             .flatMap(bagStores.putBag(request.getInputStream, base, _))
             .map(bagId => Created(headers = Map(
               "Location" -> externalBaseUri.resolve(s"stores/$bagStore/bags/${ fileSystem.toUri(bagId).getPath }").toASCIIString
@@ -183,5 +179,11 @@ trait StoresServletComponent extends DebugEnhancedLogging {
         .getOrElse(NotFound(s"No such bag-store: $bagStore"))
         .logResponse
     }
+  }
+
+  private def validateContentTypeHeader(requestContentType: Option[String], uuid: UUID) = {
+    requestContentType.withFilter(_.equalsIgnoreCase("application/zip"))
+      .map(_ => Success(uuid))
+      .getOrElse(Failure(UnsupportedMediaTypeException(requestContentType.getOrElse("none"), "application/zip")))
   }
 }
