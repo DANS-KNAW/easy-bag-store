@@ -151,7 +151,6 @@ trait StoresServletComponent extends DebugEnhancedLogging {
       val bagStore = params("bagstore")
       val uuidStr = params("uuid")
       val requestContentType = Option(request.getHeader("Content-Type"))
-      logger.info(s"Received PUT request for bagstore $bagStore and UUID $uuidStr")
       bagStores.getBaseDirByShortname(bagStore)
         .map(base => {
           Try { UUID.fromString(uuidStr) }
