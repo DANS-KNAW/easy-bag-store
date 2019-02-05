@@ -585,7 +585,9 @@ class StoresServletSpec extends TestSupportFixture
 
   it should "fail, returning a 415 when an invalid content-type header is given" in {
     val uuid = "11111111-1111-1111-1111-111111111111"
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), basicAuthentication ::: List(("Content-Type", "application/tar"))) {
+    put(s"/store1/bags/$uuid",
+      body = Files.readAllBytes(testBagUnprunedA),
+      headers = "Content-Type" -> "application/tar" :: basicAuthentication) {
       status shouldBe 415
       body shouldBe "media type application/tar is not supported by this api. Supported types are 'application/zip'"
     }
