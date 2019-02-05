@@ -578,7 +578,7 @@ class StoresServletSpec extends TestSupportFixture
     val uuid = "11111111-1111-1111-1111-111111111111"
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), headers = basicAuthentication) {
       status shouldBe 415
-      body shouldBe "media type none is not supported by this api. Supported types are 'application/zip'"
+      body shouldBe "media type none is not supported by this API. Supported types are 'application/zip'"
     }
   }
 
@@ -588,7 +588,7 @@ class StoresServletSpec extends TestSupportFixture
       body = Files.readAllBytes(testBagUnprunedA),
       headers = "Content-Type" -> "application/tar" :: basicAuthentication) {
       status shouldBe 415
-      body shouldBe "media type application/tar is not supported by this api. Supported types are 'application/zip'"
+      body shouldBe "media type application/tar is not supported by this API. Supported types are 'application/zip'"
     }
   }
 }
