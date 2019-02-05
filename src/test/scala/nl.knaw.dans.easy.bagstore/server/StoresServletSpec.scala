@@ -366,7 +366,7 @@ class StoresServletSpec extends TestSupportFixture
   }
 
   private val basicAuthentication = authenticationHeader(username, password)
-  private val basicAuthenticationAndZipContentType = basicAuthentication  :+ "Content-Type" -> "application/zip"
+  private val basicAuthenticationAndZipContentType = "Content-Type" -> "application/zip" :: basicAuthentication
 
   def putBag(uuid: String, bagZip: Path): Unit = {
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(bagZip), headers = basicAuthenticationAndZipContentType) {
