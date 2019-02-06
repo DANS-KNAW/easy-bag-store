@@ -545,7 +545,7 @@ class StoresServletSpec extends TestSupportFixture
     val content = "invalid content"
     createZipWithInvalidOrEmptyRefBag(content)
     val uuid = "11111111-1121-1111-1111-111111111111"
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedEmptyRefBag),headers =  basicAuthenticationAndZipContentType) {
+    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedEmptyRefBag), headers = basicAuthenticationAndZipContentType) {
       status shouldBe 400
       body shouldBe s"Invalid UUID string: $content"
     }
