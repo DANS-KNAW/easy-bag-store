@@ -50,6 +50,7 @@ package object bagstore {
   case class NoBagException(cause: Throwable) extends Exception("The provided input did not contain a bag", cause)
   case class InvalidBagException(bagId: BagId, msg: String) extends Exception(s"Bag $bagId is not a valid bag: $msg")
   case class NoRegularFileException(itemId: ItemId) extends Exception(s"Item $itemId is not a regular file.")
+  case class UnsupportedMediaTypeException(givenType: String, acceptedType: String) extends Exception(s"media type $givenType is not supported by this API. Supported types are '$acceptedType'")
 
   type BaseDir = Path
 
