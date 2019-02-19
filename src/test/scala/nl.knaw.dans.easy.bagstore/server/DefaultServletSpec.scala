@@ -19,6 +19,7 @@ import java.net.URI
 
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
 import nl.knaw.dans.easy.bagstore.{ BagitFixture, TestSupportFixture }
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalamock.scalatest.MockFactory
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
@@ -37,7 +38,7 @@ class DefaultServletSpec extends TestSupportFixture
   override val fileSystem: FileSystem = mock[FileSystem]
   override val bagProcessing: BagProcessing = mock[BagProcessing]
   override val bagStores: BagStores = mock[BagStores]
-  override val defaultServlet: DefaultServlet = new DefaultServlet {
+  override val defaultServlet: DefaultServlet = new DefaultServlet with DebugEnhancedLogging{
     override val externalBaseUri: URI = new URI("http://example-archive.org/")
   }
 

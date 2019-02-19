@@ -18,9 +18,8 @@ package nl.knaw.dans.easy.bagstore.server
 import java.net.URI
 
 import nl.knaw.dans.easy.bagstore.component.BagStoresComponent
-import nl.knaw.dans.lib.logging.servlet.masked.MaskedAuthorizationHeader
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.lib.logging.servlet._
+import nl.knaw.dans.lib.logging.servlet.masked.MaskedAuthorizationHeader
 import org.scalatra.{ Ok, ScalatraServlet }
 
 
@@ -29,7 +28,7 @@ trait DefaultServletComponent {
 
   val defaultServlet: DefaultServlet
 
-  trait DefaultServlet extends ScalatraServlet with DebugEnhancedLogging
+  trait DefaultServlet extends ScalatraServlet
     with ServletLogger
     with MaskedAuthorizationHeader
     with PlainLogFormatter {
