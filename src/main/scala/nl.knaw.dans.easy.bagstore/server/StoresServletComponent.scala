@@ -23,6 +23,7 @@ import nl.knaw.dans.easy.bagstore.component.{ BagStoresComponent, FileSystemComp
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.lib.logging.servlet._
+import nl.knaw.dans.lib.logging.servlet.masked.MaskedAuthorizationHeader
 import org.joda.time.DateTime
 import org.scalatra._
 
@@ -37,7 +38,8 @@ trait StoresServletComponent extends DebugEnhancedLogging {
 
   trait StoresServlet extends ScalatraServlet with ServletUtils with BagStoreAuthenticationSupport
     with ServletLogger
-    with PlainLogFormatter{
+    with PlainLogFormatter
+    with MaskedAuthorizationHeader {
 
     val externalBaseUri: URI
 

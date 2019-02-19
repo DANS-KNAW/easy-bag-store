@@ -20,6 +20,7 @@ import nl.knaw.dans.easy.bagstore.component.BagStoresComponent
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.lib.logging.servlet._
+import nl.knaw.dans.lib.logging.servlet.masked.MaskedAuthorizationHeader
 import org.joda.time.DateTime
 import org.scalatra._
 
@@ -34,6 +35,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
 
   trait BagsServlet extends ScalatraServlet
     with ServletLogger
+    with MaskedAuthorizationHeader
     with PlainLogFormatter
     with ServletUtils {
 
