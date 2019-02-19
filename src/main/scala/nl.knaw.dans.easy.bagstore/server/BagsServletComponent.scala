@@ -47,7 +47,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
         .getOrRecover(e => {
           logger.error("Unexpected type of failure", e)
           InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
-        }) logResponse
+        }).logResponse
     }
 
     get("/:uuid") {
@@ -74,7 +74,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
           case e =>
             logger.error("Unexpected type of failure", e)
             InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
-        } logResponse
+        }.logResponse
     }
 
     get("/:uuid/*") {
@@ -104,7 +104,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
         case p =>
           logger.error(s"Unexpected path: $p")
           InternalServerError("Unexpected path")
-      }) logResponse
+      }).logResponse
     }
   }
 }
