@@ -17,12 +17,13 @@ package nl.knaw.dans.easy.bagstore.server
 
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.BagStoresComponent
-import nl.knaw.dans.easy.bagstore.server.ServletEnhancedLogging._
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import nl.knaw.dans.lib.logging.servlet._
 import org.joda.time.DateTime
 import org.scalatra._
 
+import scala.language.postfixOps
 import scala.util.Failure
 import scala.util.control.NonFatal
 
@@ -31,7 +32,10 @@ trait BagsServletComponent extends DebugEnhancedLogging {
 
   val bagsServlet: BagsServlet
 
-  trait BagsServlet extends ScalatraServlet with ServletUtils {
+  trait BagsServlet extends ScalatraServlet
+    with ServletLogger
+    with PlainLogFormatter
+    with ServletUtils {
 
     get("/") {
       contentType = "text/plain"
@@ -41,7 +45,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
         .getOrRecover(e => {
           logger.error("Unexpected type of failure", e)
           InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
-        }).logResponse
+        }) logResponse
     }
 
     get("/:uuid") {
@@ -68,7 +72,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
           case e =>
             logger.error("Unexpected type of failure", e)
             InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
-        }.logResponse
+        } logResponse
     }
 
     get("/:uuid/*") {
@@ -98,7 +102,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
         case p =>
           logger.error(s"Unexpected path: $p")
           InternalServerError("Unexpected path")
-      }).logResponse
+      }) logResponse
     }
   }
 }

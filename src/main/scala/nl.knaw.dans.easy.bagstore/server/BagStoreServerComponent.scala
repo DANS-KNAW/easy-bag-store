@@ -24,7 +24,9 @@ import org.scalatra.servlet.ScalatraListener
 import scala.util.Try
 
 trait BagStoreServerComponent {
-  this: DefaultServletComponent with BagsServletComponent with StoresServletComponent =>
+  this: DefaultServletComponent
+    with BagsServletComponent
+    with StoresServletComponent =>
 
   val server: BagStoreServer
 

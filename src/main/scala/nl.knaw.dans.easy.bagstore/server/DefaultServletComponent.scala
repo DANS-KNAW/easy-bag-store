@@ -18,15 +18,20 @@ package nl.knaw.dans.easy.bagstore.server
 import java.net.URI
 
 import nl.knaw.dans.easy.bagstore.component.BagStoresComponent
-import nl.knaw.dans.easy.bagstore.server.ServletEnhancedLogging._
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import nl.knaw.dans.lib.logging.servlet._
 import org.scalatra.{ Ok, ScalatraServlet }
+
+import scala.language.postfixOps
 
 trait DefaultServletComponent {
   this: BagStoresComponent =>
 
   val defaultServlet: DefaultServlet
 
-  trait DefaultServlet extends ScalatraServlet with ServletEnhancedLogging {
+  trait DefaultServlet extends ScalatraServlet with DebugEnhancedLogging
+    with ServletLogger
+    with PlainLogFormatter {
 
     val externalBaseUri: URI
 
@@ -36,7 +41,7 @@ trait DefaultServletComponent {
         s"""EASY Bag Store is running.
            |Available stores at <${ externalBaseUri.resolve("stores") }>
            |Bags from all stores at <${ externalBaseUri.resolve("bags") }>
-           |""".stripMargin).logResponse
+           |""".stripMargin) logResponse
     }
   }
 }
