@@ -27,7 +27,6 @@ import nl.knaw.dans.lib.logging.servlet.masked.MaskedAuthorizationHeader
 import org.joda.time.DateTime
 import org.scalatra._
 
-import scala.language.postfixOps
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
 
@@ -49,7 +48,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
         .keys
         .map(store => s"<${ externalBaseUri.resolve(s"stores/$store") }>")
         .mkString("\n")
-      ) logResponse
+      ).logResponse
     }
 
     get("/:bagstore") {
@@ -61,7 +60,8 @@ trait StoresServletComponent extends DebugEnhancedLogging {
              |Bags for this store at <${ externalBaseUri.resolve(s"stores/$bagstore/bags") }>
              |""".stripMargin
         })
-        .getOrElse(NotFound(s"No such bag-store: $bagstore")) logResponse
+        .getOrElse(NotFound(s"No such bag-store: $bagstore"))
+        .logResponse
     }
 
     get("/:bagstore/bags") {
@@ -76,7 +76,8 @@ trait StoresServletComponent extends DebugEnhancedLogging {
               InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
             })
         })
-        .getOrElse(NotFound(s"No such bag-store: $bagstore")) logResponse
+        .getOrElse(NotFound(s"No such bag-store: $bagstore"))
+        .logResponse
     }
 
     get("/:bagstore/bags/:uuid") {
@@ -110,7 +111,8 @@ trait StoresServletComponent extends DebugEnhancedLogging {
               logger.error("Error retrieving bag", e)
               InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
           })
-        .getOrElse(NotFound(s"No such bag-store: $bagstore")) logResponse
+        .getOrElse(NotFound(s"No such bag-store: $bagstore"))
+        .logResponse
     }
 
     get("/:bagstore/bags/:uuid/*") {
@@ -143,7 +145,7 @@ trait StoresServletComponent extends DebugEnhancedLogging {
         case p =>
           logger.error(s"Unexpected path: $p")
           InternalServerError("Unexpected path")
-      }) logResponse
+      }).logResponse
     }
 
     put("/:bagstore/bags/:uuid") {
@@ -177,7 +179,8 @@ trait StoresServletComponent extends DebugEnhancedLogging {
                 InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
             }
         })
-        .getOrElse(NotFound(s"No such bag-store: $bagStore")) logResponse
+        .getOrElse(NotFound(s"No such bag-store: $bagStore"))
+        .logResponse
     }
   }
 
