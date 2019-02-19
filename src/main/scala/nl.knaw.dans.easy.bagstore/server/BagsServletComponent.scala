@@ -24,7 +24,6 @@ import nl.knaw.dans.lib.logging.servlet.masked.MaskedAuthorizationHeader
 import org.joda.time.DateTime
 import org.scalatra._
 
-import scala.language.postfixOps
 import scala.util.Failure
 import scala.util.control.NonFatal
 
@@ -104,7 +103,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
         case p =>
           logger.error(s"Unexpected path: $p")
           InternalServerError("Unexpected path")
-      }) logResponse
+      }).logResponse
     }
   }
 }
