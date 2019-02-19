@@ -104,7 +104,7 @@ trait BagsServletComponent extends DebugEnhancedLogging {
         case p =>
           logger.error(s"Unexpected path: $p")
           InternalServerError("Unexpected path")
-      }).logResponse
+      }) logResponse
     }
   }
 }
