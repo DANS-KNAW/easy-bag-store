@@ -19,17 +19,16 @@ import java.net.URI
 
 import nl.knaw.dans.easy.bagstore.ConfigurationComponent
 import nl.knaw.dans.easy.bagstore.component.BagStoreWiring
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 trait ServerWiring extends BagStoreServerComponent with DefaultServletComponent with BagsServletComponent with StoresServletComponent {
   this: BagStoreWiring with ConfigurationComponent =>
 
   private val ebu = new URI(configuration.properties.getString("daemon.external-base-uri"))
 
-  lazy val defaultServlet: DefaultServlet = new DefaultServlet with DebugEnhancedLogging {
+  lazy val defaultServlet: DefaultServlet = new DefaultServlet {
     val externalBaseUri: URI = ebu
   }
-  lazy val bagsServlet: BagsServlet = new BagsServlet with DebugEnhancedLogging {
+  lazy val bagsServlet: BagsServlet = new BagsServlet {
   }
   lazy val storesServlet: StoresServlet = new StoresServlet {
     override val externalBaseUri: URI = ebu

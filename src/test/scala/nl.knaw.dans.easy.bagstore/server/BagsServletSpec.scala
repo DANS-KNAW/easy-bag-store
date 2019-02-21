@@ -20,7 +20,6 @@ import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
@@ -38,7 +37,7 @@ class BagsServletSpec extends TestSupportFixture
   with BagProcessingComponent
   with FileSystemComponent {
 
-  override val bagsServlet: BagsServlet = new BagsServlet with DebugEnhancedLogging {}
+  override val bagsServlet: BagsServlet = new BagsServlet {}
 
   override def beforeAll(): Unit = {
     super.beforeAll()
