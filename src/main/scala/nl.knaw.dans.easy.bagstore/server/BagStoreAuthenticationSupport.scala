@@ -22,7 +22,6 @@ import nl.knaw.dans.lib.logging.servlet.masked.MaskedAuthorizationHeader
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 import org.scalatra.{ BadRequest, ScalatraBase, Unauthorized }
 
-
 trait BagStoreAuthenticationSupport extends DebugEnhancedLogging
   with ServletLogger
   with MaskedAuthorizationHeader
