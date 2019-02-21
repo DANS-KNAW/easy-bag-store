@@ -21,7 +21,6 @@ import java.util.UUID
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.{ BagStoresComponent, FileSystemComponent }
 import nl.knaw.dans.lib.error._
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.lib.logging.servlet._
 import nl.knaw.dans.lib.logging.servlet.masked.MaskedAuthorizationHeader
 import org.joda.time.DateTime
@@ -30,12 +29,14 @@ import org.scalatra._
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
 
-trait StoresServletComponent extends DebugEnhancedLogging {
+trait StoresServletComponent {
   this: BagStoresComponent with FileSystemComponent =>
 
   val storesServlet: StoresServlet
 
-  trait StoresServlet extends ScalatraServlet with ServletUtils with BagStoreAuthenticationSupport
+  trait StoresServlet extends ScalatraServlet
+    with ServletUtils
+    with BagStoreAuthenticationSupport
     with ServletLogger
     with PlainLogFormatter
     with MaskedAuthorizationHeader {

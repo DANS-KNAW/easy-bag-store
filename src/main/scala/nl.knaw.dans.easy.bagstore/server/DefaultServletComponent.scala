@@ -23,7 +23,7 @@ import nl.knaw.dans.lib.logging.servlet._
 import nl.knaw.dans.lib.logging.servlet.masked.MaskedAuthorizationHeader
 import org.scalatra.{ Ok, ScalatraServlet }
 
-trait DefaultServletComponent {
+trait DefaultServletComponent extends DebugEnhancedLogging {
   this: BagStoresComponent =>
 
   val defaultServlet: DefaultServlet
