@@ -28,8 +28,7 @@ trait ServerWiring extends BagStoreServerComponent with DefaultServletComponent 
   lazy val defaultServlet: DefaultServlet = new DefaultServlet {
     val externalBaseUri: URI = ebu
   }
-  lazy val bagsServlet: BagsServlet = new BagsServlet {
-  }
+  lazy val bagsServlet: BagsServlet = new BagsServlet {}
   lazy val storesServlet: StoresServlet = new StoresServlet {
     override val externalBaseUri: URI = ebu
     override val bagstoreUsername: String = configuration.properties.getString("bag-store.username")
