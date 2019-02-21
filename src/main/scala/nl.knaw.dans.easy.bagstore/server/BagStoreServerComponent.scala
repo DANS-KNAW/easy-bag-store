@@ -16,6 +16,7 @@
 package nl.knaw.dans.easy.bagstore.server
 
 import javax.servlet.ServletContext
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.scalatra.LifeCycle
@@ -23,7 +24,7 @@ import org.scalatra.servlet.ScalatraListener
 
 import scala.util.Try
 
-trait BagStoreServerComponent {
+trait BagStoreServerComponent extends DebugEnhancedLogging {
   this: DefaultServletComponent with BagsServletComponent with StoresServletComponent =>
 
   val server: BagStoreServer

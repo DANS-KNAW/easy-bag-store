@@ -16,12 +16,16 @@
 package nl.knaw.dans.easy.bagstore.server
 
 import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
-import nl.knaw.dans.easy.bagstore.server.ServletEnhancedLogging._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import nl.knaw.dans.lib.logging.servlet._
+import nl.knaw.dans.lib.logging.servlet.masked.MaskedAuthorizationHeader
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 import org.scalatra.{ BadRequest, ScalatraBase, Unauthorized }
 
-trait BagStoreAuthenticationSupport extends DebugEnhancedLogging {
+trait BagStoreAuthenticationSupport extends DebugEnhancedLogging
+  with ServletLogger
+  with MaskedAuthorizationHeader
+  with PlainLogFormatter {
   self: ScalatraBase =>
 
   def bagstoreUsername: String
