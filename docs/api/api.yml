@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Bag Store Service API
-  version: 0.1.0
+  version: 1.2.4
   description: |
     This document specifies the Bag Store Service API. It provides HTTP access to one or more [bag store]s. This API
     implements the [operations] `ADD`, `ENUM` and `GET`. The operations `DEACTIVATE`, `REACTIVATE`
@@ -11,9 +11,6 @@ info:
 
     The `ENUM` and `GET` operations are available both per bag store and for all the bag stores together. The
     `ADD` operation must specify the store to operate on.
-
-    (***Note**: OpenAPI cannot express parameters that capture more than one path component, so we define such path
-    parameters as: `p1`, `p2`, `p3`, `pn`*).
 
     [bag store]: 03_definitions.html#bagstore
     [operations]: 03_definitions.html#operations
@@ -79,6 +76,7 @@ paths:
         * the list of item-ids of the items in the bag or the content of those items, or
         * serialized in an archiving format such as ZIP or TAR.
       parameters:
+        - $ref: '#/components/parameters/Uuid'
         - $ref: '#/components/parameters/IncludeDirectories'
       responses:
         200:
@@ -88,7 +86,7 @@ paths:
         410:
           description: The bag was found, but `INACTIVE`.
 
-  /bags/{uuid}/{p1}/{p2}/{p3}/{pn}:
+  /bags/{itemId}:
     get:
       summary: Returns an item from a bag in any of the bag stores managed by this service.
       description: |
@@ -106,11 +104,7 @@ paths:
 
         [item-id]: 03_definitions.html#item-id
       parameters:
-        - $ref: '#/components/parameters/Uuid'
-        - $ref: '#/components/parameters/P1'
-        - $ref: '#/components/parameters/P2'
-        - $ref: '#/components/parameters/P3'
-        - $ref: '#/components/parameters/Pn'
+        - $ref: '#/components/parameters/ItemId'
       responses:
         200:
           $ref: '#/components/responses/GetItemFromBagOk'
@@ -125,6 +119,8 @@ paths:
       summary: Returns a list of the available bag stores.
       responses:
         200:
+          description:
+            A list of stores is returned
           content:
             text/plain:
               schema:
@@ -134,10 +130,12 @@ paths:
                   <http://test.dans.knaw.nl/store1>
                   <http://test.dans.knaw.nl/store2>
           links:
-            store:
+            stores:
               operationId: getStoreInfo
               parameters:
                 - store
+
+
 
   /stores/{store}:
     get:
@@ -147,6 +145,8 @@ paths:
         - $ref: '#/components/parameters/Store'
       responses:
         200:
+          description:
+            A list of bags is returned for the given store.
           content:
             text/plain:
               schema:
@@ -179,6 +179,7 @@ paths:
         * the list of item-ids of the items in the bag or the content of those items, or
         * serialized in an archiving format such as ZIP or TAR.
       parameters:
+        - $ref: '#/components/parameters/Uuid'
         - $ref: '#/components/parameters/Store'
         - $ref: '#/components/parameters/IncludeDirectories'
       responses:
@@ -220,36 +221,28 @@ paths:
           description: Unsupported media type
         503:
           description: |
-            The server cannot fulfil the request because of a temporary situation. If possible, the
-            reason will be explained in the response entity. Some possible causes are:
+            "The server cannot fulfil the request because of a temporary situation. If possible, the \n             reason will be explained in the response entity. Some possible causes are: \n * There is not enough disk space to store the bag."
 
-            * There is not enough disk space to store the bag.
-
-  /stores/{store}/bags/{uuid}/{p1}/{p2}/{p3}/{pn}:
+  /stores/{store}/bags/{itemId}:
     get:
       summary: Returns an item from a bag in the specified bag store.
       description: |
-        An item is either a directory or file in a bag. The item fetched is specified
-        by the [item-id]:
+        An item is either a directory or file in a bag.
+        The item fetched is specified by the [item-id]:
 
         ```
-        uuid/p1[/p2[..[pn]..]]
+          example ItemIds
+           40594b6d-8378-4260-b96b-13b57beadf7c/
+           40594b6d-8378-4260-b96b-13b57beadf7c/path/to/file
         ```
-        (**Note:** The path portion of this item-id is *not* limited to 4 components. OpenAPI cannot express parameters that capture more than one path component.)
 
         Both directories and regular files can be returned as TAR or ZIP, but only regular
         files will be returned if the `Accept` header is absent.
 
-
-
         [item-id]: 03_definitions.html#item-id
       parameters:
         - $ref: '#/components/parameters/Store'
-        - $ref: '#/components/parameters/Uuid'
-        - $ref: '#/components/parameters/P1'
-        - $ref: '#/components/parameters/P2'
-        - $ref: '#/components/parameters/P3'
-        - $ref: '#/components/parameters/Pn'
+        - $ref: '#/components/parameters/ItemId'
       responses:
         200:
           $ref: '#/components/responses/GetItemFromBagOk'
@@ -292,34 +285,13 @@ components:
         type: string
       required: true
       description: bag-id of the targeted bag
-    P1:
+    ItemId:
       in: path
-      name: p1
+      name: itemId
       schema:
         type: string
       required: true
-      description: path element 1
-    P2:
-      in: path
-      name: p2
-      schema:
-        type: string
-      required: false
-      description: path element 2
-    P3:
-      in: path
-      name: p3
-      schema:
-        type: string
-      required: false
-      description: path element 3
-    Pn:
-      in: path
-      name: pn
-      schema:
-        type: string
-      required: false
-      description: path element n
+      description: The bag-id of the targeted bag followed by the path location of targeted items.
     Store:
       in: path
       name: store
@@ -346,12 +318,13 @@ components:
               13b02c95-b0e8-4718-bd77-5e6f096ccd19
 
     GetBagOk:
+      description: A file or directory was found and retrieved
       content:
         text/plain:
           schema:
             description: new-line separated list
             type: string
-            example:
+            example: |
               2b475349-e138-4406-b715-bc3502872bae/my/first/file.txt
               2b475349-e138-4406-b715-bc3502872bae/my/second/file.txt
         application/zip:
@@ -366,6 +339,8 @@ components:
             format: binary
 
     GetItemFromBagOk:
+      description:
+        The bag is returned in the requested format
       content:
         application/zip:
           schema:
