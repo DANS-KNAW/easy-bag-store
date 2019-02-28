@@ -90,7 +90,7 @@ paths:
     get:
       summary: Returns an item from a bag in any of the bag stores managed by this service.
       description: |
-        An item is either a directory or file in a bag.
+        An item is either a bag, or a directory or file in a bag.
         The item fetched is specified by the [item-id]:
 
         ```
@@ -227,7 +227,7 @@ paths:
     get:
       summary: Returns an item from a bag in the specified bag store.
       description: |
-        An item is either a directory or file in a bag.
+        An item is either a bag, or a directory or file in a bag.
         The item fetched is specified by the [item-id]:
 
         ```
