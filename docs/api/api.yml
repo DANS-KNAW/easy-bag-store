@@ -86,25 +86,28 @@ paths:
         410:
           description: The bag was found, but `INACTIVE`.
 
-  /bags/{itemId}:
+  /bags/{uuid}/{path}:
     get:
       summary: Returns an item from a bag in any of the bag stores managed by this service.
       description: |
-        An item is either a bag, or a directory or file in a bag.
-        The item fetched is specified by the [item-id]:
+        An item is a directory or file in a bag.
+
+         * The item fetched is specified by the path of the requested files within the bag.
+         * The path may consist of more than one component.
 
         ```
-          example ItemIds:
-           40594b6d-8378-4260-b96b-13b57beadf7c/
-           40594b6d-8378-4260-b96b-13b57beadf7c/path/to/file
+        example path:
+           for file:      /path/to/file
+           in bag:        40594b6d-8378-4260-b96b-13b57beadf7c/
+           {uuid}/{path}: 40594b6d-8378-4260-b96b-13b57beadf7c/path/to/file
         ```
 
         Both directories and regular files can be returned as TAR or ZIP, but only regular
         files will be returned if the `Accept` header is absent.
 
-        [item-id]: 03_definitions.html#item-id
       parameters:
-        - $ref: '#/components/parameters/ItemId'
+        - $ref: '#/components/parameters/Uuid'
+        - $ref: '#/components/parameters/FilePath'
       responses:
         200:
           $ref: '#/components/responses/GetItemFromBagOk'
@@ -221,28 +224,33 @@ paths:
           description: Unsupported media type
         503:
           description: |
-            "The server cannot fulfil the request because of a temporary situation. If possible, the \n             reason will be explained in the response entity. Some possible causes are: \n * There is not enough disk space to store the bag."
+            "The server cannot fulfil the request because of a temporary situation. If possible, the
+            reason will be explained in the response entity. Some possible causes are:
+             * There is not enough disk space to store the bag."
 
-  /stores/{store}/bags/{itemId}:
+  /stores/{store}/bags/{uuid}/{path}:
     get:
       summary: Returns an item from a bag in the specified bag store.
       description: |
-        An item is either a bag, or a directory or file in a bag.
-        The item fetched is specified by the [item-id]:
+        An item is a directory or file in a bag.
+
+        * The item fetched is specified by the path of the requested files within the bag.
+        * The path may consist of more than one component.
 
         ```
-          example ItemIds:
-           40594b6d-8378-4260-b96b-13b57beadf7c/
-           40594b6d-8378-4260-b96b-13b57beadf7c/path/to/file
+        example path:
+           for file:      /path/to/file
+           in bag:        40594b6d-8378-4260-b96b-13b57beadf7c/
+           {uuid}/{path}: 40594b6d-8378-4260-b96b-13b57beadf7c/path/to/file
         ```
 
         Both directories and regular files can be returned as TAR or ZIP, but only regular
         files will be returned if the `Accept` header is absent.
 
-        [item-id]: 03_definitions.html#item-id
       parameters:
         - $ref: '#/components/parameters/Store'
-        - $ref: '#/components/parameters/ItemId'
+        - $ref: '#/components/parameters/Uuid'
+        - $ref: '#/components/parameters/FilePath'
       responses:
         200:
           $ref: '#/components/responses/GetItemFromBagOk'
@@ -277,21 +285,21 @@ components:
       required: false
       description: |
         Whether to return directories as items in a text/plain representation. If the `Accept` header
-        of the request is set to anything else than `text/plain`, this parameter is ignored.
+        of the request is set to anything else than `text/plain`, this parameter is ignored. (**TODO: implement this**)
     Uuid:
       in: path
       name: uuid
       schema:
         type: string
       required: true
-      description: bag-id of the targeted bag
-    ItemId:
+      description: The bag-id of the targeted bag
+    FilePath:
       in: path
-      name: itemId
+      name: path
       schema:
         type: string
       required: true
-      description: The bag-id of the targeted bag followed by the path location of targeted items.
+      description: The the path location of targeted items within a bag.
     Store:
       in: path
       name: store
@@ -312,7 +320,7 @@ components:
           schema:
             description: new-line separated list
             type: string
-            example: |
+            examples: |
               2b475349-e138-4406-b715-bc3502872bae
               3d37bae1-78af-4cc8-ab44-565aa0e228b5
               13b02c95-b0e8-4718-bd77-5e6f096ccd19
@@ -324,9 +332,8 @@ components:
           schema:
             description: new-line separated list
             type: string
-            example: |
-              2b475349-e138-4406-b715-bc3502872bae/my/first/file.txt
-              2b475349-e138-4406-b715-bc3502872bae/my/second/file.txt
+            example:
+              2b475349-e138-4406-b715-bc3502872bae/my/first/file.txt 2b475349-e138-4406-b715-bc3502872bae/my/second/file.txt
         application/zip:
           schema:
             description: the content in ZIP format
