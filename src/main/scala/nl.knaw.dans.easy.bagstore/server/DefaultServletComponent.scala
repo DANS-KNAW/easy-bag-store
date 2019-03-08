@@ -33,13 +33,13 @@ trait DefaultServletComponent {
     with ServletLogger
     with MaskedAuthorizationHeader
     with PlainLogFormatter {
-
     val externalBaseUri: URI
+    val version: String
 
     get("/") {
       contentType = "text/plain"
       Ok(
-        s"""EASY Bag Store is running.
+        s"""EASY Bag Store is running v$version.
            |Available stores at <${ externalBaseUri.resolve("stores") }>
            |Bags from all stores at <${ externalBaseUri.resolve("bags") }>
            |""".stripMargin).logResponse
