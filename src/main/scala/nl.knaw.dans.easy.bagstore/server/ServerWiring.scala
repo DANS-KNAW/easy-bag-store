@@ -26,6 +26,7 @@ trait ServerWiring extends BagStoreServerComponent with DefaultServletComponent 
   private val ebu = new URI(configuration.properties.getString("daemon.external-base-uri"))
 
   lazy val defaultServlet: DefaultServlet = new DefaultServlet {
+    val version: String = configuration.version
     val externalBaseUri: URI = ebu
   }
   lazy val bagsServlet: BagsServlet = new BagsServlet {}
