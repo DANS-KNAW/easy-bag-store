@@ -29,10 +29,11 @@ trait DefaultServletComponent {
   val defaultServlet: DefaultServlet
 
   trait DefaultServlet extends ScalatraServlet
-    with DebugEnhancedLogging
     with ServletLogger
+    with PlainLogFormatter
     with MaskedAuthorizationHeader
-    with PlainLogFormatter {
+    with LogResponseBodyOnError
+    with DebugEnhancedLogging {
     val externalBaseUri: URI
     val version: String
 
@@ -42,7 +43,7 @@ trait DefaultServletComponent {
         s"""EASY Bag Store is running v$version.
            |Available stores at <${ externalBaseUri.resolve("stores") }>
            |Bags from all stores at <${ externalBaseUri.resolve("bags") }>
-           |""".stripMargin).logResponse
+           |""".stripMargin)
     }
   }
 }

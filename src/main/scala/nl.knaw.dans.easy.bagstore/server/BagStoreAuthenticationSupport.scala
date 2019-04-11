@@ -17,15 +17,10 @@ package nl.knaw.dans.easy.bagstore.server
 
 import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import nl.knaw.dans.lib.logging.servlet._
-import nl.knaw.dans.lib.logging.servlet.masked.MaskedAuthorizationHeader
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 import org.scalatra.{ BadRequest, ScalatraBase, Unauthorized }
 
-trait BagStoreAuthenticationSupport extends DebugEnhancedLogging
-  with ServletLogger
-  with MaskedAuthorizationHeader
-  with PlainLogFormatter {
+trait BagStoreAuthenticationSupport extends DebugEnhancedLogging {
   self: ScalatraBase =>
 
   def bagstoreUsername: String
@@ -46,12 +41,12 @@ trait BagStoreAuthenticationSupport extends DebugEnhancedLogging
 
   private def badRequest = {
     logger.info(s"${ request.getMethod } did not have basic authentication")
-    halt(BadRequest("Bad Request").logResponse)
+    halt(BadRequest("Bad Request"))
   }
 
   private def unauthenticated = {
     val headers = Map("WWW-Authenticate" -> s"""Basic realm="$realm"""")
-    halt(Unauthorized("Unauthenticated", headers).logResponse)
+    halt(Unauthorized("Unauthenticated", headers))
   }
 
   protected def validate(userName: String, password: String): Boolean = {

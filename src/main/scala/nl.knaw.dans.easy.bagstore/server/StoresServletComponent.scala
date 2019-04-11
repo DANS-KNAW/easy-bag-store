@@ -39,7 +39,8 @@ trait StoresServletComponent {
     with BagStoreAuthenticationSupport
     with ServletLogger
     with PlainLogFormatter
-    with MaskedAuthorizationHeader {
+    with MaskedAuthorizationHeader
+    with LogResponseBodyOnError {
 
     val externalBaseUri: URI
 
@@ -49,7 +50,7 @@ trait StoresServletComponent {
         .keys
         .map(store => s"<${ externalBaseUri.resolve(s"stores/$store") }>")
         .mkString("\n")
-      ).logResponse
+      )
     }
 
     get("/:bagstore") {
@@ -62,7 +63,6 @@ trait StoresServletComponent {
              |""".stripMargin
         })
         .getOrElse(NotFound(s"No such bag-store: $bagstore"))
-        .logResponse
     }
 
     get("/:bagstore/bags") {
@@ -78,7 +78,6 @@ trait StoresServletComponent {
             })
         })
         .getOrElse(NotFound(s"No such bag-store: $bagstore"))
-        .logResponse
     }
 
     get("/:bagstore/bags/:uuid") {
@@ -113,13 +112,12 @@ trait StoresServletComponent {
               InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
           })
         .getOrElse(NotFound(s"No such bag-store: $bagstore"))
-        .logResponse
     }
 
     get("/:bagstore/bags/:uuid/*") {
       val bagstore = params("bagstore")
       val uuidStr = params("uuid")
-      (multiParams("splat") match {
+      multiParams("splat") match {
         case Seq(path) =>
           bagStores.getBaseDirByShortname(bagstore)
             .map(baseDir => ItemId.fromString(s"""$uuidStr/${ path }""")
@@ -146,7 +144,7 @@ trait StoresServletComponent {
         case p =>
           logger.error(s"Unexpected path: $p")
           InternalServerError("Unexpected path")
-      }).logResponse
+      }
     }
 
     put("/:bagstore/bags/:uuid") {
@@ -181,7 +179,6 @@ trait StoresServletComponent {
             }
         })
         .getOrElse(NotFound(s"No such bag-store: $bagStore"))
-        .logResponse
     }
   }
 
