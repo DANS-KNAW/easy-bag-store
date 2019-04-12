@@ -18,6 +18,7 @@ package nl.knaw.dans.easy.bagstore.server
 import java.nio.file.{ Files, Paths }
 import java.util.UUID
 
+import nl.knaw.dans.lib.encode.PathEncoding
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
 import org.apache.commons.io.FileUtils
@@ -48,6 +49,10 @@ class BagsServletSpec extends TestSupportFixture
     super.beforeEach()
     FileUtils.copyDirectory(Paths.get("src/test/resources/bag-store1").toFile, store1.toFile)
     FileUtils.copyDirectory(Paths.get("src/test/resources/bag-store2").toFile, store2.toFile)
+  }
+
+  private def escapePath(path: String): String = {
+    Paths.get(path).escapePath
   }
 
   private def setBag1Hidden(): Unit = {
@@ -149,18 +154,18 @@ class BagsServletSpec extends TestSupportFixture
     get("/01000000-0000-0000-0000-000000000001", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 200
       body.lines.toList should contain only(
-        "01000000-0000-0000-0000-000000000001/data/x",
-        "01000000-0000-0000-0000-000000000001/data/y",
-        "01000000-0000-0000-0000-000000000001/data/z",
-        "01000000-0000-0000-0000-000000000001/data/sub/u",
-        "01000000-0000-0000-0000-000000000001/data/sub/v",
-        "01000000-0000-0000-0000-000000000001/data/sub/w",
-        "01000000-0000-0000-0000-000000000001/metadata/dataset.xml",
-        "01000000-0000-0000-0000-000000000001/metadata/files.xml",
-        "01000000-0000-0000-0000-000000000001/bagit.txt",
-        "01000000-0000-0000-0000-000000000001/bag-info.txt",
-        "01000000-0000-0000-0000-000000000001/manifest-sha1.txt",
-        "01000000-0000-0000-0000-000000000001/tagmanifest-sha1.txt"
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/x"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/y"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/z"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/sub/u"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/sub/v"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/sub/w"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("metadata/dataset.xml"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("metadata/files.xml"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("bagit.txt"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("bag-info.txt"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("manifest-sha1.txt"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("tagmanifest-sha1.txt")
       )
     }
   }
@@ -202,7 +207,7 @@ class BagsServletSpec extends TestSupportFixture
   }
 
   it should "fail if a file within a bag cannot be found" in {
-    val itemId = "01000000-0000-0000-0000-000000000001/bag-info2.txt"
+    val itemId = "01000000-0000-0000-0000-000000000001/" + escapePath("bag-info2.txt")
     get(s"/$itemId", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 404
       body shouldBe s"Item $itemId not found"
@@ -229,10 +234,11 @@ class BagsServletSpec extends TestSupportFixture
 
   it should "return a 404 non-existing item within an inactive/ hidden bag is requested" in {
     val bagID = "01000000-0000-0000-0000-000000000001"
+    val itemId = bagID + "/" + escapePath("bag-info6.txt")
     bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
-    get(s"/$bagID/bag-info6.txt") {
+    get(s"/$itemId") {
       status shouldBe 404
-      body shouldBe s"Item $bagID/bag-info6.txt not found"
+      body shouldBe s"Item $itemId not found"
     }
   }
 
@@ -249,10 +255,11 @@ class BagsServletSpec extends TestSupportFixture
   // this calls copyOutputStream
   it should "fail, returning a 404, when done on non existing item in an inactive/ hidden bag when headers text/plain is provided" in {
     val bagID = "01000000-0000-0000-0000-000000000001"
+    val itemId = bagID + "/" + escapePath("bag-info2.txt")
     bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
-    get(s"/$bagID/bag-info2.txt", headers = Map("Accept" -> "text/plain")) {
+    get(s"/$itemId", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 404
-      body shouldBe s"Item $bagID/bag-info2.txt not found"
+      body shouldBe s"Item $itemId not found"
     }
   }
 

@@ -23,6 +23,7 @@ import java.util.{ Base64, UUID }
 
 import net.lingala.zip4j.core.ZipFile
 import net.lingala.zip4j.model.ZipParameters
+import nl.knaw.dans.lib.encode.PathEncoding
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
 import org.apache.commons.io.FileUtils
@@ -90,6 +91,10 @@ class StoresServletSpec extends TestSupportFixture
     Files.move(store2.resolve("02/000000000000000000000000000001"), store2.resolve("02/000000000000000000000000000004"))
     Files.move(store2.resolve("02/000000000000000000000000000002"), store2.resolve("02/000000000000000000000000000005"))
     Files.move(store2.resolve("02/000000000000000000000000000003"), store2.resolve("02/000000000000000000000000000006"))
+  }
+
+  private def escapePath(path: String): String = {
+    Paths.get(path).escapePath
   }
 
   private def setBag1Hidden(): Unit = {
@@ -198,18 +203,18 @@ class StoresServletSpec extends TestSupportFixture
     get("/store1/bags/01000000-0000-0000-0000-000000000001", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 200
       body.lines.toList should contain only(
-        "01000000-0000-0000-0000-000000000001/data/x",
-        "01000000-0000-0000-0000-000000000001/data/y",
-        "01000000-0000-0000-0000-000000000001/data/z",
-        "01000000-0000-0000-0000-000000000001/data/sub/u",
-        "01000000-0000-0000-0000-000000000001/data/sub/v",
-        "01000000-0000-0000-0000-000000000001/data/sub/w",
-        "01000000-0000-0000-0000-000000000001/metadata/dataset.xml",
-        "01000000-0000-0000-0000-000000000001/metadata/files.xml",
-        "01000000-0000-0000-0000-000000000001/bagit.txt",
-        "01000000-0000-0000-0000-000000000001/bag-info.txt",
-        "01000000-0000-0000-0000-000000000001/manifest-sha1.txt",
-        "01000000-0000-0000-0000-000000000001/tagmanifest-sha1.txt"
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/x"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/y"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/z"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/sub/u"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/sub/v"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/sub/w"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("metadata/dataset.xml"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("metadata/files.xml"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("bagit.txt"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("bag-info.txt"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("manifest-sha1.txt"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("tagmanifest-sha1.txt")
       )
     }
   }
@@ -247,18 +252,18 @@ class StoresServletSpec extends TestSupportFixture
     get("/store1/bags/01000000-0000-0000-0000-000000000001", params = Map.empty, headers = Map("Accept" -> "text/plain")) {
       status shouldBe 200
       body.lines.toList should contain only(
-        "01000000-0000-0000-0000-000000000001/data/x",
-        "01000000-0000-0000-0000-000000000001/data/y",
-        "01000000-0000-0000-0000-000000000001/data/z",
-        "01000000-0000-0000-0000-000000000001/data/sub/u",
-        "01000000-0000-0000-0000-000000000001/data/sub/v",
-        "01000000-0000-0000-0000-000000000001/data/sub/w",
-        "01000000-0000-0000-0000-000000000001/metadata/dataset.xml",
-        "01000000-0000-0000-0000-000000000001/metadata/files.xml",
-        "01000000-0000-0000-0000-000000000001/bagit.txt",
-        "01000000-0000-0000-0000-000000000001/bag-info.txt",
-        "01000000-0000-0000-0000-000000000001/manifest-sha1.txt",
-        "01000000-0000-0000-0000-000000000001/tagmanifest-sha1.txt"
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/x"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/y"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/z"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/sub/u"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/sub/v"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("data/sub/w"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("metadata/dataset.xml"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("metadata/files.xml"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("bagit.txt"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("bag-info.txt"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("manifest-sha1.txt"),
+        "01000000-0000-0000-0000-000000000001/" + escapePath("tagmanifest-sha1.txt")
       )
     }
   }
@@ -336,9 +341,10 @@ class StoresServletSpec extends TestSupportFixture
   }
 
   it should "fail when the file is not found" in {
+    val itemId = "01000000-0000-0000-0000-000000000001/" + escapePath("unknown-folder/unknown-file")
     get("/store1/bags/01000000-0000-0000-0000-000000000001/unknown-folder/unknown-file") {
       status shouldBe 404
-      body shouldBe s"Item 01000000-0000-0000-0000-000000000001/unknown-folder/unknown-file not found"
+      body shouldBe s"Item 01000000-0000-0000-0000-000000000001/" + escapePath("unknown-folder/unknown-file") + " not found"
     }
   }
 
