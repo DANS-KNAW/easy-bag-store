@@ -31,11 +31,11 @@ trait BagsServletComponent {
 
   val bagsServlet: BagsServlet
 
-  trait BagsServlet extends ScalatraServlet
+  trait BagsServlet extends ScalatraServlet with ServletUtils
     with ServletLogger
-    with MaskedAuthorizationHeader
     with PlainLogFormatter
-    with ServletUtils {
+    with MaskedAuthorizationHeader
+    with LogResponseBodyOnError {
 
     get("/") {
       contentType = "text/plain"
@@ -45,7 +45,7 @@ trait BagsServletComponent {
         .getOrRecover(e => {
           logger.error("Unexpected type of failure", e)
           InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
-        }).logResponse
+        })
     }
 
     get("/:uuid") {
@@ -72,12 +72,12 @@ trait BagsServletComponent {
           case e =>
             logger.error("Unexpected type of failure", e)
             InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
-        }.logResponse
+        }
     }
 
     get("/:uuid/*") {
       val uuidStr = params("uuid")
-      (multiParams("splat") match {
+      multiParams("splat") match {
         case Seq(path) =>
           ItemId.fromString(s"""$uuidStr/${ path }""")
             .recoverWith {
@@ -102,7 +102,7 @@ trait BagsServletComponent {
         case p =>
           logger.error(s"Unexpected path: $p")
           InternalServerError("Unexpected path")
-      }).logResponse
+      }
     }
   }
 }
