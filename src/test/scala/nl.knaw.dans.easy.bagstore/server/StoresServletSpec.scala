@@ -344,7 +344,7 @@ class StoresServletSpec extends TestSupportFixture
     val itemId = "01000000-0000-0000-0000-000000000001/" + escapePath("unknown-folder/unknown-file")
     get("/store1/bags/01000000-0000-0000-0000-000000000001/unknown-folder/unknown-file") {
       status shouldBe 404
-      body shouldBe s"Item 01000000-0000-0000-0000-000000000001/" + escapePath("unknown-folder/unknown-file") + " not found"
+      body shouldBe s"Item 01000000-0000-0000-0000-000000000001/${escapePath("unknown-folder/unknown-file")} not found"
     }
   }
 
