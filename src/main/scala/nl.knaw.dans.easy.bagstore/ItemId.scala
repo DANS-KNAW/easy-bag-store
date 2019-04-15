@@ -19,9 +19,7 @@ import java.net.URLDecoder
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
-import com.google.common.net.UrlEscapers
-
-import scala.collection.JavaConverters._
+import nl.knaw.dans.lib.encode.PathEncoding
 import scala.util.{ Failure, Success, Try }
 
 abstract class ItemId(val uuid: UUID) {
@@ -60,10 +58,9 @@ case class BagId(override val uuid: UUID) extends ItemId(uuid) {
 
 // FIXME: isDirectory cannot always be known in advance
 case class FileId(bagId: BagId, path: Path, isDirectory: Boolean = false) extends ItemId(bagId.uuid) {
-  private val pathEscaper = UrlEscapers.urlPathSegmentEscaper()
 
   override def toString: String = {
-    s"$bagId/${ path.asScala.map(_.toString).map(pathEscaper.escape).mkString("/") }"
+    s"$bagId/${ path.escapePath }"
   }
 
   override def toBagId: Try[BagId] = Failure(NoBagIdException(this))
