@@ -45,6 +45,7 @@ trait CommandLineOptionsComponent {
          |${ _________ }# operations on items in a bag store
          |${ _________ }| list
          |${ _________ }| add [-m,--move] [-u,--uuid <uuid>] <bag>
+         |${ _________ }| stage <bag-id>
          |${ _________ }| get [-d,--directory <dir>] [-f, --force-inactive] [-s,--skip-completion] <item-id>
          |${ _________ }| stream [-f, --force-inactive] [--format zip|tar] <item-id>
          |${ _________ }| enum [[-a,--all] [-e,--exclude-directories] [-i,--inactive] [-f, --force-inactive] <bag-id>]
@@ -100,6 +101,12 @@ trait CommandLineOptionsComponent {
       footer(SUBCOMMAND_SEPARATOR)
     }
     addSubcommand(add)
+
+    val stage = new Subcommand("stage") {
+      descr("Stages an off-line bag to on-line storage")
+      val bagId: ScallopOption[String] = trailArg(name = "bag-id",
+        descr = "bag-id of the bag to bring on-line")
+    }
 
     val get = new Subcommand("get") {
       descr("Retrieves an item by copying it to the specified directory (default: current directory).")
