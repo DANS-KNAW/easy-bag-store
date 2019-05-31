@@ -36,6 +36,7 @@ jsvc_exec()
     LC_ALL=en_US.UTF-8 \
     $EXEC -home $JAVA_HOME -cp $CLASSPATH -user $USER -outfile $OUTFILE -errfile $ERRFILE -pidfile $PID -wait $WAIT_TIME \
           -Dapp.home=$APPHOME \
+          -Dorg.scalatra.environment="production" \
           -Dlogback.configurationFile=$LOGBACK_CFG $1 $CLASS $ARGS
 }
 
