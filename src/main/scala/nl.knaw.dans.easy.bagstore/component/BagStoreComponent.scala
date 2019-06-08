@@ -18,7 +18,9 @@ package nl.knaw.dans.easy.bagstore.component
 import java.io.OutputStream
 import java.nio.file.{ Files, Path, Paths }
 import java.util.UUID
+import java.util.zip.Deflater
 
+import better.files.File
 import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error._
@@ -236,12 +238,12 @@ trait BagStoreComponent {
           valid <- fileSystem.isVirtuallyValid(path).recover { case _: BagReaderException => Left("Could not read bag") }
           _ <- valid.fold(msg => Failure(InvalidBagException(bagId, msg)), _ => Success(()))
           _ <- maybeRefbags.map(pruneWithReferenceBags(path)).getOrElse(Success(()))
-          _ = debug("bag succesfully pruned")
+          _ = debug("bag successfully pruned")
           container <- fileSystem.toContainer(bagId)
           _ = Files.createDirectories(container)
           _ <- fileSystem.makePathAndParentsInBagStoreGroupWritable(container)
           _ = debug(s"created container for Bag: $container")
-          _ <- ingest(bagDir.getFileName, staging, container)
+          _ <- ingestAsZip(bagDir.getFileName, staging, container)
           _ = if (!skipStage) FileUtils.deleteDirectory(staging.toFile)
         } yield bagId
       }
@@ -254,6 +256,15 @@ trait BagStoreComponent {
         _ <- bagProcessing.prune(bagDir, refs)
         _ <- Try { Files.delete(refbags) }
       } yield ()
+    }
+
+    private def ingestAsZip(bagName: Path, staging: Path, container: Path): Try[Unit] = Try {
+      val zipping = File(staging).createChild("zipping-temp", asDirectory = true)
+      val bag = File(staging.resolve(bagName))
+      bag.moveTo(zipping / bagName.toString)
+      val zipFile = File(staging.resolve(s"$bagName.zip"))
+      zipping.zipTo(zipFile, compressionLevel = Deflater.NO_COMPRESSION)
+      zipFile.moveTo(container.resolve(zipFile.name))
     }
 
     private def ingest(bagName: Path, staging: Path, container: Path): Try[Unit] = {
