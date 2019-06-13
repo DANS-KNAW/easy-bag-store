@@ -173,6 +173,19 @@ trait BagStoreComponent {
       }
     }
 
+    def getSize(itemId: ItemId): Try[Long] = {
+      trace(itemId)
+      val bagId = BagId(itemId.uuid)
+
+      fileSystem.checkBagExists(bagId).flatMap { _ =>
+        for {
+          bagDir <- fileSystem.toLocation(bagId)
+          itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path))
+          size = Files.size(itemPath)
+        } yield size
+      }
+    }
+
     private def fileIsFound(entriesCount: Int, itemId: ItemId): Try[Unit] = Try {
       if (entriesCount == 0)
         throw NoSuchItemException(itemId)

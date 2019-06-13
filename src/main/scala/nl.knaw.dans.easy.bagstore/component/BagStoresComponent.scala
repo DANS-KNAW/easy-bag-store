@@ -66,6 +66,11 @@ trait BagStoresComponent {
         }
     }
 
+    def getSize(itemId: ItemId, fromStore: Option[BaseDir] = None): Try[Long] = {
+      fromStore
+        .map(BagStore(_).getSize(itemId)).getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
+    }
+
     def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false, fromStore: Option[BaseDir] = None): Try[Seq[BagId]] = {
       fromStore
         .map(BagStore(_).enumBags(includeActive, includeInactive))
