@@ -211,11 +211,9 @@ trait StoresServletComponent {
   }
 
   private def getHeaders(itemId: ItemId, baseDir: BaseDir): Try[Map[String, String]] = Try {
-    val size = bagStores.getSize(itemId, Some(baseDir))
-    if (size.isSuccess)
-      Map("File-Size" -> size.get.toString)
-    else
-      Map()
+    bagStores.getSize(itemId, Some(baseDir))
+      .map(s => Map("File-Size" -> s.toString))
+      .getOrElse(Map.empty)
   }
 
   private def validateContentTypeHeader(requestContentType: Option[String], uuid: UUID): Try[UUID] = {

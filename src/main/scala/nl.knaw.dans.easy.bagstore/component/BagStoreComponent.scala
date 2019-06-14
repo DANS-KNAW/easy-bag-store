@@ -156,34 +156,31 @@ trait BagStoreComponent {
       trace(itemId)
       val bagId = BagId(itemId.uuid)
 
-      fileSystem.checkBagExists(bagId).flatMap { _ =>
-        for {
-          bagDir <- fileSystem.toLocation(bagId)
-          itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
-          fileIds <- enumFiles(itemId, forceInactive = true) // validation that the bagdir is active will be done later one
-          fileSpecs <- createFileSpecs(bagDir, itemPath, fileIds)
-          dirSpecs <- createDirectorySpecs(bagDir, itemPath, fileIds)
-          allEntriesCount = fileSpecs.length + dirSpecs.length
-          allEntries = () => (dirSpecs ++ fileSpecs).sortBy(_.entryPath) // only concat and sort if necessary, hence as a function here
-          _ <- fileIsFound(allEntriesCount, itemId)
-          _ <- validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive) // if the bag is hidden, also don't return a specific item from the bag
-          _ <- archiveStreamType.map(copyToArchiveStream(outputStream)(allEntries))
-            .getOrElse(copyToOutputStream(itemId, fileIds, allEntriesCount, outputStream))
-        } yield ()
-      }
+      for {
+        _ <- fileSystem.checkBagExists(bagId)
+        bagDir <- fileSystem.toLocation(bagId)
+        itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
+        fileIds <- enumFiles(itemId, forceInactive = true) // validation that the bagdir is active will be done later one
+        fileSpecs <- createFileSpecs(bagDir, itemPath, fileIds)
+        dirSpecs <- createDirectorySpecs(bagDir, itemPath, fileIds)
+        allEntriesCount = fileSpecs.length + dirSpecs.length
+        allEntries = () => (dirSpecs ++ fileSpecs).sortBy(_.entryPath) // only concat and sort if necessary, hence as a function here
+        _ <- fileIsFound(allEntriesCount, itemId)
+        _ <- validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive) // if the bag is hidden, also don't return a specific item from the bag
+        _ <- archiveStreamType.map(copyToArchiveStream(outputStream)(allEntries))
+          .getOrElse(copyToOutputStream(itemId, fileIds, allEntriesCount, outputStream))
+      } yield ()
     }
 
     def getSize(itemId: ItemId): Try[Long] = {
       trace(itemId)
       val bagId = BagId(itemId.uuid)
 
-      fileSystem.checkBagExists(bagId).flatMap { _ =>
-        for {
-          bagDir <- fileSystem.toLocation(bagId)
-          itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path))
-          size = Files.size(itemPath)
-        } yield size
-      }
+      for {
+        _ <- fileSystem.checkBagExists(bagId)
+        bagDir <- fileSystem.toLocation(bagId)
+        itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path))
+      } yield Files.size(itemPath)
     }
 
     private def fileIsFound(entriesCount: Int, itemId: ItemId): Try[Unit] = Try {
