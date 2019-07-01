@@ -180,7 +180,20 @@ trait BagStoreComponent {
         _ <- fileSystem.checkBagExists(bagId)
         bagDir <- fileSystem.toLocation(bagId)
         itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path))
-      } yield Files.size(itemPath)
+        _ <- itemExists(itemId, itemPath)
+      } yield getFileSize(itemId, itemPath)
+    }
+
+    private def itemExists(itemId: ItemId, itemPath: Path): Try[Unit] = Try {
+      if (Files.notExists(itemPath))
+        throw  NoSuchItemException (itemId)
+    }
+
+    private def getFileSize(itemId: ItemId, itemPath: Path): Long =  {
+      if (Files.isRegularFile(itemPath))
+        Files.size(itemPath)
+      else
+        throw  NoRegularFileException(itemId)
     }
 
     private def fileIsFound(entriesCount: Int, itemId: ItemId): Try[Unit] = Try {

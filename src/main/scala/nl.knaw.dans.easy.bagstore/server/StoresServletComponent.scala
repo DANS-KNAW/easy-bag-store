@@ -147,7 +147,7 @@ trait StoresServletComponent {
       }
     }
 
-    head("/:bagstore/bags/:uuid/*") {
+    get("/:bagstore/bags/filesizes/:uuid/*") {
       val bagstore = params("bagstore")
       val uuidStr = params("uuid")
       multiParams("splat") match {
@@ -157,13 +157,13 @@ trait StoresServletComponent {
               .recoverWith {
                 case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"Invalid UUID string: $uuidStr"))
               }
-              .flatMap(itemId => {
-                getHeaders(itemId, baseDir)
-              })
-              .map(headers => Ok(headers = headers))
+              .flatMap(itemId => bagStores.getSize(itemId, Some(baseDir)))
+              .map(size => Ok(body = size))
               .getOrRecover {
                 case e: IllegalArgumentException => BadRequest(e.getMessage)
-                case e: NoRegularFileException => BadRequest(e.getMessage)
+                case e: NoRegularFileException => NotFound(e.getMessage)
+                case e: NoSuchItemException => NotFound(e.getMessage)
+                case e: NoSuchBagException => NotFound(e.getMessage)
                 case NonFatal(e) =>
                   logger.error("Error retrieving bag", e)
                   InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
@@ -208,12 +208,6 @@ trait StoresServletComponent {
         })
         .getOrElse(NotFound(s"No such bag-store: $bagStore"))
     }
-  }
-
-  private def getHeaders(itemId: ItemId, baseDir: BaseDir): Try[Map[String, String]] = Try {
-    bagStores.getSize(itemId, Some(baseDir))
-      .map(s => Map("File-Size" -> s.toString))
-      .getOrElse(Map.empty)
   }
 
   private def validateContentTypeHeader(requestContentType: Option[String], uuid: UUID): Try[UUID] = {
