@@ -69,7 +69,15 @@ trait BagStoresComponent {
     def getSize(itemId: ItemId, fromStore: Option[BaseDir] = None): Try[Long] = {
       fromStore
         .map(BagStore(_).getSize(itemId))
-        .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
+        .getOrElse {
+          storeShortnames.values.toStream
+            .map(BagStore(_).getSize(itemId))
+            .find {
+              case Failure(_: NoSuchBagException) => false
+              case _ => true
+            }
+            .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
+        }
     }
 
     def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false, fromStore: Option[BaseDir] = None): Try[Seq[BagId]] = {

@@ -25,7 +25,7 @@ import org.scalatra.servlet.ScalatraListener
 import scala.util.Try
 
 trait BagStoreServerComponent extends DebugEnhancedLogging {
-  this: DefaultServletComponent with BagsServletComponent with StoresServletComponent =>
+  this: DefaultServletComponent with BagsServletComponent with FilesizesServletComponent with StoresServletComponent =>
 
   val server: BagStoreServer
 
@@ -39,6 +39,7 @@ trait BagStoreServerComponent extends DebugEnhancedLogging {
               override def init(context: ServletContext): Unit = {
                 context.mount(defaultServlet, "/")
                 context.mount(bagsServlet, "/bags")
+                context.mount(filesizesServlet, "/bags/filesizes")
                 context.mount(storesServlet, "/stores")
               }
             })
