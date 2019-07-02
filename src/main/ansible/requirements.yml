@@ -15,7 +15,7 @@
 #
 
 - src: https://github.com/DANS-KNAW/dans.local-yum-repo
-  version: v3.1.1
+  version: v3.1.2
 - src: https://github.com/DANS-KNAW/dans.local-test-vm-base
   version: v3.0.0
 - src: https://github.com/DANS-KNAW/dans.easy-ldap-dir
