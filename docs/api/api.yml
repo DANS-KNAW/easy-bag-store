@@ -81,6 +81,8 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/GetBagOk'
+        400:
+          description: Bad request.
         404:
           description: The bag could not be found in any of the bag stores managed by this service.
         410:
@@ -111,6 +113,8 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/GetItemFromBagOk'
+        400:
+          description: Bad request.
         404:
           description: The item could not be found.
         410:
@@ -139,6 +143,8 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/GetItemFromBagOk'
+        400:
+          description: Bad request.
         404:
           description: The item could not be found.
 
@@ -183,6 +189,8 @@ paths:
                 example: |
                   Bag store 'my-store'.
                   Bags for this store at <http://test.dans.knaw.nl/my-store/bags>
+        400:
+          description: Bad request.
         404:
           description: "This store does not exist or is not managed by this service."
 
@@ -214,6 +222,8 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/GetBagOk'
+        400:
+          description: Bad request.
         404:
           description: The bag could not be found in any of the bag stores managed by this service.
         409:
@@ -280,6 +290,8 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/GetItemFromBagOk'
+        400:
+          description: Bad request.
         404:
           description: The item could not be found.
         409:
@@ -309,6 +321,8 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/GetItemFromBagOk'
+        400:
+          description: Bad request.
         404:
           description: The item could not be found.
 

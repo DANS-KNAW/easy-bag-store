@@ -104,5 +104,30 @@ trait BagsServletComponent {
           InternalServerError("Unexpected path")
       }
     }
+
+    get("/filesizes/:uuid/*") {
+      val uuidStr = params("uuid")
+      multiParams("splat") match {
+        case Seq(path) =>
+          ItemId.fromString(s"""$uuidStr/${ path }""")
+            .recoverWith {
+              case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
+            }
+            .flatMap(itemId => bagStores.getSize(itemId))
+            .map(size => Ok(body = size))
+            .getOrRecover {
+              case e: IllegalArgumentException => BadRequest(e.getMessage)
+              case e: NoSuchBagException => NotFound(e.getMessage)
+              case e: NoSuchItemException => NotFound(e.getMessage)
+              case e: NoRegularFileException => NotFound(e.getMessage)
+              case NonFatal(e) =>
+                logger.error("Error retrieving bag", e)
+                InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
+            }
+        case p =>
+          logger.error(s"Unexpected path: $p")
+          InternalServerError("Unexpected path")
+      }
+    }
   }
 }
