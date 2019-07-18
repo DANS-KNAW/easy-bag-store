@@ -75,6 +75,8 @@ trait BagsServletComponent {
         }
     }
 
+    // please note that the order in which '/:uuid/*' and '/filesizes/:uuid/*' appear is important!
+    // see http://scalatra.org/guides/2.6/http/routes.html#route-order
     get("/:uuid/*") {
       val uuidStr = params("uuid")
       multiParams("splat") match {
@@ -105,6 +107,8 @@ trait BagsServletComponent {
       }
     }
 
+    // please note that the order in which '/:uuid/*' and '/filesizes/:uuid/*' appear is important!
+    // see http://scalatra.org/guides/2.6/http/routes.html#route-order
     get("/filesizes/:uuid/*") {
       val uuidStr = params("uuid")
       multiParams("splat") match {

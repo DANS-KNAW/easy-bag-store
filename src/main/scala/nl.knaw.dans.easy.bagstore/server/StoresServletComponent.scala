@@ -114,6 +114,8 @@ trait StoresServletComponent {
         .getOrElse(NotFound(s"No such bag-store: $bagstore"))
     }
 
+    // please note that the order in which '/:bagstore/bags/:uuid/*' and '/:bagstore/bags/filesizes/:uuid/*' appear is important!
+    // see http://scalatra.org/guides/2.6/http/routes.html#route-order
     get("/:bagstore/bags/:uuid/*") {
       val bagstore = params("bagstore")
       val uuidStr = params("uuid")
@@ -147,6 +149,8 @@ trait StoresServletComponent {
       }
     }
 
+    // please note that the order in which '/:bagstore/bags/:uuid/*' and '/:bagstore/bags/filesizes/:uuid/*' appear is important!
+    // see http://scalatra.org/guides/2.6/http/routes.html#route-order
     get("/:bagstore/bags/filesizes/:uuid/*") {
       val bagstore = params("bagstore")
       val uuidStr = params("uuid")
