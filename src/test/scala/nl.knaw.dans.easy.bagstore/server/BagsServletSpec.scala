@@ -18,9 +18,9 @@ package nl.knaw.dans.easy.bagstore.server
 import java.nio.file.{ Files, Paths }
 import java.util.UUID
 
-import nl.knaw.dans.lib.encode.PathEncoding
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
+import nl.knaw.dans.lib.encode.PathEncoding
 import org.apache.commons.io.FileUtils
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
@@ -269,6 +269,43 @@ class BagsServletSpec extends TestSupportFixture
     get(s"/$bagID/bag-info.txt", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 410
       body shouldBe s"Tried to retrieve an inactive bag: $bagID with toggle forceInactive = false"
+    }
+  }
+
+  "get filesizes/uuid/*" should "return filesize when file is found and is a regular file" in {
+    val itemId = "01000000-0000-0000-0000-000000000001/data/sub/u"
+    get(s"/filesizes/$itemId", headers = Map("Accept" -> "text/plain")) {
+      body shouldBe "12"
+      status shouldBe 200
+    }
+  }
+
+  it should "fail when the bag is not found" in {
+    get(s"/filesizes/${ UUID.randomUUID() }/data/sub/u") {
+      status shouldBe 404
+    }
+  }
+
+  it should "fail when only the bag id is given" in {
+    val itemId = "01000000-0000-0000-0000-000000000001"
+    get(s"/filesizes/$itemId", headers = Map("Accept" -> "text/plain")) {
+      status shouldBe 400
+    }
+  }
+
+  it should "fail when the item is not a regular file" in {
+    val itemId = "01000000-0000-0000-0000-000000000001/data/sub"
+    get(s"/filesizes/$itemId", headers = Map("Accept" -> "text/plain")) {
+      status shouldBe 404
+      body shouldBe s"Item $itemId is not a regular file."
+    }
+  }
+
+  it should "fail when the file within a bag cannot be found" in {
+    val itemId = "01000000-0000-0000-0000-000000000001/data/nonexistent"
+    get(s"/filesizes/$itemId", headers = Map("Accept" -> "text/plain")) {
+      status shouldBe 404
+      body shouldBe s"Item $itemId not found"
     }
   }
 }
