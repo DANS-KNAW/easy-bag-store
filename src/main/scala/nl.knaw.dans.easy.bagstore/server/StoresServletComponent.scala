@@ -15,8 +15,8 @@
  */
 package nl.knaw.dans.easy.bagstore.server
 
-import java.io.File
 import java.net.URI
+import java.nio.file.Files
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagstore._
@@ -127,15 +127,13 @@ trait StoresServletComponent {
               }
               .flatMap(itemId => {
                 debug(s"Retrieving item $itemId")
-                request.header("Accept").flatMap(acceptToArchiveStreamType)
-                  .map(ast => bagStores.copyToStream(itemId, Some(ast), response.outputStream, Some(baseDir)))
-                  .getOrElse(bagStores.getFile(itemId, Some(baseDir)).map(_.toFile))
+                bagStores.copyToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType), response.outputStream, Some(baseDir))
               })
               .map {
-                case file: File =>
-                  response.setContentLengthLong(file.length())
-                  Ok(file)
-                case _ => Ok()
+                case Some(filePath) =>
+                  response.setContentLengthLong(Files.size(filePath))
+                  Ok(filePath.toFile)
+                case None => Ok()
               }
               .getOrRecover {
                 case e: IllegalArgumentException => BadRequest(e.getMessage)

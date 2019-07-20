@@ -152,7 +152,7 @@ trait BagStoreComponent {
      * @param outputStream      the output stream to write to
      * @return whether the call was successful
      */
-    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream, forceInactive: Boolean = false): Try[Unit] = {
+    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream, forceInactive: Boolean = false): Try[Option[Path]] = {
       trace(itemId)
       val bagId = BagId(itemId.uuid)
 
@@ -167,33 +167,9 @@ trait BagStoreComponent {
         allEntries = () => (dirSpecs ++ fileSpecs).sortBy(_.entryPath) // only concat and sort if necessary, hence as a function here
         _ <- fileIsFound(allEntriesCount, itemId)
         _ <- validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive) // if the bag is hidden, also don't return a specific item from the bag
-        _ <- archiveStreamType.map(copyToArchiveStream(outputStream)(allEntries))
-          .getOrElse(copyToOutputStream(itemId, fileIds, allEntriesCount, outputStream))
-      } yield ()
-    }
-
-    def getFile(itemId: ItemId, forceInactive: Boolean = false): Try[Path] = {
-      trace(itemId)
-      val bagId = BagId(itemId.uuid)
-
-      for {
-        _ <- fileSystem.checkBagExists(bagId)
-        bagDir <- fileSystem.toLocation(bagId)
-        itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
-        _ <- itemExists(itemId, itemPath)
-        _ <- itemIsFile(itemId, itemPath)
-        _ <- validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive) // if the bag is hidden, also don't return a specific item from the bag
-      } yield itemPath
-    }
-
-    private def itemExists(itemId: ItemId, itemPath: Path): Try[Unit] = Try {
-      if (Files.notExists(itemPath))
-        throw NoSuchItemException(itemId)
-    }
-
-    private def itemIsFile(itemId: ItemId, itemPath: Path): Try[Unit] = Try {
-      if (!Files.isRegularFile(itemPath))
-        throw NoRegularFileException(itemId)
+        maybePath <- archiveStreamType.map(copyToArchiveStream(outputStream)(allEntries)(_).map(_ => Option.empty))
+          .getOrElse(findFile(itemId, fileIds, allEntriesCount).map(Option(_)))
+      } yield maybePath
     }
 
     private def fileIsFound(entriesCount: Int, itemId: ItemId): Try[Unit] = Try {
@@ -217,14 +193,10 @@ trait BagStoreComponent {
       new ArchiveStream(archiveStreamType, entries()).writeTo(outputStream)
     }
 
-    private def copyToOutputStream(itemId: ItemId, fileIds: Seq[FileId], entriesCount: Int, outputStream: => OutputStream): Try[Unit] = {
+    private def findFile(itemId: ItemId, fileIds: Seq[FileId], entriesCount: Int): Try[Path] = {
       entriesCount match {
         case 0 => Failure(NoSuchItemException(itemId))
         case 1 => fileSystem.toRealLocation(fileIds.head)
-          .map(path => {
-            debug(s"Copying $path to outputstream")
-            Files.copy(path, outputStream)
-          })
         case _ => Failure(NoRegularFileException(itemId))
       }
     }
