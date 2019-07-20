@@ -172,28 +172,28 @@ trait BagStoreComponent {
       } yield ()
     }
 
-    def getSize(itemId: ItemId): Try[Long] = {
+    def getFile(itemId: ItemId, forceInactive: Boolean = false): Try[Path] = {
       trace(itemId)
       val bagId = BagId(itemId.uuid)
 
       for {
         _ <- fileSystem.checkBagExists(bagId)
         bagDir <- fileSystem.toLocation(bagId)
-        itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path))
+        itemPath <- itemId.toFileId.map(f => bagDir.resolve(f.path)).orElse(Success(bagDir))
         _ <- itemExists(itemId, itemPath)
-      } yield getFileSize(itemId, itemPath)
+        _ <- itemIsFile(itemId, itemPath)
+        _ <- validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive) // if the bag is hidden, also don't return a specific item from the bag
+      } yield itemPath
     }
 
     private def itemExists(itemId: ItemId, itemPath: Path): Try[Unit] = Try {
       if (Files.notExists(itemPath))
-        throw  NoSuchItemException (itemId)
+        throw NoSuchItemException(itemId)
     }
 
-    private def getFileSize(itemId: ItemId, itemPath: Path): Long =  {
-      if (Files.isRegularFile(itemPath))
-        Files.size(itemPath)
-      else
-        throw  NoRegularFileException(itemId)
+    private def itemIsFile(itemId: ItemId, itemPath: Path): Try[Unit] = Try {
+      if (!Files.isRegularFile(itemPath))
+        throw NoRegularFileException(itemId)
     }
 
     private def fileIsFound(entriesCount: Int, itemId: ItemId): Try[Unit] = Try {
@@ -213,7 +213,7 @@ trait BagStoreComponent {
       fileIds.collect { case fileId if fileId.isDirectory => createEntrySpec(None, bagDir, itemPath, fileId) }
     }
 
-    private def copyToArchiveStream(outputStream: => OutputStream)(entries: () => Seq[EntrySpec])(archiveStreamType: ArchiveStreamType) : Try[Unit] = {
+    private def copyToArchiveStream(outputStream: => OutputStream)(entries: () => Seq[EntrySpec])(archiveStreamType: ArchiveStreamType): Try[Unit] = {
       new ArchiveStream(archiveStreamType, entries()).writeTo(outputStream)
     }
 

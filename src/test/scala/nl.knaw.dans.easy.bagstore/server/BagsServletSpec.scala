@@ -25,6 +25,7 @@ import org.apache.commons.io.FileUtils
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
 
+import scala.io.Source
 import scala.util.Success
 
 class BagsServletSpec extends TestSupportFixture
@@ -253,6 +254,28 @@ class BagsServletSpec extends TestSupportFixture
   }
 
   // this calls copyOutputStream
+  it should "return a specific file in the bag indicated by the path" in {
+    get("/01000000-0000-0000-0000-000000000001/data/y") {
+      status shouldBe 200
+
+      val expectedFilePath = store1.resolve("01/000000000000000000000000000001/bag-revision-1/data/y")
+
+      header("Content-Length").toLong shouldBe Files.size(expectedFilePath)
+      Source.fromInputStream(response.inputStream).mkString shouldBe Source.fromFile(expectedFilePath.toFile).mkString
+    }
+  }
+
+  it should "return a metadata file in the bag indicated by the path" in {
+    get("/01000000-0000-0000-0000-000000000001/metadata/files.xml") {
+      status shouldBe 200
+
+      val expectedFilePath = store1.resolve("01/000000000000000000000000000001/bag-revision-1/metadata/files.xml")
+
+      header("Content-Length").toLong shouldBe Files.size(expectedFilePath)
+      Source.fromInputStream(response.inputStream).mkString shouldBe Source.fromFile(expectedFilePath.toFile).mkString
+    }
+  }
+
   it should "fail, returning a 404, when done on non existing item in an inactive/ hidden bag when headers text/plain is provided" in {
     val bagID = "01000000-0000-0000-0000-000000000001"
     val itemId = bagID + "/" + escapePath("bag-info2.txt")
@@ -269,43 +292,6 @@ class BagsServletSpec extends TestSupportFixture
     get(s"/$bagID/bag-info.txt", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 410
       body shouldBe s"Tried to retrieve an inactive bag: $bagID with toggle forceInactive = false"
-    }
-  }
-
-  "get filesizes/uuid/*" should "return filesize when file is found and is a regular file" in {
-    val itemId = "01000000-0000-0000-0000-000000000001/data/sub/u"
-    get(s"/filesizes/$itemId", headers = Map("Accept" -> "text/plain")) {
-      body shouldBe "12"
-      status shouldBe 200
-    }
-  }
-
-  it should "fail when the bag is not found" in {
-    get(s"/filesizes/${ UUID.randomUUID() }/data/sub/u") {
-      status shouldBe 404
-    }
-  }
-
-  it should "fail when only the bag id is given" in {
-    val itemId = "01000000-0000-0000-0000-000000000001"
-    get(s"/filesizes/$itemId", headers = Map("Accept" -> "text/plain")) {
-      status shouldBe 400
-    }
-  }
-
-  it should "fail when the item is not a regular file" in {
-    val itemId = "01000000-0000-0000-0000-000000000001/data/sub"
-    get(s"/filesizes/$itemId", headers = Map("Accept" -> "text/plain")) {
-      status shouldBe 404
-      body shouldBe s"Item $itemId is not a regular file."
-    }
-  }
-
-  it should "fail when the file within a bag cannot be found" in {
-    val itemId = "01000000-0000-0000-0000-000000000001/data/nonexistent"
-    get(s"/filesizes/$itemId", headers = Map("Accept" -> "text/plain")) {
-      status shouldBe 404
-      body shouldBe s"Item $itemId not found"
     }
   }
 }
