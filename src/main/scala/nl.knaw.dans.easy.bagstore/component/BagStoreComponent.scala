@@ -167,8 +167,10 @@ trait BagStoreComponent {
         allEntries = () => (dirSpecs ++ fileSpecs).sortBy(_.entryPath) // only concat and sort if necessary, hence as a function here
         _ <- fileIsFound(allEntriesCount, itemId)
         _ <- validateThatBagDirIsNotHidden(bagDir, itemId, forceInactive) // if the bag is hidden, also don't return a specific item from the bag
-        maybePath <- archiveStreamType.map(copyToArchiveStream(outputStream)(allEntries)(_).map(_ => Option.empty))
-          .getOrElse(findFile(itemId, fileIds, allEntriesCount).map(Option(_)))
+        maybePath <- archiveStreamType match {
+          case Some(value) => copyToArchiveStream(outputStream)(allEntries)(value).map(_ => Option.empty)
+          case None => findFile(itemId, fileIds, allEntriesCount).map(Option(_))
+        }
       } yield maybePath
     }
 
