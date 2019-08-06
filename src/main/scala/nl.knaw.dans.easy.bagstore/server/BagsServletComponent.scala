@@ -15,6 +15,8 @@
  */
 package nl.knaw.dans.easy.bagstore.server
 
+import java.nio.file.Files
+
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.BagStoresComponent
 import nl.knaw.dans.lib.error._
@@ -75,8 +77,6 @@ trait BagsServletComponent {
         }
     }
 
-    // please note that the order in which '/:uuid/*' and '/filesizes/:uuid/*' appear is important!
-    // see http://scalatra.org/guides/2.6/http/routes.html#route-order
     get("/:uuid/*") {
       val uuidStr = params("uuid")
       multiParams("splat") match {
@@ -89,7 +89,12 @@ trait BagsServletComponent {
               debug(s"Retrieving item $itemId")
               bagStores.copyToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType), response.outputStream)
             })
-            .map(_ => Ok())
+            .map {
+              case Some(filePath) =>
+                response.setContentLengthLong(Files.size(filePath))
+                Ok(filePath.toFile)
+              case None => Ok()
+            }
             .getOrRecover {
               case e: IllegalArgumentException => BadRequest(e.getMessage)
               case e: NoRegularFileException => BadRequest(e.getMessage)
@@ -97,33 +102,6 @@ trait BagsServletComponent {
               case e: NoSuchFileItemException => NotFound(e.getMessage)
               case e: NoSuchItemException => NotFound(e.getMessage)
               case e: InactiveException => Gone(e.getMessage)
-              case NonFatal(e) =>
-                logger.error("Error retrieving bag", e)
-                InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
-            }
-        case p =>
-          logger.error(s"Unexpected path: $p")
-          InternalServerError("Unexpected path")
-      }
-    }
-
-    // please note that the order in which '/:uuid/*' and '/filesizes/:uuid/*' appear is important!
-    // see http://scalatra.org/guides/2.6/http/routes.html#route-order
-    get("/filesizes/:uuid/*") {
-      val uuidStr = params("uuid")
-      multiParams("splat") match {
-        case Seq(path) =>
-          ItemId.fromString(s"""$uuidStr/${ path }""")
-            .recoverWith {
-              case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
-            }
-            .flatMap(itemId => bagStores.getSize(itemId))
-            .map(size => Ok(body = size))
-            .getOrRecover {
-              case e: IllegalArgumentException => BadRequest(e.getMessage)
-              case e: NoSuchBagException => NotFound(e.getMessage)
-              case e: NoSuchItemException => NotFound(e.getMessage)
-              case e: NoRegularFileException => NotFound(e.getMessage)
               case NonFatal(e) =>
                 logger.error("Error retrieving bag", e)
                 InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")

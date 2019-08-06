@@ -120,34 +120,6 @@ paths:
         410:
           description: The bag containing the item is `INACTIVE`.
 
-  /bags/filesizes/{uuid}/{path}:
-    get:
-      summary: Returns the file size of a file, from a bag in any of the bag stores managed by this service.
-      description: |
-        A file is a regular file in a bag.
-
-         * The file is specified by the path of the requested file within the bag.
-         * The path may consist of more than one component.
-         * Not found response is given if the file is not a regular file
-
-        ```
-        example path:
-           for file:      /path/to/file
-           in bag:        40594b6d-8378-4260-b96b-13b57beadf7c/
-           {uuid}/{path}: 40594b6d-8378-4260-b96b-13b57beadf7c/path/to/file
-        ```
-
-      parameters:
-        - $ref: '#/components/parameters/Uuid'
-        - $ref: '#/components/parameters/FilePath'
-      responses:
-        200:
-          $ref: '#/components/responses/GetItemFromBagOk'
-        400:
-          description: Bad request.
-        404:
-          description: The item could not be found.
-
   /stores:
     get:
       operationId: getStores
@@ -296,36 +268,6 @@ paths:
           description: The item could not be found.
         409:
           description: The bag containing the item is `INACTIVE`.
-
-  /stores/{store}/bags/filesizes/{uuid}/{path}:
-    get:
-      summary: Returns the file size of a file in the specified bag store.
-      description: |
-        A file is a regular file in a bag.
-
-         * The file is specified by the path of the requested file within the bag.
-         * The path may consist of more than one component.
-         * Not found response is given if the file is not a regular file
-
-        ```
-        example path:
-           for file:      /path/to/file
-           in bag:        40594b6d-8378-4260-b96b-13b57beadf7c/
-           {uuid}/{path}: 40594b6d-8378-4260-b96b-13b57beadf7c/path/to/file
-        ```
-
-      parameters:
-        - $ref: '#/components/parameters/Store'
-        - $ref: '#/components/parameters/Uuid'
-        - $ref: '#/components/parameters/FilePath'
-      responses:
-        200:
-          $ref: '#/components/responses/GetItemFromBagOk'
-        400:
-          description: Bad request.
-        404:
-          description: The item could not be found.
-
 
 components:
 

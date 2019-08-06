@@ -23,9 +23,9 @@ import java.util.{ Base64, UUID }
 
 import net.lingala.zip4j.core.ZipFile
 import net.lingala.zip4j.model.ZipParameters
-import nl.knaw.dans.lib.encode.PathEncoding
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
+import nl.knaw.dans.lib.encode.PathEncoding
 import org.apache.commons.io.FileUtils
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
@@ -297,8 +297,10 @@ class StoresServletSpec extends TestSupportFixture
     get("/store1/bags/01000000-0000-0000-0000-000000000001/data/y") {
       status shouldBe 200
 
-      Source.fromInputStream(response.inputStream).mkString shouldBe
-        Source.fromFile(store1.resolve("01/000000000000000000000000000001/bag-revision-1/data/y").toFile).mkString
+      val expectedFilePath = store1.resolve("01/000000000000000000000000000001/bag-revision-1/data/y")
+
+      header("Content-Length").toLong shouldBe Files.size(expectedFilePath)
+      Source.fromInputStream(response.inputStream).mkString shouldBe Source.fromFile(expectedFilePath.toFile).mkString
     }
   }
 
@@ -306,8 +308,10 @@ class StoresServletSpec extends TestSupportFixture
     get("/store1/bags/01000000-0000-0000-0000-000000000001/metadata/files.xml") {
       status shouldBe 200
 
-      Source.fromInputStream(response.inputStream).mkString shouldBe
-        Source.fromFile(store1.resolve("01/000000000000000000000000000001/bag-revision-1/metadata/files.xml").toFile).mkString
+      val expectedFilePath = store1.resolve("01/000000000000000000000000000001/bag-revision-1/metadata/files.xml")
+
+      header("Content-Length").toLong shouldBe Files.size(expectedFilePath)
+      Source.fromInputStream(response.inputStream).mkString shouldBe Source.fromFile(expectedFilePath.toFile).mkString
     }
   }
 
@@ -341,10 +345,9 @@ class StoresServletSpec extends TestSupportFixture
   }
 
   it should "fail when the file is not found" in {
-    val itemId = "01000000-0000-0000-0000-000000000001/" + escapePath("unknown-folder/unknown-file")
     get("/store1/bags/01000000-0000-0000-0000-000000000001/unknown-folder/unknown-file") {
       status shouldBe 404
-      body shouldBe s"Item 01000000-0000-0000-0000-000000000001/${escapePath("unknown-folder/unknown-file")} not found"
+      body shouldBe s"Item 01000000-0000-0000-0000-000000000001/${ escapePath("unknown-folder/unknown-file") } not found"
     }
   }
 

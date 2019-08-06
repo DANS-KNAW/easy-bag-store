@@ -52,26 +52,12 @@ trait BagStoresComponent {
         }
     }
 
-    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream, fromStore: Option[BaseDir] = None, forceInactive: Boolean = false): Try[Unit] = {
+    def copyToStream(itemId: ItemId, archiveStreamType: Option[ArchiveStreamType], outputStream: => OutputStream, fromStore: Option[BaseDir] = None, forceInactive: Boolean = false): Try[Option[Path]] = {
       fromStore
         .map(BagStore(_).copyToStream(itemId, archiveStreamType, outputStream, forceInactive))
         .getOrElse {
           storeShortnames.values.toStream
             .map(BagStore(_).copyToStream(itemId, archiveStreamType, outputStream, forceInactive))
-            .find {
-              case Failure(_: NoSuchBagException) => false
-              case _ => true
-            }
-            .getOrElse(Failure(NoSuchBagException(BagId(itemId.uuid))))
-        }
-    }
-
-    def getSize(itemId: ItemId, fromStore: Option[BaseDir] = None): Try[Long] = {
-      fromStore
-        .map(BagStore(_).getSize(itemId))
-        .getOrElse {
-          storeShortnames.values.toStream
-            .map(BagStore(_).getSize(itemId))
             .find {
               case Failure(_: NoSuchBagException) => false
               case _ => true
