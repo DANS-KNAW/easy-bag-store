@@ -20,7 +20,7 @@
     <parent>
         <groupId>nl.knaw.dans.shared</groupId>
         <artifactId>dans-scala-service-project</artifactId>
-        <version>4.0.0</version>
+        <version>4.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>nl.knaw.dans.easy</groupId>
@@ -148,22 +148,26 @@
     </dependencies>
     <repositories>
         <repository>
-            <id>DANS</id>
+            <id>dans-releases</id>
             <releases>
                 <enabled>true</enabled>
             </releases>
-            <url>http://maven.dans.knaw.nl/releases</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <url>https://maven.dans.knaw.nl/releases/</url>
+        </repository>
+        <repository>
+            <id>dans-snapshots</id>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <url>https://maven.dans.knaw.nl/snapshots/</url>
         </repository>
     </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>DANS</id>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <url>http://maven.dans.knaw.nl/releases</url>
-        </pluginRepository>
-    </pluginRepositories>
     <profiles>
         <profile>
             <id>rpm</id>
