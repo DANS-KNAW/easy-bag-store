@@ -25,7 +25,6 @@ DEFAULT_BAG_STORE=/srv/dans.knaw.nl/bag-store
 PHASE="POST-INSTALL"
 
 echo "$PHASE: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
-service_install_initd_service_script "$INSTALL_DIR/install/$MODULE_NAME-initd.sh" $MODULE_NAME
 service_install_systemd_unit "$INSTALL_DIR/install/$MODULE_NAME.service" $MODULE_NAME "$INSTALL_DIR/install/override.conf"
 service_create_log_directory $MODULE_NAME
 echo "$PHASE: DONE"
