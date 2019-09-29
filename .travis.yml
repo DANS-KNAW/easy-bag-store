@@ -1,8 +1,8 @@
-language: java
-jdk: openjdk8
-cache:
-  directories:
-    - "$HOME/.m2/repository"
+#language: java
+#jdk: openjdk8
+#cache:
+#  directories:
+#    - "$HOME/.m2/repository"
 
 after_success:
   - ./.travis.sh
