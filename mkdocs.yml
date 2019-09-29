@@ -1,0 +1,48 @@
+site_name: DANS Development Team (Internal)
+theme:
+  name: dans
+  disclaimer: false
+  development: true
+  development_label: bèta
+
+repo_name: DANS-KNAW/easy-bag-store
+repo_url: https://github.com/DANS-KNAW/easy-bag-store
+
+nav:
+  - Manual: index.md
+  - Definitions: definitions.md
+  - Tutorial: tutorial.md
+  - HTTP API: to-api.md
+
+plugins:
+  - markdownextradata
+
+markdown_extensions:
+  - attr_list
+  #- legacy_attr
+  - admonition
+  - codehilite:
+      guess_lang: false
+  - def_list
+  - footnotes
+  - meta
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: Dans-labs
+      repo: mkdocs-dans
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde

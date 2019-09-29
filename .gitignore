@@ -34,3 +34,6 @@
 /.jekyll-metadata
 /_site
 /.sass-cache
+
+# mkdocs
+/site

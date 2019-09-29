@@ -1,33 +1,5 @@
----
-title: Definitions
-layout: page
----
-
-TABLE OF CONTENTS
------------------
-
-- [Introduction](#introduction)
-- [Summary](#summary)
-  * [In two sentences](#in-two-sentences)
-  * [In one picture](#in-one-picture)
-    + [Remarks](#remarks)
-- [Objects & attributes](#objects--attributes)
-  * [BagStore](#bagstore)
-  * [Bag](#bag)
-    + [virtually-valid](#virtually-valid)
-    + [(in)active](#inactive)
-  * [Item](#item)
-    + [item-id](#item-id)
-    + [item-location](#item-location)
-    + [file-data-location](#file-data-location)
-    + [local-file-uri](#local-file-uri)
-- [Operations](#operations)
-  * [Extension](#extension)
-- [Compatibility with Archival Resource Keys](#compatibility-with-archival-resource-keys)
-  * [Minting an ARK using an itemd-id](#minting-an-ark-using-an-itemd-id)
-  * [Getting an item-id from an ARK](#getting-an-item-id-from-an-ark)
-- [Technical considerations](#technical-considerations)
-  * [Slashing the bag-id](#slashing-the-bag-id)
+Definitions
+===========
 
 Introduction
 ------------
@@ -35,13 +7,13 @@ A bag store is a way to store and identify data packages following a few very si
 document describes the bag store concept in a terse and quasi-formal manner. See the [tutorial] 
 for a more elaborate, hands-on introduction.
 
-[tutorial]: 04_tutorial.html
+[tutorial]: tutorial.md
 
 Summary
 -------
 
 ### In two sentences
-A [**BagStore**](#bagstore) is a collection of immutable, [**virtually-valid** **Bag**s](#bag) stored under 
+A [**BagStore**](#bagstore) is a collection of immutable, [**virtually-valid Bag**](#bag)s stored under 
 a common [**base-dir**](#bagstore). Each [**Item**](#item) in the BagStore has an [**item-id**](#item-id)
 and an [**item-location**](#item-location) with simple mapping rules to translate between them. 
 
