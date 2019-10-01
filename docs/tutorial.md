@@ -609,3 +609,4 @@ Appendix I: extended motivation of features
 
 Appendix II: Migrations
 -----------------------
+Migrations are transformations of complete bag-stores.
