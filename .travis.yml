@@ -3,3 +3,9 @@ jdk: openjdk8
 cache:
   directories:
   - "$HOME/.m2/repository"
+python: "3.6"
+after_success:
+  - pip3 install mkdocs
+env:
+  global:
+    secure: aQO19IXYtxU1sK8YSM4GrACutQk0sws7brf5f4jRkfcYWx5HXy1C18Lx9DKcbHmgrbbVc/TVST1gZuXzMh1gUKnqlSjQutQzKYIKFGe4zbfPSyGFcOSp1A9scRMZds7a+vHn0X9WTCdhR6Vk3NOYZqyOpAJ4cWnkDJmQQwvXgFLBmFiQiwPHsdrw5v44VNZw8/9Y9QtVYs55RB2I5ofP0qaNeJwPErkPdamY8MiBvhb8XaWYcLDxpifKOJOi7N7LmfXLY7E6OfqgpqAg2gJv0d4KTRJco3abcMcrJWpS/Zfjeejo4NDdOToALupkC6TB61fr7HkufQKI+lt5z+JX3fGakbnG6vyEHyhgUFmHwwMXV+2q72vn3ln+Lo0eUSULWsJW4Q08hX5br6X559jRJxL+hNU9czM3FnIZVFFU5ZTMC5w984lt+7WEMkktDe4Tn23FZWhkkksHOlhdAk6HtJLysxu62A6xRXAw8mvJsoUwFtFPOI9XdIv7MhulLAOG6WTK55BFVxQcqDhjhx6Img/ibjoWRFsgci2bv1R+jtDiDdhMvgjwtV7caTst35uvxd6/cBAEZlSnzsXdsDWQD2tchIlZ+GPOpXoO/aCd1JgDwE0bKYEtQYbX1NX6BzUF5BIdyxP/TZaEaPMTc1u3B6rO8GUsM0C1ML7uaBTE84I=
