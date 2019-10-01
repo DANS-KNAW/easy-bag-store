@@ -1,4 +1,3 @@
-#!/bin/bash
 #
 # Copyright (C) 2016 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
 #
@@ -15,51 +14,32 @@
 # limitations under the License.
 #
 
-# Exit, if one command fails
-set -e
+GH_ORG=DANS-KNAW
+GH_REPO=easy-bag-store
 
-# Deploy documentation to GitHub pages
-if [ "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_PULL_REQUEST" == "false" ]; then
-  REMOTE="https://${GH_TOKEN}@github.com/squidfunk/mkdocs-material"
+REMOTE="https://${GH_TOKEN}@github.com/${GH_ORG}/${GH_REPO}"
+git remote set-url origin ${REMOTE}
 
-  # Set configuration for repository and deploy documentation
-  git config --global user.name "${GH_NAME}"
-  git config --global user.email "${GH_EMAIL}"
-  git remote set-url origin ${REMOTE}
+echo "START installing required Python packages..."
+pip3 install mkdocs
+pip3 install pygments
+pip3 install pymdown-extensions
+pip3 install pyyaml
+pip3 install mkdocs-markdownextradata-plugin
+echo "DONE installing required Python packages."
 
-  # Install Material, so we can use it as a base template and add overrides
-  python setup.py install
+echo "START installing DANS mkdocs theme..."
+git clone https://github.com/Dans-labs/mkdocs-dans $HOME/mkdocs-dans
+pushd $HOME/mkdocs-dans || exit
+git pull
+python3 build.py pack
+popd || exit
+echo "DONE installing DANS mkdocs theme."
 
-  # # Override theme configuration
-  # sed -i 's/name: null/name: material/g' mkdocs.yml
-  # sed -i 's/custom_dir: material/custom_dir: overrides/g' mkdocs.yml
+echo "START building project docs..."
+mkdocs build
+echo "DONE building project docs."
 
-  # Build documentation with overrides and publish to GitHub pages
-  mkdocs gh-deploy --force
-  mkdocs --version
-fi
-
-# Remove overrides directory so it won't get included in the image
-# rm -rf overrides
-
-# Terminate if we're not on a release branch
-echo "${TRAVIS_BRANCH}" | grep -qvE "^[0-9.]+$" && exit 0; :;
-
-# Install dependencies for release build
-pip install --upgrade setuptools wheel twine
-
-# Build and install theme and Docker image
-python setup.py build sdist bdist_wheel --universal
-docker build -t ${TRAVIS_REPO_SLUG} .
-
-# Test Docker image build
-docker run --rm -it -v $(pwd):/docs ${TRAVIS_REPO_SLUG} build --theme material
-
-# Push release to PyPI
-twine upload -u ${PYPI_USERNAME} -p ${PYPI_PASSWORD} dist/*
-
-# Push image to Docker Hub
-docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
-docker tag ${TRAVIS_REPO_SLUG} ${TRAVIS_REPO_SLUG}:${TRAVIS_BRANCH}
-docker tag ${TRAVIS_REPO_SLUG} ${TRAVIS_REPO_SLUG}:latest
-docker push ${TRAVIS_REPO_SLUG}
+echo "START deploying docs to GitHub pages..."
+mkdocs gh-deploy --force
+echo "DONE deploying docs to GitHub pages."
