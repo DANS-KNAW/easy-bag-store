@@ -18,7 +18,7 @@
 set -e
 
 GH_ORG=DANS-KNAW
-GH_REPO=easy-bag-store
+GH_REPO=$(basename $TRAVIS_BUILD_DIR)
 
 REMOTE="https://${GH_TOKEN}@github.com/${GH_ORG}/${GH_REPO}"
 git remote set-url origin ${REMOTE}
