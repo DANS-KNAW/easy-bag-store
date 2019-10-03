@@ -40,5 +40,5 @@ popd
 echo "DONE installing DANS mkdocs theme."
 
 echo "START deploying docs to GitHub pages..."
-mkdocs gh-deploy
+mkdocs gh-deploy --force
 echo "DONE deploying docs to GitHub pages."
