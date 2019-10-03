@@ -29,11 +29,5 @@
 /.classpath
 /.cache
 
-# Jekyll
-/Gemfile.lock
-/.jekyll-metadata
-/_site
-/.sass-cache
-
 # mkdocs
 /site
