@@ -320,7 +320,7 @@ We can use `easy-bag-store` to find an item for us.
           -rw-r--r--. 1 vagrant vagrant 2775738 Sep 25 07:59 image03.jpeg
        
    This will extract the `img` directory in your current working directory, so effectively does what we
-   where trying to achieve at the beginning of this section.<sup>[1](#footnote1)<sup>
+   where trying to achieve at the beginning of this section.<sup>[1](#footnote1)</sup>
    
     
            
@@ -568,7 +568,6 @@ The examples work with the command line tool [cURL].
 
 
 
----
 <a name="footnote1" /><sup>1</sup>There is a slight catch when getting a complete bag this way: if it contains a 
 `fetch.txt`, this will *not* be removed, leaving the resulting bag technically incomplete. However, 
 this is easily fixed by removing `fetch.txt` yourself, along with any entries for it in the tag manifests.
