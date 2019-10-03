@@ -15,11 +15,12 @@
 # limitations under the License.
 #
 
+GH_ORG=DANS-KNAW
+
 set -e
 
-GH_ORG=DANS-KNAW
+# Relies on Travis checking out repo to a dir with the repo's name.
 GH_REPO=$(basename $TRAVIS_BUILD_DIR)
-
 REMOTE="https://${GH_TOKEN}@github.com/${GH_ORG}/${GH_REPO}"
 git remote set-url origin ${REMOTE}
 
