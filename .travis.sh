@@ -15,6 +15,8 @@
 # limitations under the License.
 #
 
+set -e
+
 GH_ORG=DANS-KNAW
 GH_REPO=easy-bag-store
 
@@ -31,16 +33,12 @@ echo "DONE installing required Python packages."
 
 echo "START installing DANS mkdocs theme..."
 git clone https://github.com/Dans-labs/mkdocs-dans $HOME/mkdocs-dans
-pushd $HOME/mkdocs-dans || exit
+pushd $HOME/mkdocs-dans
 git pull
 python3 build.py pack
-popd || exit
+popd
 echo "DONE installing DANS mkdocs theme."
 
-echo "START building project docs..."
-mkdocs build
-echo "DONE building project docs."
-
 echo "START deploying docs to GitHub pages..."
-mkdocs gh-deploy --force
+mkdocs gh-deploy
 echo "DONE deploying docs to GitHub pages."

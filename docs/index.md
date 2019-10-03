@@ -1,6 +1,8 @@
 MANUAL
 ======
 
+Test
+
 SYNOPSIS
 --------
 
