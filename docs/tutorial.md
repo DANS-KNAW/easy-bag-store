@@ -33,47 +33,40 @@ Prerequisites
 You will need the following software. Newer versions will probably also work, but I have tested the tutorial
 with the versions specified here:
 
-* [Vagrant 2.0.0](https://releases.hashicorp.com/vagrant/2.0.0/)
-* [VirtualBox 5.1.26](https://www.virtualbox.org/wiki/Changelog-5.1#v26)
+* [Vagrant 2.2.5](https://releases.hashicorp.com/vagrant/2.2.5/)
+* [VirtualBox 6.0.10](https://www.virtualbox.org/wiki/Download_Old_Builds_6_0)
 
 Tutorial
 --------
 ### Starting up
 1. Create a directory for this tutorial somewhere on your filesystem and start the vagrant project. 
    
-       mkdir easy-bag-store-tutorial
-       cd easy-bag-store-tutorial
-       vagrant init https://easy.dans.knaw.nl/boxes/easy-bag-store-tutorial-2017-12-11.box
-       vagrant up
-
+        #!bash
+        mkdir easy-bag-store-tutorial
+        cd easy-bag-store-tutorial
+        vagrant init {{ tutorial_vagrant_box }}
+        vagrant up
    The first time you run this tutorial, this will have to download the ~800M vagrant box so&mdash;depending on
    your internet connection&mdash;that may take some minutes. If everything goes well, you will end up with
-   a virtual machine running CentOS 6 Linux and with `easy-bag-store` installed on it. Don't worry if using
+   a virtual machine running CentOS 7 Linux and with `easy-bag-store` installed on it. Don't worry if using
    Linux in your organization is not an option: the bag store does not *require* Linux; `easy-bag-store` 
    only requires Java 8 or higher, and the bag store itself only requires a hierarchical file system.
    
 2. Now test that it is working; while in the `easy-bag-store-tutorial` directory type:
 
+        #!bash
         vagrant ssh   
-   
    This will log you in to the virtual machine, just as if you were logging in to a remote server. 
    You should now see a prompt like this:
    
         Last login: Sun Oct 29 05:36:33 2017 from 10.0.2.2
-        [vagrant@test ~]$
-        
+        [vagrant@tutorial ~]$
    The server's name is `test` and your user is called `vagrant`. You are currently in the user's 
    home directory. If you type `pwd` (print working directory) and Enter, you will see this:
     
-        [vagrant@test ~]$ pwd
+        [vagrant@tutorial ~]$ pwd
         /home/vagrant
-        [vagrant@test ~]$
-        
-   From now on I will mark (expected) output with a `>`, like this:
-     
-        pwd
-        > /home/vagrant    
-        
+        [vagrant@tutorial ~]$
    (Don't do this now, but: you can leave the VM by type `exit` and Enter and you can stop it with 
    `vagrant halt` from the `easy-bag-store-tutorial` directory. To start it again use `vagrant up`.)     
         
@@ -81,12 +74,19 @@ Tutorial
 ### Adding a bag     
 1. First, we shall need some sample data. To make it a bit easier to use this tutorial we will use 
    a data package called sample.zip, but by all means experiment with other data.
-2. Download [sample.zip](./res/sample.zip) and place it in `easy-bag-store-tutorial` directory. 
-   This directory is shared between your PC or laptop and the VM. On the VM it is the directory called `/vagrant/`.
-3. Now, in your ssh-session, type the following:
+2. Download [sample.zip]({{ tutorial_sample_data }}) to `vagrant`'s home directory: 
 
-        unzip /vagrant/sample.zip
-        > Archive:  /vagrant/sample.zip
+        #!bash
+        wget {{ tutorial_sample_data }}
+   This will place the file `sample.zip` in `/home/vagrant`. 
+
+3. Now, type the following:
+
+        #!bash    
+        unzip sample.zip
+    Output:        
+        
+        Archive:  sample.zip
            creating: sample/
           inflating: sample/README.TXT
            creating: sample/img/
@@ -98,21 +98,23 @@ Tutorial
            creating: sample/path/with a/space/
          extracting: sample/path/with a/space/file1.txt
          extracting: sample/path/with a/space/檔案.txt
-         
    The last file has a Chinese file name, which can only be displayed by your terminal if it has fonts that include
    Chinese characters. Otherwise they will probably show up as questions marks on your screen.           
          
 4. Next, we will turn the newly created `sample` directory into a bag. For this we will use a tool 
    that was created by [Library Of Congress]. It is already installed on the VM. Type the following command:
    
+        #!bash
         bagit baginplace sample
-        
    The contents of `sample` has been moved to a subdirectory called `data`. The base
    directory will contain files required by the BagIt format. To view the structure of the bag
    use the `tree` utility:
    
+        #!bash
         tree sample
-        > sample
+    Output:
+        
+        sample
             ├── bag-info.txt
             ├── bagit.txt
             ├── data
@@ -128,26 +130,29 @@ Tutorial
             │   └── README.TXT
             ├── manifest-md5.txt
             └── tagmanifest-md5.txt
-
-   Note that `tree` apparently does't try to render the Chinese characters, but instead displays the 
+   Note that `tree` apparently does not try to render the Chinese characters, but instead displays the 
    UTF-8 byte sequences that encode them as octal numbers. 
 
 5. At this point, we are ready to add the bag to the store:
-
+        
+        #!bash
         easy-bag-store add sample    
-        > OK: Added bag with bag-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 to \
+    Output:
+            
+         OK: Added bag with bag-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 to \
            bag store: /srv/dans.knaw.nl/bag-store
-   
    The bag-id will of course be different in each case. You may also specify a UUID yourself, 
    using the `-u` option (`easy-bag-store add -u <your UUID> sample`). The great thing about 
-   UUIDs is that they can be minted in a decentralized fashion while maintaining the uniqueness
-   guarantee.
+   UUIDs is that they can be minted in a decentralized fashion while guaranteeing uniqueness.
 
 6. The default bag store is located in the directory `/srv/dans.knaw.nl/bag-store`. Check that
    the bag was copied into the bag store:
    
+        #!bahs
         tree /srv/dans.knaw.nl/bag-store
-        > /srv/dans.knaw.nl/bag-store
+    Output:        
+        
+        /srv/dans.knaw.nl/bag-store
         └── 8e
             └── eaeda43ae74be29f633db09b19db43
                 └── sample
@@ -166,13 +171,12 @@ Tutorial
                     │   └── README.TXT
                     ├── manifest-md5.txt
                     └── tagmanifest-md5.txt
-                  
    As you can see, the bag-id is used to form a path from the bag store base directory to a container in which
    the bag is stored. The slashes must be put in the same places for all the bags in a bag store. So, in this case,
    the first two characters of the bag-id form the name of the parent directory and the rest (stripped of dashes)
    the child. Note that this "slashing pattern" strictly speaking doesn't need to be stored anywhere, as it 
    will be implicitly recorded when adding the first bag. However, the `easy-bag-store` tool does use a configuration
-   setting for this, as "discovering" this every time would be inefficient.                
+   setting for this, as "discovering" this every time would be inefficient (and impossible for the first bag).               
         
 Wasn't that great? And it took only six steps and three pages to explain! At this point you may be thinking you might just 
 as well have copied the bag to the given path yourself, and that is quite true. Actually, that is the point of the bag store:
@@ -203,41 +207,46 @@ a conscious effort.
 
 So, let's now move on to an even simpler task: retrieving an item.
 
-[Library Of Congress]: https://github.com/LibraryOfCongress/bagit-java
+[Library Of Congress]: {{ bagit_java_github_repo }}
 
 ### Retrieving an item
 To retrieve a bag or any part of it, we could actually simply read it from disk, and that would not violate
 the bag store rules. However, when referring to bag store items (bags, or files and directories in them) it 
-is often not convenient to use local paths. That is why they have **item-id**s.
+is often not convenient to use local paths. That is why they have **item-id**<!---->s.
 
 The item-id of a bag (= bag-id) is the UUID under which it was stored. The item-id of a file or directory is 
-the bag-id with the percent-encoded file path appended to it. [Percent-encoding] is a way to map the path to 
-a string containing only a subset of ASCII, particularly characters that can be used as part of a URI. The actual 
-path may of course contain non-ASCII characters. The character encoding should be UTF-8.
+the bag-id with the file path appended to it. [Percent-encoding] of all characters except alphanumerical and the 
+underscore must be applied to the path segments.
 
 This way we further support **authenticity** because we have a simple mapping between the exact location where 
 each item is stored and its global identifier. The only extra information we need is the base directory of
-the bag store. Also note that we build on the open **standard**s by using the percent encoding scheme from the 
-URI definition (RFC3986) .
+the bag store. Also note that we build on the open **standard**<!---->s by using [the percent encoding scheme from the 
+URI definition (RFC3986)]({{ percent_encoding }}) .
 
 We can use `easy-bag-store` to find an item for us.
 
-[Percent-encoding]: https://tools.ietf.org/html/rfc3986#section-2.1
+[Percent-encoding]: {{ percent_encoding }}
 
 #### A bag
 1. Let's first enumerate the bags in the store.
 
+        #!bash
         easy-bag-store enum
-        > 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
-          OK: Done enumerating
-          
-   In your case the bag-id will of course be different and you will need to use the one from your output
+    Output:        
+        
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+        OK: Done enumerating
+   In your case the bag-id will of course be different and in the following steps you will need to use the one from your output
    rather than the one given above.       
           
 2. Copy the bag to some output directory:
 
+        #!bash
         easy-bag-store get 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
-        > FAILED: Output path already exists; not overwriting /home/vagrant/./sample
+        
+    Output:        
+        
+        FAILED: Output path already exists; not overwriting /home/vagrant/./sample
         
 
 3. Yes, that is right. By default `easy-bag-store get` will try to copy the itme to the current directory.

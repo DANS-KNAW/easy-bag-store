@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Link to the test dat will not work for tutorial box
-sudo rm /home/vagrant/test-data
-
 # Record the time, so we will be able to see when this version of the box was created
 sudo /bin/sh -c 'date > /etc/vagrant_box_build_time'
 

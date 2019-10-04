@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+
+import json, glob
+
+print(json.dumps({
+    'installed': len(glob.glob('/opt/gov.loc/bagit-*')) > 0
+}))

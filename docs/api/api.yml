@@ -19,7 +19,7 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0
 
 servers:
-  - url: 'http://test.dans.knaw.nl'
+  - url: 'http://tutorial.dans.knaw.nl'
     description: Local test VM
 
 paths:

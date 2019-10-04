@@ -14,12 +14,10 @@
 # limitations under the License.
 #
 
-site_name: EASY Bag Store
+site_name: easy-bag-store
 theme:
   name: dans
   disclaimer: false
-  development: true
-  development_label: bèta
 
 repo_name: DANS-KNAW/easy-bag-store
 repo_url: https://github.com/DANS-KNAW/easy-bag-store
@@ -33,6 +31,13 @@ nav:
 plugins:
   - markdownextradata
   - search
+
+extra:
+  #TODO: aanvullen
+  tutorial_vagrant_box: https://maven.dans.knaw.nl/nl/knaw/dans
+  tutorial_sample_data: https://github.com/DANS-KNAW/easy-bag-store/raw/master/docs/res/sample.zip
+  percent_encoding: https://tools.ietf.org/html/rfc3986#section-2.1
+  bagit_java_github_repo: https://github.com/LibraryOfCongress/bagit-java
 
 markdown_extensions:
   - attr_list

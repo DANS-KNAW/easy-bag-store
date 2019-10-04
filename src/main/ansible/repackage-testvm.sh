@@ -15,18 +15,16 @@
 # limitations under the License.
 #
 
-
-PROJECT_NAME=easy-bag-store
-VM_TO_REPACKAGE=test
+VM_TO_REPACKAGE="tutorial"
 VMLISTFILE=$TMPDIR/vms
 BOX_FILE=${TMPDIR%/}/$VM_TO_REPACKAGE-$(date  +"%Y-%m-%d").box
 
 echo -n "Removing old box file $BOX_FILE if it exists..."
-rm $BOX_FILE > /dev/null
+rm -f $BOX_FILE > /dev/null
 echo "OK"
 
 echo -n "Getting name of VM..."
-VBoxManage list vms | grep ${PROJECT_NAME}_$VM_TO_REPACKAGE | sed -E 's/^"(.*)".*$/\1/' > $VMLISTFILE
+VBoxManage list vms | grep $VM_TO_REPACKAGE | sed -E 's/^"(.*)".*$/\1/' > $VMLISTFILE
 echo "OK"
 
 MATCHING_VMS=$(cat $VMLISTFILE)
@@ -43,9 +41,9 @@ if (( $NUMBER_OF_VMS > 1 )); then
 fi
 
 echo -n "Executing prepare-for-repackage-testvm.sh script on current VM..."
-vagrant ssh $VM_TO_REPACKAGE -c 'bash -s' < src/test/resources/prepare-for-repackage.sh
+vagrant ssh $VM_TO_REPACKAGE -c 'bash -s' < ./prepare-for-repackage.sh
 echo "OK"
 echo -n "Repackaging VM $MATCHING_VMS..."
-vagrant package --base $(echo $MATCHING_VMS) --output $BOX_FILE
+vagrant package --base "$(echo $MATCHING_VMS)" --output $BOX_FILE
 echo "OK"
 echo "Vagrant box created at: $BOX_FILE"
