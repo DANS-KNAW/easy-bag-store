@@ -166,22 +166,18 @@ ARGUMENTS
 
 INSTALLATION AND CONFIGURATION
 ------------------------------
-The preferred way of install this module is using the RPM package. This will install the binaries to
+Currently this project is build only as an RPM package for RHEL7/CentOS7 and later. The RPM will install the binaries to
 `/opt/dans.knaw.nl/easy-bag-store`, the configuration files to `/etc/opt/dans.knaw.nl/easy-bag-store`,
-and will install the service script for `initd` or `systemd`. It will also set up a default bag store
+and will install the service script for `systemd`. It will also set up a default bag store
 at `/srv/dans.kanw.nl/bag-store`.
-
-If you are on a system that does not support RPM, you can use the tarball. You will need to copy the
-service scripts to the appropiate locations yourself.
 
 BUILDING FROM SOURCE
 --------------------
-
 Prerequisites:
 
 * Java 8 or higher
 * Maven 3.3.3 or higher
-* RPM (if you want to build the RPM package).
+* RPM
 
 Steps:
     

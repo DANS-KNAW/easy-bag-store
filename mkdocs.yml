@@ -34,7 +34,7 @@ plugins:
 
 extra:
   #TODO: aanvullen
-  tutorial_vagrant_box: https://maven.dans.knaw.nl/nl/knaw/dans
+  tutorial_vagrant_box: 'https://maven.dans.knaw.nl/releases/dans/knaw/nl/easy-bag-store-tutorial/2019-10-04/easy-bag-store-tutorial-2019-10-04.box'
   tutorial_sample_data: https://github.com/DANS-KNAW/easy-bag-store/raw/master/docs/res/sample.zip
   percent_encoding: https://tools.ietf.org/html/rfc3986#section-2.1
   bagit_java_github_repo: https://github.com/LibraryOfCongress/bagit-java
