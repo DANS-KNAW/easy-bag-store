@@ -31,3 +31,6 @@
 
 # mkdocs
 /site
+
+# Vagrant
+.vagrant/

@@ -1,0 +1,29 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Add DANS yum-repo
+      copy:
+        src: dans.knaw.nl.repo
+        dest: /etc/yum.repos.d/
+    - name: Install yum-packages
+      yum:
+        name:
+          - tree
+          - mlocate
+          - zip
+          - unzip
+          - dans.knaw.nl-easy-bag-store
+    - name: Initialize locate db
+      command: updatedb
+    - name: Put /opt/bin on the PATH
+      copy:
+        src: opt-bin.sh
+        dest: /etc/profile.d/
+        mode: "0755"
+
+- hosts: all
+  become: yes
+  vars:
+    bagit_version: "4.12.3"
+  roles:
+    - bagit

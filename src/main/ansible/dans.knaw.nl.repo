@@ -1,0 +1,8 @@
+[dans.knaw.nl-releases]
+name=DANS-KNAW Releases
+baseurl=https://yum.dans.knaw.nl/releases
+enabled=1
+gpgcheck=0
+keepcache=1
+metadata_expire=0s
+

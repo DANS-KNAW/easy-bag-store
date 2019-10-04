@@ -1,0 +1,19 @@
+- name: Ensure /etc/ansible/facts.d exists
+  file:
+    path: /etc/ansible/facts.d
+    recurse: yes
+    state: directory
+
+- name: Copy facts-scripts to server
+  copy:
+    src: "bagit.fact"
+    dest: "/etc/ansible/facts.d"
+    mode: "u+x"
+  register: facts
+
+- name: reload ansible_local
+  setup: filter=ansible_local
+  when: facts.changed
+
+- import_tasks: install.yml
+  when: ansible_local.bagit.installed == False
