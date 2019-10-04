@@ -101,8 +101,8 @@ Tutorial
    The last file has a Chinese file name, which can only be displayed by your terminal if it has fonts that include
    Chinese characters. Otherwise they will probably show up as questions marks on your screen.           
          
-4. Next, we will turn the newly created `sample` directory into a bag. For this we will use a tool 
-   that was created by [Library Of Congress]. It is already installed on the VM. Type the following command:
+4. Next, we will turn the newly created `sample` directory into a bag. For this we will use 
+   [a tool that was created by Library Of Congress]. It is already installed on the VM. Type the following command:
    
         #!bash
         bagit baginplace sample
@@ -136,15 +136,18 @@ Tutorial
 5. At this point, we are ready to add the bag to the store:
         
         #!bash
-        easy-bag-store add sample    
+        easy-bag-store add -u 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 sample
     Output:
             
-         OK: Added bag with bag-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 to \
+        OK: Added bag with bag-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 to \
            bag store: /srv/dans.knaw.nl/bag-store
-   The bag-id will of course be different in each case. You may also specify a UUID yourself, 
-   using the `-u` option (`easy-bag-store add -u <your UUID> sample`). The great thing about 
-   UUIDs is that they can be minted in a decentralized fashion while guaranteeing uniqueness.
-
+   The bag-id must of course be unique. There are a lot of tools that can generate unique UUIDs for you,
+   for example the `uuidgen` command. If you leave off the `-u` option in above call, `easy-bag-store` will 
+   use the a Java Runtime Library function to generate a UUID. The great thing about UUIDs is 
+   that they can be minted decentrally while still guaranteed to be unique. For the
+   purpose of this tutorial, however, it is easier to reuse the above UUID, as this will allow
+   you to copy-paste the example commands in the next steps without having to edit them.  
+   
 6. The default bag store is located in the directory `/srv/dans.knaw.nl/bag-store`. Check that
    the bag was copied into the bag store:
    
@@ -207,7 +210,7 @@ a conscious effort.
 
 So, let's now move on to an even simpler task: retrieving an item.
 
-[Library Of Congress]: {{ bagit_java_github_repo }}
+[a tool that was created by Library Of Congress]: {{ bagit_java_github_repo }}
 
 ### Retrieving an item
 To retrieve a bag or any part of it, we could actually simply read it from disk, and that would not violate
@@ -267,34 +270,42 @@ We can use `easy-bag-store` to find an item for us.
 1. Let's start by enumerating the files in our bag. This has the benefit that we don't have to 
    perform the percent-encoding ourselves:
    
+        #!bash
         easy-bag-store enum 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
-        > 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/bag-info.txt
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/bagit.txt
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/README.TXT
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image01.png
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02.jpeg
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03.jpeg
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/file1.txt
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/%E6%AA%94%E6%A1%88.txt
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/manifest-md5.txt
-          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/tagmanifest-md5.txt
-          OK: Done enumerating
+   Output:
+        
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/bag%2Dinfo%2Etxt
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/bagit%2Etxt
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/README%2ETXT
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image01%2Epng
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02%2Ejpeg
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03%2Ejpeg
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/file1%2Etxt
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/%E6%AA%94%E6%A1%88%2Etxt
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/manifest%2Dmd5%2Etxt
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/tagmanifest%2Dmd5%2Etxt   
+        OK: Done enumerating
           
-    Notice that the Chinese characters and spaces appear percent-encoded. Also note that the bag
-    name ("sample" in this case) is not part of the identifier.      
+    Notice that:
+     
+    * the Chinese characters, spaces, hyphens and full stops appear percent-encoded;
+    * the bag name ("sample" in this case) is not part of the identifier.      
             
 2. Select one of the item-ids from the output and:
 
+        #!bash
         easy-bag-store get \
-            8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03.jpeg
-        > OK: Retrieved item with \
-          item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03.jpeg to \
+            8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03%2Ejpeg
+    Output:        
+        
+        OK: Retrieved item with \
+          item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03%2Ejpeg to \
           ./image03.jpg from bag store: default     
              
     We have now copied the selected file to the current directory, which you can check with a simple
@@ -303,35 +314,46 @@ We can use `easy-bag-store` to find an item for us.
 #### A directory
 1. What if we want to get all the files in a specific directory, say, `sample/data/img`? Let's try that.
 
-        easy-bag-store get 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img    
-        > FAILED: Source '/srv/dans.knaw.nl/bag-store/8e/eaeda43ae74be29f633db09b19db43/sample/data/img' \
+        #!bash
+        easy-bag-store get 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img   
+   Output:     
+        
+        FAILED: Source '/srv/dans.knaw.nl/bag-store/8e/eaeda43ae74be29f633db09b19db43/sample/data/img' \
           exists but is a directory
-          
    Alas, this hasn't been implemented yet! However, there is an alternative way of getting items, which
    also supports getting directories: *archive streams*.
 
 2. To get the directory as a [TAR] archive stream, execute the following:
 
-        easy-bag-store stream -f tar 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img > img.tar
-        > OK: Retrieved item with item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img to stream.
+        #!bash
+        easy-bag-store stream --format tar \
+          8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img > img.tar
+    Output:
+            
+        OK: Retrieved item with item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img to stream.
         
 3. This will also work for complete bags and single files. Don't forget to redirect the stream to 
    a file, or the TAR will be printed to your screen. You might also pipe the stream into the `tar`
    extract command:
    
-        easy-bag-store stream -f tar 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img | tar x
-        > OK: Retrieved item with item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img to stream.
+        #!bash
+        easy-bag-store stream --format tar 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img | tar x
+    Output:
+            
+        OK: Retrieved item with item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img to stream.
         
-        ls -l img
-        > total 3144
-          -rw-r--r--. 1 vagrant vagrant  422887 Sep 25 07:59 image01.png
-          -rw-r--r--. 1 vagrant vagrant   13829 Sep 25 07:59 image02.jpeg
-          -rw-r--r--. 1 vagrant vagrant 2775738 Sep 25 07:59 image03.jpeg
-       
-   This will extract the `img` directory in your current working directory, so effectively does what we
-   where trying to achieve at the beginning of this section.<sup>[1](#footnote1)</sup>
-   
+    To check this:       
     
+        #!bash
+        ls -l img
+    Output:        
+        
+        total 3144
+        -rw-r--r--. 1 vagrant vagrant  422887 Sep 25  2017 image01.png
+        -rw-r--r--. 1 vagrant vagrant   13829 Sep 25  2017 image02.jpeg
+        -rw-r--r--. 1 vagrant vagrant 2775738 Sep 25  2017 image03.jpeg       
+   This will extract the `img` directory in your current working directory, so effectively does what we
+   where trying to achieve at the beginning of this section.[^1]
            
 [TAR]: https://en.wikipedia.org/wiki/Tar_(computing)
 
@@ -344,10 +366,10 @@ How do we deal with that? The answer is: *in the simplest possible way; by addin
 Keeping track of the versions is not built in to the bag store, but here is were **modular** design comes in:
 you can add that capability by simply adding appropriate metadata. That could be something as simple
 as a "version" metadata field to the `bag-info.txt` file, or something a bit more sophisticated. 
-Our [`easy-bag-index`] module records both a timestamp and a pointer to the base revision, the combination 
+Our [easy-bag-index] module records both a timestamp and a pointer to the base revision, the combination 
 of which is always enough to reconstruct the version history.
 
-[`easy-bag-index`]: https://github.com/DANS-KNAW/easy-bag-index
+[easy-bag-index]: {{ easy_bag_index_repo }}
 
 #### Virtually-valid
 An objection to such an approach could be, that you would be storing a lot of files 
@@ -358,7 +380,7 @@ every bag to be valid according to [the BagIt definition of valid], it must only
 A bag is virtually-valid when:
 
 * it is valid, *or*...
-* it is incomplete, but has a [`fetch.txt`] with references to the missing files.
+* it is incomplete, but has a [fetch.txt] with references to the missing files.
 
 The idea is that the only things we need to do to make the bag valid are:
 
@@ -366,14 +388,15 @@ The idea is that the only things we need to do to make the bag valid are:
 2. Remove `fetch.txt` from the bag.
 3. Remove any entries for `fetch.txt` in the tag manifests, if present.
 
-If we can prove that this would be enough to make the bag valid, then it is virtually-valid. Note that
-this term was introduced by us and is nowhere to be found in the BagIt specifications document.
+If we can prove that this would be enough to make the bag valid, then it *is* virtually valid, 
+in other words: virtually-valid. Note that this term was introduced by us and is nowhere to be 
+found in the BagIt specifications document.
 
 So, now we can store a new version of an archival package, but for all the files that haven't been
 updated, we include a fetch reference to the already archived file. 
 
-[the BagIt definition of valid]: https://tools.ietf.org/html/draft-kunze-bagit#section-3
-[`fetch.txt`]: https://tools.ietf.org/html/draft-kunze-bagit-14#section-2.2.3
+[the BagIt definition of valid]: {{ bagit_valid }}
+[fetch.txt]: {{ bagit_fetchtxt }}
 
 #### Pruning
 OK, enough theory, let's try to create an update for our sample bag. The `easy-bag-store` tool has
@@ -381,42 +404,51 @@ a command to help you strip your updated bag of unnecessary files.
 
 1. Copy `sample` to `sample-updated`:
 
+        #!bash
         cp -r sample sample-updated
         
 2. Make a change to one of the data files in `sample-updated`, let's say the `README.TXT`:
 
+        #!bash
         echo "...and some more text" >> sample-updated/data/README.TXT
 
 3. Let's also remove a file:
         
+        #!bash
         rm sample-updated/data/img/image01.png
 
 4. ...and add one:
 
+        #!bash
         echo "New file content" > sample-updated/data/NEW.TXT
 
 5. Update the checksums in the new bag, so that it is valid again:
 
+        #!bash
         bagit update sample-updated
+        bagit verifyvalid sample-updated
 
 6. Make a copy of this updated bag, so that we can compare it later with the one we retrieve from the
    bag store:
    
+        #!bash
         cp -r sample-updated sample-updated-unpruned
 
-7. Now copy the bag-id of the version we stored earlier (use `easy-bag-store enum` if needed) and 
-   use it in the following command:
+7. Now let's strip the updated bag of files that are already archived, and therefore can be included by fetch-reference.
    
+        #!bash
         easy-bag-store prune sample-updated 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
-        > OK: Done pruning
         
    Note that we provided as the second argument the bag-id of the bag in which the unchanged files 
-   where located. You may append as many bag-ids as you like. We call these bags reference bags or **ref-bag**s.
+   where located. You may append as many bag-ids as you like. We call these bags "reference bags" or **ref-bag**<!---->s.
    
 8. Now let's have a look at `sample-updated`:
 
+        #!bash
         tree sample-updated/
-        > sample-updated/
+    Output:        
+        
+        sample-updated/
             ├── bag-info.txt
             ├── bagit.txt
             ├── data
@@ -430,18 +462,21 @@ a command to help you strip your updated bag of unnecessary files.
 
 9. Yes, that's right: *all the other data files are gone*. Now take a look at the contents of `fetch.txt`:
 
+        #!bash
         cat sample-updated/fetch.txt
-        > http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/%E6%AA%94%E6%A1%88.txt  34  data/path/with a/space/檔案.txt
-          http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03.jpeg  2775738  data/img/image03.jpeg
-          http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/file1.txt  0  data/path/with a/space/file1.txt
-          http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02.jpeg  13829  data/img/image02.jpeg
+    Output:        
+        
+        http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/file1%2Etxt  0  data/path/with a/space/file1.txt
+        http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02%2Ejpeg  13829  data/img/image02.jpeg
+        http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/%E6%AA%94%E6%A1%88%2Etxt  34  data/path/with a/space/檔案.txt
+        http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03%2Ejpeg  2775738  data/img/image03.jpeg
           
    All the payload files from `sample` are included in `fetch.txt`, except `README.TXT` (which was
    changed), `NEW.TXT` (which was added) and `image01.png` (which was removed).
    
    
 As you may have noticed, the URLs in `fetch.txt` all start with `http://localhost/`. These URLs are called
-**local-file-uri**s. They will of course only really work, if&mdash;on this host&mdash;there is a web server to do the
+**local-file-uri**<!---->s. They will of course only really work, if&mdash;on this host&mdash;there is a web server to do the
 item-to-location mapping  as described earlier (looking in the correct bag store). We *could* set that up, but really what
 the local-file-uris are intended to do is point back into the same bag store that the `fetch.txt` file is stored in.
 That makes resolving the local-file-uri trivial, as leaving off `http://localhost/` gives you the item-id.
@@ -462,33 +497,39 @@ full content.
 
 1. Add the updated bag:
 
-        easy-bag-store add sample-updated
+        #!bash
+        easy-bag-store add -u d01fd36f-181c-419a-90eb-bbc7230d6a86 sample-updated
+   Again, we are forcing a specific UUID for convenience. 
 
 2. Retrieve it again from the bag store:
 
-        easy-bag-store get -d out <bag-id of sample-updated>
+        #!bash
+        easy-bag-store get -d out-updated d01fd36f-181c-419a-90eb-bbc7230d6a86
         
-3. Verify that `sample-updated-unpruned` and `out/sample-updated` are equal
+3. Verify that `sample-updated-unpruned` and `out-updated/sample-updated` are equal
 
-        diff -r sample-updated-unpruned out/sample-updated
-
+        #!bash
+        diff -r sample-updated-unpruned out-updated/sample-updated
    Again, if you see any output from the last command, that means the directories are different and something 
-   went wrong. As you can see, the `get` subcommand will, by default, also complete the bag by fetching any files
+   went wrong. 
+   
+   As you can see, the `get` subcommand will, by default, also complete the bag by fetching any files
    that were pruned away before. You can also skip the "completing" step with the `-s` option. You may then use
    the `complete` subcommand to complete the bag after retrieval from the bag store.
 
 #### Other operations and commands
 You have now seen the most important bag store operations in action: `ADD`, `ENUM` and `GET`. The command line
-tool implements these as the subcommands `add`, `enum` and `get`/`stream`. Furthermore, you have seen the utility subcommands
+tool implements these as the subcommands `add`, `enum` and `get`/`stream`, respectively. Furthermore, you have seen the utility subcommands
 `prune` and `complete` that help you convert between virtually-valid and valid bags. For a list of all the available subcommands
 type:
-
-        easy-bag-store --help
+        
+    #!bash    
+    easy-bag-store --help
 
 For more exceptional situations the bag store allows you to `DEACTIVATE` a bag. This will mark it as hidden, while
 you can still reference files in it. The main use case for this operation is, when you turn out to have created an
 incorrect version history for a sequence of bags, which can of course not be amended by adding more versions. A planned
-tutorial in [`easy-bag-index`] will explain this feature. It should probably not be used for anything else.
+tutorial in [easy-bag-index] will explain this feature. It should probably not be used for anything else.
 
 Support for an `ERASE` operation, which will overwrite the contents of a file with a tombstone message is also planned.
 This operation is also *not* intended for regular use cases, but rather for situations where there is a strict legal
@@ -577,7 +618,7 @@ The examples work with the command line tool [cURL].
 
 
 
-<a name="footnote1" /><sup>1</sup>There is a slight catch when getting a complete bag this way: if it contains a 
+[^1]: There is a slight catch when getting a complete bag this way: if it contains a 
 `fetch.txt`, this will *not* be removed, leaving the resulting bag technically incomplete. However, 
 this is easily fixed by removing `fetch.txt` yourself, along with any entries for it in the tag manifests.
 

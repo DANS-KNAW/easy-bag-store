@@ -38,6 +38,9 @@ extra:
   tutorial_sample_data: https://github.com/DANS-KNAW/easy-bag-store/raw/master/docs/res/sample.zip
   percent_encoding: https://tools.ietf.org/html/rfc3986#section-2.1
   bagit_java_github_repo: https://github.com/LibraryOfCongress/bagit-java
+  easy_bag_index_repo: https://github.com/DANS-KNAW/easy-bag-index
+  bagit_fetchtxt: https://tools.ietf.org/html/rfc8493#section-2.2.3
+  bagit_valid: https://tools.ietf.org/html/rfc8493#section-3
 
 markdown_extensions:
   - attr_list
