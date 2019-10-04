@@ -144,7 +144,7 @@ Although item-ids are not Archival Resource Keys ([ARK]s) by themselves, they ca
 needed is an ARK "Name Assigning Authority Number" (NAAN). Optionally, a "Name Mapping Authority Hostport" (NMAH) can 
 be provided to resolve ARKs over http. 
 
-### Minting an ARK using an itemd-id
+### Minting an ARK using an item-id
 An ARK has the following general form:
 
     [http://NMAH/]ark:/NAAN/Name[Qualifier]
