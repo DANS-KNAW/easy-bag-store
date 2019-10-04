@@ -540,98 +540,239 @@ For simple scenarios, working with the command line interface of the bag store t
 when building a complete archival system on top of the bag store, it may be more convenient to have an HTTP based interface.
 Fortunately, such an interface exists. We will briefly explore it here. 
 
-The examples work with the command line tool [cURL].
+The examples work with the command line tool [cURL], which is installed on the VM.
+
+#### Starting the service ###
+1. Start the service:
+
+        #!bash
+        sudo systemctl start easy-bag-store
+        sudo systemctl status easy-bag-store
+   Output:
+   
+        ● easy-bag-store.service - EASY Bag Store Service
+           Loaded: loaded (/usr/lib/systemd/system/easy-bag-store.service; disabled; vendor preset: disabled)
+          Drop-In: /etc/systemd/system/easy-bag-store.service.d
+                   └─override.conf
+           Active: active (running) since Fri 2019-10-04 12:31:17 UTC; 63ms ago
+         Main PID: 19358 (java)
+           CGroup: /system.slice/easy-bag-store.service
+                   └─19358 /bin/java -Dlogback.configurationFile=/etc/opt/dans.knaw.nl/easy-bag-store/logback-service.xml -Dapp.home=/opt/dans.knaw.nl/easy-bag-store -Dorg.scala...
+        
+        Oct 04 12:31:17 tutorial systemd[1]: Started EASY Bag Store Service.
+
+2. Optionally, you can enable the service, so that it will automatically start on system boot:
+
+        #!bash
+        sudo systemctl enable easy-bag-store
 
 #### Getting the list of bag stores
-1. Check that the service is running:
+1. Check that the service is running. By default the service listens on port 20110. This can be configured in 
+   `/etc/opt/dans.knaw.nl/easy-bag-store/application.properties`.
 
+        #!bash
         curl http://localhost:20110/
-        > EASY Bag Store is running.
-          Available stores at <http://localhost:20110/stores>
-          Bags from all stores at <http://localhost:20110/bags>
-          
-   Even though the current API is rather basic, we have tried to adhere to the [HATEOAS] principle.
-       
-2. Let's see what bag stores are available:
-
-        curl http://localhost:20110/stores
-        > <http://localhost:20110/stores/default>
+    Output:        
         
+        EASY Bag Store is running v1.4.1
+        .
+        Available stores at <http://localhost:20110/stores>
+        Bags from all stores at <http://localhost:20110/bags>
+   Even though the current API is rather basic, we have tried to adhere to the [HATEOAS] principle, so you can 
+   follow the links given in the response to navigate the service.
+       
+3. Let's see what bag stores are available:
+
+        #!bash
+        curl http://localhost:20110/stores
+    Output:        
+        
+        <http://localhost:20110/stores/default>
    It turns out there is only one store on this VM. It *is* possible to have multiple stores. One use case for this could
    be when some of your archival packages contain sensitive data that must be stored with an added level of security.
    
-3. We follow the link to the one store:
+4. We follow the link to the one store:
 
+        #!bash
         curl http://localhost:20110/stores/default
-        > Bag store 'default'.
-          Bags for this store at <http://localhost:20110/stores/default/bags>
+    Output:        
+        
+        Bag store 'default'.
+        Bags for this store at <http://localhost:20110/stores/default/bags>
    
    We see we can access the bags in this particular bag store. 
  
 #### Enumerating bags and files
 1. Enumerate all the bags in your bag store:
 
+        #!bash
         curl http://localhost:20110/stores/default/bags
-        > <newline-separated list of UUIDs>
-        
-   You will get the list of all the bags currently in your bag store.
+   You will get the list of all the bags currently in your bag store:
+   
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+        d01fd36f-181c-419a-90eb-bbc7230d6a86
 
 2. Pick one UUID and use it in the following:
 
+        #!bash
         curl http://localhost:20110/stores/default/bags/8eeaeda4-3ae7-4be2-9f63-3db09b19db43
-        > Item 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 is not a regular file.
-      
-3. We need to specify the media type we want to accept. Currently, for a bag you can choose between
+    Output: 
+            
+        Item 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 is not a regular file.
+   We need to specify the media type we want to accept. Currently, for a bag you can choose between
    `text/plain`, `application/zip` and `application/x-tar`. `text/plain` will give you a listing of the regular
    files in the bag.
    
-        curl -H 'Accept: text/plain' http://localhost:20110/stores/default/bags/8eeaeda4-3ae7-4be2-9f63-3db09b19db43
-        > <list of file-ids>
-        
+3. Let's get the list of files in the bag:   
+   
+        #!bash
+        curl -H 'Accept: text/plain' \
+          http://localhost:20110/stores/default/bags/8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+   Output:
+   
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/bag%2Dinfo%2Etxt
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/bagit%2Etxt
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/README%2ETXT
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image01%2Epng
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02%2Ejpeg
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03%2Ejpeg
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/file1%2Etxt
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/%E6%AA%94%E6%A1%88%2Etxt
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/manifest%2Dmd5%2Etxt
+        8eeaeda4-3ae7-4be2-9f63-3db09b19db43/tagmanifest%2Dmd5%2Etxt      
+            
+                 
 #### Retrieving one file
 1. To download one file, just put its item-id in place of the bag-id, and don't specify a media type:
-
-        curl http://localhost:20110/stores/default/bags/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02.jpeg > image02.jpeg
-        > % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                           Dload  Upload   Total   Spent    Left  Speed
-          100 13829  100 13829    0     0  1042k      0 --:--:-- --:--:-- --:--:-- 1227k
+        
+        #!bash
+        wget http://localhost:20110/stores/default/bags/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02%2Ejpeg
+   I am using `wget` for a change; this will also work with `curl`, but don't forget to redirect the output to a file.
 
 #### Retrieving a bag or a directory
 1. To download the contents of a bag (or a directory) simply use its item-id and specify the desired format in the 
    `Accept` header:
    
+        #!bash
         curl -H 'Accept: application/x-tar' \
           http://localhost:20110/stores/default/bags/8eeaeda4-3ae7-4be2-9f63-3db09b19db43 > mybag.tar
+    Output:
+    
+        % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                         Dload  Upload   Total   Spent    Left  Speed
+        100 3147k    0 3147k    0     0  44.3M      0 --:--:-- --:--:-- --:--:-- 45.1M    
+
+2. Check the contents of `mybag.tar`, without extracting it:
+
+        #!bash
+        tar tf mybag.tar 
+    Output:
+    
+        sample/bag-info.txt
+        sample/bagit.txt
+        sample/data/README.TXT
+        sample/data/img/image01.png
+        sample/data/img/image02.jpeg
+        sample/data/img/image03.jpeg
+        sample/data/path/with a/space/file1.txt
+        sample/data/path/with a/space/檔案.txt
+        sample/manifest-md5.txt
+        sample/tagmanifest-md5.txt
         
-         
+3. We can do the same with the updated bag. As you will remember, it was pruned of files that were already in the 
+   first version. When we download it, it will automatically be completed:
+   
+        #!bash
+        curl -H 'Accept: application/x-tar' \
+                  http://localhost:20110/stores/default/bags/d01fd36f-181c-419a-90eb-bbc7230d6a86 > mybag-updated.tar
+        mkdir out-mybag-updated
+        tar -C out-mybag-updated -xf mybag-updated.tar
+        diff -r out-mybag-updated/sample-updated/ sample-updated-unpruned/
+    Output:
+    
+        Only in out-mybag-updated/sample-updated/: fetch.txt         
+    Okay, so there is a small catch here: the `fetch.txt` file is not removed after completion.[^2] Except for that,
+    however, the downloaded bag is the same as the unpruned bag we added earlier.
+    
+4. Now we will also get a directory as a zipped file. To show off we will get a directory that is only "virtually"
+   present in the bag store:
+    
+        #!bash 
+        curl -H 'Accept: application/zip' \
+                  http://localhost:20110/stores/default/bags/d01fd36f-181c-419a-90eb-bbc7230d6a86/data/img \
+                    > mybag-updated-img.zip
+        mkdir out-mybag-updated-img
+        unzip -d out-mybag-updated-img mybag-updated-img.zip
+        diff -r out-mybag-updated-img/img sample-updated-unpruned/data/img
+    Again, the `diff` command tells you that your are getting back exactly the same as you put in earlier.
+    To prove that these files were included by reference, execute the following command:
+    
+        #!bash
+        tree /srv/dans.knaw.nl/bag-store/d0/1fd36f181c419a90ebbbc7230d6a86               
+    Output:
+    
+        /srv/dans.knaw.nl/bag-store/d0/1fd36f181c419a90ebbbc7230d6a86
+        └── sample-updated
+            ├── bag-info.txt
+            ├── bagit.txt
+            ├── data
+            │   ├── NEW.TXT
+            │   ├── path
+            │   │   └── with\ a
+            │   └── README.TXT
+            ├── fetch.txt
+            ├── manifest-md5.txt
+            └── tagmanifest-md5.txt
+     As you can see the directory `data/img` is not present in this bag. Isn't that magic now?
 
-*TO BE CONTINUED...*
+#### Adding an (updated) bag
+As with the command-line-interface, you can also add a bag through the HTTP-interface. We will add an update of the 
+previous bag and also use "auto-pruning" by adding a special file called `refbags.txt`. (Yes, a bit hacky, I know.)
 
+1. Let's first create yet another updated version of our previous bag:
 
-#### Adding bag
-
-
-
-
-#### Adding an updated bag
-
-
-
+        #!bash
+        # Copy the last version
+        rm -fr sample-updated-unpruned2* # Just to be sure 
+        cp -r sample-updated-unpruned sample-updated-unpruned2
+        
+        # Just change the NEXT.txt
+        echo "...newer is better" >> sample-updated-unpruned2/data/NEW.TXT
+        
+        # Make it valid 
+        bagit update sample-updated-unpruned2/
+        
+        # Add a refbags.txt with the UUIDs of the previous to revisions
+        echo "8eeaeda4-3ae7-4be2-9f63-3db09b19db43" > sample-updated-unpruned2/refbags.txt
+        echo "d01fd36f-181c-419a-90eb-bbc7230d6a86" >> sample-updated-unpruned2/refbags.txt
+        
+        # Zip the bag
+        zip -r sample-updated-unpruned2.zip sample-updated-unpruned2
+        
+2. Now upload it to a new UUID with an HTTP `PUT`-call. This operation is secured with a username/password.
+   Needless to say you should configure safer values that the defaults (in `/etc/opt/dans.knaw.nl/easy-bag-store/application.properties`)
+   and also make sure that this configuration file can be read only by the `easy-bag-store` user.
+   
+        #!bash
+        curl -u easy-bag-store:changeme \
+          -X PUT --data-binary @sample-updated-unpruned2.zip \
+          -H 'Content-Type: application/zip' \
+           http://localhost:20110/stores/default/bags/7f4323ed-ad68-4543-b9ba-c08c5d2e24d9
+    Notice that we have to mint a UUID prior to the call and that you need to specify the mediatype of the content.
+    
+We shall leave verifying that the bag was correctly pruned and getting it back as an exercise to the reader.           
 
 [^1]: There is a slight catch when getting a complete bag this way: if it contains a 
 `fetch.txt`, this will *not* be removed, leaving the resulting bag technically incomplete. However, 
 this is easily fixed by removing `fetch.txt` yourself, along with any entries for it in the tag manifests.
 
-By the way, the `bagit` command line tool we use in this tutorial will incorrectly judge the bag to be valid
-when asked so with `bagit verifyvalid`. [The section on completeness in the BagIt specs], however, seems to say
-that a bag is incomplete (and therefore not valid) if it contains a `fetch.txt`. (And it is not even *incomplete*
-(i.e. invalid) if there are files referenced in a payload manifest, that are present in neither the bag *nor* 
-the `fetch.txt`.) The [PyBagIt] library on the other hand, *does* catch this error.
-
+[^2]: In the BagIt specs prior to V1.0 there was an ambiguity about whether such a bag was to be considered valid.
+It was possible to read [the section on completeness in the BagIt specs] as saying the whenever there was a `fetch.txt` file,
+the bag could not be valid. This has been removed from V1.0, so we'll consider the point as academic.
 
 [cURL]: https://curl.haxx.se/
 [HATEOAS]: https://en.wikipedia.org/wiki/HATEOAS
-[The section on completeness in the BagIt specs]: https://tools.ietf.org/html/draft-kunze-bagit#section-3
+[the section on completeness in the BagIt specs]: https://tools.ietf.org/html/draft-kunze-bagit-14#section-3
 [PyBagIt]: http://ahankinson.github.io/pybagit/
 
 Appendix I: extended motivation of features

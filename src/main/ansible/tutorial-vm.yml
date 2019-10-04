@@ -10,6 +10,7 @@
         name:
           - tree
           - mlocate
+          - zip
           - unzip
           - dans.knaw.nl-easy-bag-store
     - name: Initialize locate db
