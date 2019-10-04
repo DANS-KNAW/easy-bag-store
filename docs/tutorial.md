@@ -21,12 +21,12 @@ additional constraints. As we go along I will introduce these constraints one by
 they support the properties. I shall use the high-lighted words a mnemonics to refer back to the items
 on the list. 
 
-[Appendix I] tries to give a more elaborate justification for above list of properties.  
+[Appendix] tries to give a more elaborate justification for above list of properties.  
 
 [DANS]: https://dans.knaw.nl/en 
 [SWORDv2 deposit service]: https://easy.dans.knaw.nl/doc/sword2.html
 [BagIt]: https://tools.ietf.org/html/draft-kunze-bagit
-[Appendix I]: #appendix-i-extended-motivation-of-features
+[Appendix]: #appendix-extended-motivation-of-bag-store-properties
 
 Prerequisites
 -------------
@@ -767,7 +767,7 @@ We shall leave verifying that the bag was correctly pruned and getting it back a
 this is easily fixed by removing `fetch.txt` yourself, along with any entries for it in the tag manifests.
 
 [^2]: In the BagIt specs prior to V1.0 there was an ambiguity about whether such a bag was to be considered valid.
-It was possible to read [the section on completeness in the BagIt specs] as saying the whenever there was a `fetch.txt` file,
+It was possible to read [the section on completeness in the BagIt specs] as saying that whenever there was a `fetch.txt` file,
 the bag could not be valid. This has been removed from V1.0, so we'll consider the point as academic.
 
 [cURL]: https://curl.haxx.se/
@@ -775,28 +775,42 @@ the bag could not be valid. This has been removed from V1.0, so we'll consider t
 [the section on completeness in the BagIt specs]: https://tools.ietf.org/html/draft-kunze-bagit-14#section-3
 [PyBagIt]: http://ahankinson.github.io/pybagit/
 
-Appendix I: extended motivation of features
--------------------------------------------
+Appendix: extended motivation of bag-store properties
+-----------------------------------------------------
+As stated in the introduction to this tutorial, the motivation for creating the bag-store format and service was derived
+from the wish to get away from the complexity and dependency on specific software that characterized our previous archival system.
+Here I summarize some properties that we are trying to realize in the new archive. 
 
 ### Simple
-
+First of all: don't create more complexity than inherently present in the problem space. Sofware developers have been known
+to violate this rule&mdash;from time to time. 
 
 ### Open standards
-
-
+Using open standards is one means of outsourcing the complexity of part of your problem space. For example, by using the BagIt-specs
+we avoided the need to design a packaging format for our archival packages. Also, we were able to reuse the `fetch.txt` file to
+store the package-versions more efficiently.   
 
 ### Software independent
-
+This goes in tandem with simplicity and open standards. If the way your packages are store depends on specific software, you 
+may have to reverse-engineer the packaging format if at some point you need to move away from that software. The simpler the
+packaging format the easier it becomes to build new software that can work with it. If it uses open standards, there will probably
+even be software for it already.
 
 ### Authenticity
-
+A core concern in a digital archive is the authenticity of the data stored. Collecting and storing evidence of the authenticity
+is key. The data and the evidence need to be guarded at the lower levels by fixity metadata. BagIt does a good job here, by defining the standard
+locations to store checksums.
 
 ### Efficiency
-
+Simplicity may easily become very wasteful. That is why (reasonable) efficiency is also on our list.
+Efficiency was a concern to the extent that storing each revision of a deposit as a separate bag would result in many files 
+being stored redundantly. The fetch-references are a simple way to avoid that in most cases. 
 
 ### Modular design
+Having read up to here, you may be surprised at how little the bag-store is concerned with. It is hardly a complete digital
+preservation system! This is by design. The bag-store is supposed to only concern itself with the packaging information and 
+fixity of the [AIP]. It is the lower layer on which other layers are being built. The [DANS BagIt Profile] adds rules and 
+metadata schemas for bags stored in the DANS Archive. The [easy-bag-index] services uses that to retrieve the revision history
+of a dataset. In this way we plan to build more services that extend the functionality of the bag-store.   
 
-
-Appendix II: Migrations
------------------------
-Migrations are transformations of complete bag-stores.
+[DANS BagIt Profile]: https://github.com/DANS-KNAW/dans-bagit-profile 
