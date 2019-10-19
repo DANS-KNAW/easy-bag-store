@@ -1,0 +1,12 @@
+# configuration for authorized and required reviewers
+* @janvanmansum @rvanheest
+
+# code
+# no overrides
+
+# documentation
+# no overrides
+
+# policies
+/.github/PULL_REQUEST_TEMPLATE.md @DANS-KNAW/easy-leads
+/.github/CODEOWNERS @DANS-KNAW/easy-leads
