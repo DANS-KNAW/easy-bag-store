@@ -64,8 +64,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
 
         assertUuidPartitionedCorrectly(p.subpath(0, uuidPartCount))
         val uuidStr = formatUuidStrCanonically((0 until uuidPartCount).map(p.getName).mkString)
-        assertUuidValid(uuidStr)
-        val bagId = BagId(UUID.fromString(uuidStr))
+        val bagId = BagId(getUUID(uuidStr))
         if (filePathIndex < nameCount) FileId(bagId, p.subpath(filePathIndex, p.getNameCount))
         else bagId
       }
@@ -77,10 +76,6 @@ trait FileSystemComponent extends DebugEnhancedLogging {
 
     private def formatUuidStrCanonically(s: String): String = {
       List(s.slice(0, 8), s.slice(8, 12), s.slice(12, 16), s.slice(16, 20), s.slice(20, 32)).mkString("-")
-    }
-
-    private def assertUuidValid(uuid: String): Unit = {
-      assert(Try(UUID.fromString(uuid)).map(_ => true).getOrElse(false), s"UUID ($uuid) is not valid")
     }
 
     /**
@@ -120,8 +115,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
           Failure(IncompleteItemUriException("base-uri by itself is not an item-uri"))
         else {
           val uuidStr = formatUuidStrCanonically(itemIdPath.getName(0).toString.filterNot(_ == '-'))
-          assertUuidValid(uuidStr)
-          val bagId = BagId(UUID.fromString(uuidStr))
+          val bagId = BagId(getUUID(uuidStr))
           if (itemIdPath.getNameCount > 1)
             Try(FileId(bagId, itemIdPath.subpath(1, itemIdPath.getNameCount)))
           else if (uri.toString.endsWith("/"))

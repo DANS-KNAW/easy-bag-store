@@ -22,6 +22,7 @@ import java.util.UUID
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.{ BagStoresComponent, FileSystemComponent }
 import nl.knaw.dans.lib.error._
+import nl.knaw.dans.lib.string._
 import nl.knaw.dans.lib.logging.servlet._
 import nl.knaw.dans.lib.logging.servlet.masked.MaskedAuthorizationHeader
 import org.joda.time.DateTime
@@ -162,7 +163,7 @@ trait StoresServletComponent {
       val requestContentType = Option(request.getHeader("Content-Type"))
       bagStores.getBaseDirByShortname(bagStore)
         .map(base => {
-          Try { UUID.fromString(uuidStr) }
+          uuidStr.toUUID.toTry
             .recoverWith {
               case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
             }

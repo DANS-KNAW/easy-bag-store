@@ -247,7 +247,7 @@ trait BagStoreComponent {
     private def pruneWithReferenceBags(bagDir: Path)(refbags: Path): Try[Unit] = {
       trace(bagDir, refbags)
       for {
-        refs <- Try { Files.readAllLines(refbags).asScala.map(UUID.fromString _ andThen BagId) }
+        refs <- Try { Files.readAllLines(refbags).asScala.map(getUUID _ andThen BagId) }
         _ <- bagProcessing.prune(bagDir, refs)
         _ <- Try { Files.delete(refbags) }
       } yield ()

@@ -17,6 +17,9 @@ package nl.knaw.dans.easy
 
 import java.net.URI
 import java.nio.file.{ Files, Path }
+import java.util.UUID
+
+import nl.knaw.dans.lib.string._
 
 import org.apache.commons.io.FileUtils
 import resource._
@@ -136,5 +139,12 @@ package object bagstore {
       list += path.subpath(0, i)
     }
     list.toSet
+  }
+
+  def getUUID(uuidStr: String): UUID = {
+    uuidStr.toUUID.toTry match {
+      case Success(uuid) => uuid
+      case Failure(error) => throw new Exception(error)
+    }
   }
 }
