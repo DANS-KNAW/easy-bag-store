@@ -512,7 +512,7 @@ class StoresServletSpec extends TestSupportFixture
     val uuid = "11111111111111111111111111111111"
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), headers = basicAuthenticationAndZipContentType) {
       status shouldBe 400
-      body shouldBe s"invalid UUID string: $uuid"
+      body shouldBe s"String '$uuid' is not a UUID"
     }
   }
 
@@ -520,7 +520,7 @@ class StoresServletSpec extends TestSupportFixture
     val uuid = "abc-def-ghi-jkl-mno"
     put(s"/store1/bags/$uuid", headers = basicAuthenticationAndZipContentType) {
       status shouldBe 400
-      body shouldBe s"invalid UUID string: $uuid"
+      body shouldBe s"String '$uuid' is not a UUID"
     }
   }
 
@@ -556,7 +556,7 @@ class StoresServletSpec extends TestSupportFixture
     val uuid = "11111111-1121-1111-1111-111111111111"
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedEmptyRefBag), headers = basicAuthenticationAndZipContentType) {
       status shouldBe 400
-      body shouldBe s"Invalid UUID string: $content"
+      body shouldBe s"String '$content' is not a UUID"
     }
   }
 

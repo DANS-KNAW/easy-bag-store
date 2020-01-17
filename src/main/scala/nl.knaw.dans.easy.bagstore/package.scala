@@ -144,7 +144,7 @@ package object bagstore {
   def getUUID(uuidStr: String): UUID = {
     uuidStr.toUUID.toTry match {
       case Success(uuid) => uuid
-      case Failure(error) => throw new Exception(error)
+      case Failure(e) => throw new IllegalArgumentException(e.getMessage)
     }
   }
 }

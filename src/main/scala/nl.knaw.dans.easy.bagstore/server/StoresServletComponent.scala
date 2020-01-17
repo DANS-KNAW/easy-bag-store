@@ -164,9 +164,6 @@ trait StoresServletComponent {
       bagStores.getBaseDirByShortname(bagStore)
         .map(base => {
           uuidStr.toUUID.toTry
-            .recoverWith {
-              case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
-            }
             .flatMap(validateContentTypeHeader(requestContentType, _))
             .flatMap(bagStores.putBag(request.getInputStream, base, _))
             .map(bagId => Created(headers = Map(
@@ -176,6 +173,7 @@ trait StoresServletComponent {
               case e: CompositeException if e.throwables.exists(_.isInstanceOf[IncorrectNumberOfFilesInBagZipRootException]) => BadRequest(e.getMessage())
               case e: UnsupportedMediaTypeException => UnsupportedMediaType(e.getMessage)
               case e: IllegalArgumentException => BadRequest(e.getMessage)
+              case e: UUIDError => BadRequest(e.getMessage)
               case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage)
               case e: NoBagException => BadRequest(e.getMessage)
               case e: InvalidBagException => BadRequest(e.getMessage)
