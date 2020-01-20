@@ -20,14 +20,13 @@ import java.nio.file.{ Files, Path }
 import java.util.UUID
 
 import nl.knaw.dans.lib.string._
-
 import org.apache.commons.io.FileUtils
 import resource._
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
-import scala.util.{ Failure, Success, Try }
+import scala.util.{ Failure, Success }
 
 package object bagstore {
   case class NoItemUriException(uri: URI, baseUri: URI) extends Exception(s"Base of URI $uri is not an item-uri: does not match base-uri; base-uri is $baseUri")
