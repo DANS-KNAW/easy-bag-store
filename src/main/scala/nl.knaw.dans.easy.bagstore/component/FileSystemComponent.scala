@@ -115,13 +115,17 @@ trait FileSystemComponent extends DebugEnhancedLogging {
           Failure(IncompleteItemUriException("base-uri by itself is not an item-uri"))
         else {
           val uuidStr = formatUuidStrCanonically(itemIdPath.getName(0).toString.filterNot(_ == '-'))
-          val bagId = BagId(getUUID(uuidStr))
-          if (itemIdPath.getNameCount > 1)
-            Try(FileId(bagId, itemIdPath.subpath(1, itemIdPath.getNameCount)))
-          else if (uri.toString.endsWith("/"))
-            Try(FileId(bagId, Paths.get("")))
-          else
-            Try(bagId)
+          uuidStr.toUUID.toTry match {
+            case Success(uuid) =>
+              val bagId = BagId(uuid)
+              if (itemIdPath.getNameCount > 1)
+                Try(FileId(bagId, itemIdPath.subpath(1, itemIdPath.getNameCount)))
+              else if (uri.toString.endsWith("/"))
+                     Try(FileId(bagId, Paths.get("")))
+              else
+                Try(bagId)
+            case Failure(e) => Failure(new IllegalArgumentException(e.getMessage))
+          }
         }
       }
       else Failure(NoItemUriException(uri, localBaseUri))
