@@ -140,7 +140,7 @@ package object bagstore {
     list.toSet
   }
 
-  @throws[IllegalArgumentException]("String '$uuidStr' is not a UUID")
+  @throws[IllegalArgumentException]("when the input String does not represent a valid UUID")
   def getUUID(uuidStr: String): UUID = {
     uuidStr.toUUID.toTry
       .getOrRecover(e => throw new IllegalArgumentException(e.getMessage, e))
