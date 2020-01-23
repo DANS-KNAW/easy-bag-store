@@ -126,6 +126,11 @@ class FileSystemSpec extends TestSupportFixture
     fileSystem.fromUri(uri) should matchPattern { case Failure(NoItemUriException(`uri`, `localBaseUri`)) => }
   }
 
+  it should "return a failure with invalid UUID" in {
+    val uri = new URI(s"$localBaseUri/abc")
+    fileSystem.fromUri(uri) should matchPattern { case Failure(e: IllegalArgumentException) if e.getMessage == "String 'abc----' is not a UUID" => }
+  }
+
   it should "return a bag-id for valid UUID-path after the base-uri" in {
     val uuid = UUID.randomUUID()
 

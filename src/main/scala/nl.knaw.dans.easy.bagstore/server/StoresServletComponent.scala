@@ -22,6 +22,7 @@ import java.util.UUID
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.{ BagStoresComponent, FileSystemComponent }
 import nl.knaw.dans.lib.error._
+import nl.knaw.dans.lib.string._
 import nl.knaw.dans.lib.logging.servlet._
 import nl.knaw.dans.lib.logging.servlet.masked.MaskedAuthorizationHeader
 import org.joda.time.DateTime
@@ -162,10 +163,7 @@ trait StoresServletComponent {
       val requestContentType = Option(request.getHeader("Content-Type"))
       bagStores.getBaseDirByShortname(bagStore)
         .map(base => {
-          Try { UUID.fromString(uuidStr) }
-            .recoverWith {
-              case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
-            }
+          uuidStr.toUUID.toTry
             .flatMap(validateContentTypeHeader(requestContentType, _))
             .flatMap(bagStores.putBag(request.getInputStream, base, _))
             .map(bagId => Created(headers = Map(
@@ -175,6 +173,7 @@ trait StoresServletComponent {
               case e: CompositeException if e.throwables.exists(_.isInstanceOf[IncorrectNumberOfFilesInBagZipRootException]) => BadRequest(e.getMessage())
               case e: UnsupportedMediaTypeException => UnsupportedMediaType(e.getMessage)
               case e: IllegalArgumentException => BadRequest(e.getMessage)
+              case e: UUIDError => BadRequest(e.getMessage)
               case e: BagIdAlreadyAssignedException => BadRequest(e.getMessage)
               case e: NoBagException => BadRequest(e.getMessage)
               case e: InvalidBagException => BadRequest(e.getMessage)

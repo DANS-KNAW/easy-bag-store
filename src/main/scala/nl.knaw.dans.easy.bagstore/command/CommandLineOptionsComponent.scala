@@ -18,9 +18,10 @@ package nl.knaw.dans.easy.bagstore.command
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
+import nl.knaw.dans.lib.string._
 import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
 import nl.knaw.dans.easy.bagstore.{ ArchiveStreamType, ConfigurationComponent }
-import org.rogach.scallop.{ ScallopConf, ScallopOption, Subcommand, ValueConverter, singleArgConverter }
+import org.rogach.scallop.{ ScallopConf, ScallopOption, Subcommand, ValueConverter, singleArgConverter, stringConverter }
 
 trait CommandLineOptionsComponent {
   this: ConfigurationComponent =>
@@ -63,7 +64,7 @@ trait CommandLineOptionsComponent {
          |""".stripMargin)
 
     private implicit val fileConverter: ValueConverter[Path] = singleArgConverter[Path](s => Paths.get(resolveTildeToHomeDir(s)))
-    private implicit val uuidParser: ValueConverter[UUID] = singleArgConverter(UUID.fromString)
+    private implicit val uuidParser: ValueConverter[UUID] = stringConverter.flatMap(_.toUUID.fold(e => Left(e.getMessage), uuid => Right(Option(uuid))))
     private implicit val archiveStreamTypeParser: ValueConverter[ArchiveStreamType.Value] = singleArgConverter {
       case "zip" => ArchiveStreamType.ZIP
       case "tar" => ArchiveStreamType.TAR
