@@ -173,6 +173,7 @@
                 <configuration>
                     <excludes combine.children="append">
                         <exclude>src/main/ansible/**</exclude>
+                        <exclude>requirements.txt</exclude>
                     </excludes>
                 </configuration>
             </plugin>
