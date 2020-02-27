@@ -25,11 +25,7 @@ REMOTE="https://${GH_TOKEN}@github.com/${GH_ORG}/${GH_REPO}"
 git remote set-url origin ${REMOTE}
 
 echo "START installing required Python packages..."
-pip3 install mkdocs
-pip3 install pygments
-pip3 install pymdown-extensions
-pip3 install pyyaml
-pip3 install mkdocs-markdownextradata-plugin
+pip3 -r requirements.txt
 echo "DONE installing required Python packages."
 
 echo "START installing DANS mkdocs theme..."
