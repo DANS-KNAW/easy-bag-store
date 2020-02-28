@@ -13,4 +13,4 @@ matrix:
           - "$HOME/.cache"
           - "$HOME/virtualenv"
       script:
-        - "./.travis.sh"
+        - "./.travis/mkdocs.sh"
