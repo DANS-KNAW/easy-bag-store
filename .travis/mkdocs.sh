@@ -24,7 +24,7 @@ GH_REPO=$(basename $TRAVIS_BUILD_DIR)
 REMOTE="https://${GH_TOKEN}@github.com/${GH_ORG}/${GH_REPO}"
 git remote set-url origin ${REMOTE}
 
-pip -r requiments.txt
+pip install -r requiments.txt
 
 echo "START installing DANS mkdocs theme..."
 git clone https://github.com/Dans-labs/mkdocs-dans $HOME/mkdocs-dans
