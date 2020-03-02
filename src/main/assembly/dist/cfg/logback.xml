@@ -8,9 +8,9 @@
 
     <appender name="FILE"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${user.home}/easy-bag-store.log</file>
+        <file>/var/opt/dans.knaw.nl/log/easy-bag-store/easy-bag-store-cli.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${user.home}/easy-bag-store.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>/var/opt/dans.knaw.nl/log/easy-bag-store/easy-bag-store-cli.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
