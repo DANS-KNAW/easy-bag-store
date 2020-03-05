@@ -67,7 +67,7 @@ class BagsServletSpec extends TestSupportFixture
   "get" should "enumerate the bags in all bag-stores" in {
     get("/") {
       status shouldBe 200
-      body.lines.toList should contain only(
+      body.linesIterator.toList should contain only(
         "01000000-0000-0000-0000-000000000001",
         "01000000-0000-0000-0000-000000000002",
         "01000000-0000-0000-0000-000000000003",
@@ -83,7 +83,7 @@ class BagsServletSpec extends TestSupportFixture
 
     get("/", "state" -> "inactive") {
       status shouldBe 200
-      body.lines.toList should contain only "01000000-0000-0000-0000-000000000001"
+      body.linesIterator.toList should contain only "01000000-0000-0000-0000-000000000001"
     }
   }
 
@@ -92,7 +92,7 @@ class BagsServletSpec extends TestSupportFixture
 
     get("/") {
       status shouldBe 200
-      body.lines.toList should contain only(
+      body.linesIterator.toList should contain only(
         "01000000-0000-0000-0000-000000000002",
         "01000000-0000-0000-0000-000000000003",
         "02000000-0000-0000-0000-000000000001",
@@ -107,7 +107,7 @@ class BagsServletSpec extends TestSupportFixture
 
     get("/", "state" -> "all") {
       status shouldBe 200
-      body.lines.toList should contain only(
+      body.linesIterator.toList should contain only(
         "01000000-0000-0000-0000-000000000001",
         "01000000-0000-0000-0000-000000000002",
         "01000000-0000-0000-0000-000000000003",
@@ -140,7 +140,7 @@ class BagsServletSpec extends TestSupportFixture
   it should "enumerate the bags in all bag-stores even if an unknown state is given" in {
     get("/", params = Map("state" -> "invalid value"), headers = Map("Accept" -> "text/plain")) {
       status shouldBe 200
-      body.lines.toList should contain only(
+      body.linesIterator.toList should contain only(
         "01000000-0000-0000-0000-000000000001",
         "01000000-0000-0000-0000-000000000002",
         "01000000-0000-0000-0000-000000000003",
@@ -154,7 +154,7 @@ class BagsServletSpec extends TestSupportFixture
   "get uuid" should "enumerate the files of a given bag" in {
     get("/01000000-0000-0000-0000-000000000001", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 200
-      body.lines.toList should contain only(
+      body.linesIterator.toList should contain only(
         "01000000-0000-0000-0000-000000000001/" + escapePath("data/x"),
         "01000000-0000-0000-0000-000000000001/" + escapePath("data/y"),
         "01000000-0000-0000-0000-000000000001/" + escapePath("data/z"),
@@ -260,7 +260,7 @@ class BagsServletSpec extends TestSupportFixture
 
       val expectedFilePath = store1.resolve("01/000000000000000000000000000001/bag-revision-1/data/y")
 
-      header("Content-Length").toLong shouldBe Files.size(expectedFilePath)
+      response.header("Content-Length").toLong shouldBe Files.size(expectedFilePath)
       Source.fromInputStream(response.inputStream).mkString shouldBe Source.fromFile(expectedFilePath.toFile).mkString
     }
   }
@@ -271,7 +271,7 @@ class BagsServletSpec extends TestSupportFixture
 
       val expectedFilePath = store1.resolve("01/000000000000000000000000000001/bag-revision-1/metadata/files.xml")
 
-      header("Content-Length").toLong shouldBe Files.size(expectedFilePath)
+      response.header("Content-Length").toLong shouldBe Files.size(expectedFilePath)
       Source.fromInputStream(response.inputStream).mkString shouldBe Source.fromFile(expectedFilePath.toFile).mkString
     }
   }

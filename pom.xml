@@ -70,7 +70,6 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
-            <version>1.7.6</version>
         </dependency>
         <dependency>
             <groupId>gov.loc</groupId>
@@ -79,7 +78,7 @@
         <dependency>
             <groupId>nl.knaw.dans.lib</groupId>
             <artifactId>dans-bag-lib_2.12</artifactId>
-            <version>1.0.0-beta-2</version>
+            <version>1.0.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -93,12 +92,10 @@
         <dependency>
             <groupId>nl.knaw.dans.lib</groupId>
             <artifactId>dans-scala-lib_2.12</artifactId>
-            <version>1.6.1</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>20.0</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -119,7 +116,6 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.scalatra</groupId>
