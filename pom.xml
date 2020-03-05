@@ -169,6 +169,7 @@
                 <configuration>
                     <excludes combine.children="append">
                         <exclude>src/main/ansible/**</exclude>
+                        <exclude>.travis/*</exclude>
                     </excludes>
                 </configuration>
             </plugin>
@@ -195,7 +196,9 @@
                             <mappings combine.children="append">
                                 <mapping>
                                     <directory>/opt/${dans-provider-name}/${project.artifactId}/bin</directory>
-                                    <filemode>755</filemode>
+                                    <filemode>544</filemode>
+                                    <username>easy-bag-store</username>
+                                    <groupname>easy-bag-store</groupname>
                                     <sources>
                                         <source>
                                             <location>src/main/assembly/dist/bin/${project.artifactId}</location>
