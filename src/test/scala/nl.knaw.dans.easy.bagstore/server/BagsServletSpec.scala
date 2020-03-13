@@ -18,6 +18,7 @@ package nl.knaw.dans.easy.bagstore.server
 import java.nio.file.{ Files, Paths }
 import java.util.UUID
 
+import better.files.File
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
 import nl.knaw.dans.lib.encode.PathEncoding
@@ -261,7 +262,7 @@ class BagsServletSpec extends TestSupportFixture
       val expectedFilePath = store1.resolve("01/000000000000000000000000000001/bag-revision-1/data/y")
 
       response.header("Content-Length").toLong shouldBe Files.size(expectedFilePath)
-      Source.fromInputStream(response.inputStream).mkString shouldBe Source.fromFile(expectedFilePath.toFile).mkString
+      Source.fromInputStream(response.inputStream).mkString shouldBe File(expectedFilePath).contentAsString
     }
   }
 
@@ -272,7 +273,7 @@ class BagsServletSpec extends TestSupportFixture
       val expectedFilePath = store1.resolve("01/000000000000000000000000000001/bag-revision-1/metadata/files.xml")
 
       response.header("Content-Length").toLong shouldBe Files.size(expectedFilePath)
-      Source.fromInputStream(response.inputStream).mkString shouldBe Source.fromFile(expectedFilePath.toFile).mkString
+      Source.fromInputStream(response.inputStream).mkString shouldBe File(expectedFilePath).contentAsString
     }
   }
 
