@@ -93,9 +93,9 @@ class BagProcessingSpec extends BagProcessingFixture
   it should "result in a failure if there are no files in the zip file" in {
     FileUtils.copyDirectory(Paths.get("src/test/resources/bag-store").toFile, store1.toFile)
 
-    bagProcessing.unzipBag(new FileInputStream("src/test/resources/zips/empty.zip")) shouldBe a[Failure[_]]
-    // Actually, stageBagZip should not end in Failure, but it does because lingala chokes on the empty zip
-    // This is the next best thing.
+    inside(bagProcessing.unzipBag(new FileInputStream("src/test/resources/zips/empty.zip"))) {
+      case Success(staging) => staging.getParent shouldBe stagingBaseDir
+    }
   }
 
   it should "result in a failure if there is no base directory in the zip file" in {

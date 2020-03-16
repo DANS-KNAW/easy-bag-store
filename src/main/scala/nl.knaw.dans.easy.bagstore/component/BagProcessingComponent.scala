@@ -17,12 +17,11 @@ package nl.knaw.dans.easy.bagstore.component
 
 import java.io.{ IOException, InputStream }
 import java.net.URI
-import java.nio.charset.StandardCharsets
 import java.nio.file.attribute.{ BasicFileAttributes, PosixFilePermission }
 import java.nio.file.{ FileVisitResult, FileVisitor, Files, Path }
 import java.util.{ Set => JSet }
 
-import net.lingala.zip4j.core.ZipFile
+import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import net.lingala.zip4j.model.ZipParameters
 import nl.knaw.dans.easy.bagstore._
@@ -159,9 +158,7 @@ trait BagProcessingComponent extends DebugEnhancedLogging {
         Files.createDirectory(extractDir)
         val zip = extractDir.resolve("bag.zip")
         FileUtils.copyInputStreamToFile(is, zip.toFile)
-        new ZipFile(zip.toFile) {
-          setFileNameCharset(StandardCharsets.UTF_8.name)
-        }.extractAll(extractDir.toAbsolutePath.toString)
+        new ZipFile(zip.toFile).extractAll(extractDir.toAbsolutePath.toString)
         Files.delete(zip)
         extractDir
       }.recoverWith {

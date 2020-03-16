@@ -17,11 +17,10 @@ package nl.knaw.dans.easy.bagstore.server
 
 import java.io.PrintWriter
 import java.net.URI
-import java.nio.charset.StandardCharsets
 import java.nio.file.{ Files, Path, Paths }
 import java.util.{ Base64, UUID }
 
-import net.lingala.zip4j.core.ZipFile
+import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.{ BagProcessingComponent, BagStoreComponent, BagStoresComponent, FileSystemComponent }
@@ -112,7 +111,7 @@ class StoresServletSpec extends TestSupportFixture
   "get /:bagstore/bags" should "enumerate all bags in a specific store" in {
     get("/store1/bags") {
       status shouldBe 200
-      body.lines.toList should contain allOf(
+      body.linesIterator.toList should contain allOf(
         "01000000-0000-0000-0000-000000000001",
         "01000000-0000-0000-0000-000000000002",
         "01000000-0000-0000-0000-000000000003"
@@ -124,7 +123,7 @@ class StoresServletSpec extends TestSupportFixture
     setBag1Hidden()
     get("/store1/bags", "state" -> "inactive") {
       status shouldBe 200
-      body.lines.toList should contain only "01000000-0000-0000-0000-000000000001"
+      body.linesIterator.toList should contain only "01000000-0000-0000-0000-000000000001"
     }
   }
 
@@ -132,7 +131,7 @@ class StoresServletSpec extends TestSupportFixture
     setBag1Hidden()
     get("/store1/bags") {
       status shouldBe 200
-      body.lines.toList should contain allOf(
+      body.linesIterator.toList should contain allOf(
         "01000000-0000-0000-0000-000000000002",
         "01000000-0000-0000-0000-000000000003"
       )
@@ -143,7 +142,7 @@ class StoresServletSpec extends TestSupportFixture
     setBag1Hidden()
     get("/store1/bags", "state" -> "all") {
       status shouldBe 200
-      body.lines.toList should contain allOf(
+      body.linesIterator.toList should contain allOf(
         "01000000-0000-0000-0000-000000000001",
         "01000000-0000-0000-0000-000000000002",
         "01000000-0000-0000-0000-000000000003"
@@ -154,7 +153,7 @@ class StoresServletSpec extends TestSupportFixture
   it should "enumerate the bags in all bag-stores even if an unknown state is given" in {
     get("/store1/bags", "state" -> "invalid value") {
       status shouldBe 200
-      body.lines.toList should contain allOf(
+      body.linesIterator.toList should contain allOf(
         "01000000-0000-0000-0000-000000000001",
         "01000000-0000-0000-0000-000000000002",
         "01000000-0000-0000-0000-000000000003"
@@ -184,7 +183,7 @@ class StoresServletSpec extends TestSupportFixture
 
     get("/store1/bags") {
       status shouldBe 200
-      body.lines.toList should contain allOf(
+      body.linesIterator.toList should contain allOf(
         "01000000-0000-0000-0000-000000000001",
         "01000000-0000-0000-0000-000000000002",
         "01000000-0000-0000-0000-000000000003"
@@ -202,7 +201,7 @@ class StoresServletSpec extends TestSupportFixture
   "get /:bagstore/bags/:uuid" should "return an overview of the files in a given bag in a certain store" in {
     get("/store1/bags/01000000-0000-0000-0000-000000000001", headers = Map("Accept" -> "text/plain")) {
       status shouldBe 200
-      body.lines.toList should contain only(
+      body.linesIterator.toList should contain only(
         "01000000-0000-0000-0000-000000000001/" + escapePath("data/x"),
         "01000000-0000-0000-0000-000000000001/" + escapePath("data/y"),
         "01000000-0000-0000-0000-000000000001/" + escapePath("data/z"),
@@ -251,7 +250,7 @@ class StoresServletSpec extends TestSupportFixture
   it should "return an overview when text/plain is specified in content negotiation" in {
     get("/store1/bags/01000000-0000-0000-0000-000000000001", params = Map.empty, headers = Map("Accept" -> "text/plain")) {
       status shouldBe 200
-      body.lines.toList should contain only(
+      body.linesIterator.toList should contain only(
         "01000000-0000-0000-0000-000000000001/" + escapePath("data/x"),
         "01000000-0000-0000-0000-000000000001/" + escapePath("data/y"),
         "01000000-0000-0000-0000-000000000001/" + escapePath("data/z"),
@@ -279,9 +278,7 @@ class StoresServletSpec extends TestSupportFixture
       zip.toFile should exist
 
       val unzip = Try {
-        new ZipFile(zip.toFile) {
-          setFileNameCharset(StandardCharsets.UTF_8.name)
-        }.extractAll(unzipped.toAbsolutePath.toString)
+        new ZipFile(zip.toFile).extractAll(unzipped.toAbsolutePath.toString)
       }
       unzipped.toFile should exist
       unzip shouldBe a[Success[_]] // It is actually a zip-file
@@ -299,7 +296,7 @@ class StoresServletSpec extends TestSupportFixture
 
       val expectedFilePath = store1.resolve("01/000000000000000000000000000001/bag-revision-1/data/y")
 
-      header("Content-Length").toLong shouldBe Files.size(expectedFilePath)
+      response.header("Content-Length").toLong shouldBe Files.size(expectedFilePath)
       Source.fromInputStream(response.inputStream).mkString shouldBe Source.fromFile(expectedFilePath.toFile).mkString
     }
   }
@@ -310,7 +307,7 @@ class StoresServletSpec extends TestSupportFixture
 
       val expectedFilePath = store1.resolve("01/000000000000000000000000000001/bag-revision-1/metadata/files.xml")
 
-      header("Content-Length").toLong shouldBe Files.size(expectedFilePath)
+      response.header("Content-Length").toLong shouldBe Files.size(expectedFilePath)
       Source.fromInputStream(response.inputStream).mkString shouldBe Source.fromFile(expectedFilePath.toFile).mkString
     }
   }
@@ -380,7 +377,7 @@ class StoresServletSpec extends TestSupportFixture
   def putBag(uuid: String, bagZip: Path): Unit = {
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(bagZip), headers = basicAuthenticationAndZipContentType) {
       status shouldBe 201
-      header should contain("Location" -> s"http://example-archive.org/stores/store1/bags/$uuid")
+      response.header("Location") should be(s"http://example-archive.org/stores/store1/bags/$uuid")
     }
   }
 
@@ -440,9 +437,7 @@ class StoresServletSpec extends TestSupportFixture
         Files.copy(response.inputStream, zip)
         zip.toFile should exist
 
-        new ZipFile(zip.toFile) {
-          setFileNameCharset(StandardCharsets.UTF_8.name)
-        }.extractAll(unzip.toAbsolutePath.toString)
+        new ZipFile(zip.toFile).extractAll(unzip.toAbsolutePath.toString)
         unzip.toFile should exist
 
         pathsEqual(unzip.resolve(bagName), testBagsUnpruned.resolve(bagName), "refbags.txt", "tagmanifest-md5.txt", "fetch.txt") shouldBe true
@@ -470,7 +465,7 @@ class StoresServletSpec extends TestSupportFixture
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA)) {
       status shouldBe 401
       body shouldBe "Unauthenticated"
-      header("WWW-Authenticate") shouldBe """Basic realm="easy-bag-store""""
+      response.header("WWW-Authenticate") shouldBe """Basic realm="easy-bag-store""""
     }
   }
 
@@ -487,7 +482,7 @@ class StoresServletSpec extends TestSupportFixture
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA), authenticationHeader("wrong-username", "wrong-password")) {
       status shouldBe 401
       body shouldBe "Unauthenticated"
-      header("WWW-Authenticate") shouldBe """Basic realm="easy-bag-store""""
+      response.header("WWW-Authenticate") shouldBe """Basic realm="easy-bag-store""""
     }
   }
 
@@ -497,7 +492,7 @@ class StoresServletSpec extends TestSupportFixture
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedA)) {
       status shouldBe 401
       body shouldBe "Unauthenticated"
-      header("WWW-Authenticate") shouldBe """Basic realm="easy-bag-store""""
+      response.header("WWW-Authenticate") shouldBe """Basic realm="easy-bag-store""""
     }
   }
 
