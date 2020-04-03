@@ -18,10 +18,12 @@ package nl.knaw.dans.easy.bagstore
 import java.nio.file.{ Files, Path, Paths }
 
 import org.apache.commons.io.FileUtils
-import org.scalatest._
+import org.scalatest.Inside
 import org.scalatest.enablers.Existence
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-trait TestSupportFixture extends FlatSpec with Matchers with Inside {
+trait TestSupportFixture extends AnyFlatSpec with Matchers with Inside {
   implicit def existenceOfFile[FILE <: better.files.File]: Existence[FILE] = _.exists
 
   lazy val testDir: Path = {
