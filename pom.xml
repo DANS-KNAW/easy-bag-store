@@ -20,7 +20,7 @@
     <parent>
         <groupId>nl.knaw.dans.shared</groupId>
         <artifactId>dans-scala-app-project</artifactId>
-        <version>6.0.2</version>
+        <version>6.0.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>nl.knaw.dans.easy</groupId>
@@ -72,7 +72,7 @@
             <artifactId>jcl-over-slf4j</artifactId>
         </dependency>
         <dependency>
-            <groupId>gov.loc</groupId>
+            <groupId>nl.knaw.dans</groupId>
             <artifactId>bagit</artifactId>
         </dependency>
         <dependency>
