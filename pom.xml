@@ -192,22 +192,6 @@
                         <artifactId>rpm-maven-plugin</artifactId>
                         <configuration>
                             <group>Applications/Archiving</group>
-                            <mappings combine.children="append">
-                                <mapping>
-                                    <directory>/opt/${dans-provider-name}/${project.artifactId}/bin</directory>
-                                    <filemode>544</filemode>
-                                    <username>easy-bag-store</username>
-                                    <groupname>easy-bag-store</groupname>
-                                    <sources>
-                                        <source>
-                                            <location>src/main/assembly/dist/bin/${project.artifactId}</location>
-                                        </source>
-                                        <source>
-                                            <location>src/main/assembly/dist/bin/send-bag-store-report.sh</location>
-                                        </source>
-                                    </sources>
-                                </mapping>
-                            </mappings>
                         </configuration>
                     </plugin>
                 </plugins>
