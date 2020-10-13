@@ -103,7 +103,7 @@ trait CommandLineOptionsComponent {
     addSubcommand(add)
 
     // export cause a name collision
-    val extract = new Subcommand("export") {
+    val export = new Subcommand("export") {
       descr("Exports bags to directories named with the bag-id of the bag. The bags are always valid, so virtually valid bags in the store are first completed.")
       val outputDir: ScallopOption[Path] = opt(name = "directory", short = 'd',
         descr = "directory in which to put the exported bags (default = .)",
@@ -112,7 +112,7 @@ trait CommandLineOptionsComponent {
         descr = "newline-separated list of ids of the bags to export")
       footer(SUBCOMMAND_SEPARATOR)
     }
-    addSubcommand(extract)
+    addSubcommand(export)
 
     val get = new Subcommand("get") {
       descr("Retrieves an item by copying it to the specified directory (default: current directory).")

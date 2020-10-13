@@ -47,12 +47,12 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
       BagStore(baseDir)
         .add(cmd.bag(), cmd.uuid.toOption, skipStage = cmd.move())
         .map(bagId => s"Added bag with bag-id: $bagId to bag store: $baseDir")
-    case Some(cmd @ commandLine.extract) =>
+    case Some(cmd @ commandLine.export) =>
       val dirOut = cmd.outputDir()
       File(cmd.items()).lines
         .withFilter(!_.trim.isEmpty)
         .withFilter(!_.trim.startsWith("#"))
-        .map(bagStores.extract(dirOut, bagStoreBaseDir))
+        .map(bagStores.exportBag(dirOut, bagStoreBaseDir))
         .collectFirst { case Failure(e) => Failure(e) }
         .getOrElse(Success("No fatal errors, see logging for details"))
     case Some(cmd @ commandLine.get) =>

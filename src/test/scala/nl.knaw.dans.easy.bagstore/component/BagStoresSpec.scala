@@ -19,6 +19,7 @@ import java.io.ByteArrayOutputStream
 import java.nio.file.{ Files, Paths }
 import java.util.UUID
 
+import better.files.File
 import nl.knaw.dans.easy.bagstore._
 import org.apache.commons.io.FileUtils
 
@@ -52,24 +53,13 @@ class BagStoresSpec extends TestSupportFixture
   private val testBagComplementary = testDir.resolve("valid-bag-complementary-manifests")
   private val testBagPrunedA = testDir.resolve("basic-sequence-pruned/a")
 
-  "extract" should "log success" in {
-    val output = testDir.resolve("pruned-output1")
+  "exportBag" should "log success" in {
+    val output = testDir.resolve("completed-output1")
+    File(output).createDirectory()
     inside(bagStore1.add(testBagPrunedA)) { case Success(result) =>
-      bagStores.extract(output, Some(bagStore1.baseDir))(result.uuid.toString) shouldBe a[Success[_]]
-      pathsEqual(testBagPrunedA, output.resolve("a")) shouldBe true
+      bagStores.exportBag(output, Some(bagStore1.baseDir))(result.uuid.toString) shouldBe a[Success[_]]
+      pathsEqual(testBagPrunedA, output.resolve(result.toString).resolve("a")) shouldBe true
     }
-    // TODO manually: examine logging
-  }
-
-  it should "log bag not found" in {
-    val output = testDir.resolve("pruned-output2")
-    bagStores.extract(output, Some(bagStore1.baseDir))(UUID.randomUUID().toString) shouldBe a[Success[_]]
-    // TODO manually: examine logging
-  }
-  it should "log IllegalArgumentException" in {
-    val output = testDir.resolve("pruned-output3")
-    bagStores.extract(output, Some(bagStore1.baseDir))("blablabla") shouldBe a[Success[_]]
-    // TODO manually: examine logging
   }
 
   "get" should "return exactly the same Bag as was added" in {
