@@ -19,8 +19,11 @@ import java.io.{ InputStream, OutputStream }
 import java.nio.file.{ Files, Path }
 import java.util.UUID
 
+import better.files.Dsl.SymbolicOperations
+import better.files.File
 import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
 import nl.knaw.dans.easy.bagstore._
+import nl.knaw.dans.easy.bagstore.command.Command.{ BagPath, bagStoreBaseDir, bagStores, logger }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
@@ -37,6 +40,26 @@ trait BagStoresComponent {
     def storeShortnames: Map[String, BaseDir]
 
     def getBaseDirByShortname(name: String): Option[BaseDir] = storeShortnames.get(name)
+
+    def getStoreName(p: Path): String = {
+      bagStores.storeShortnames
+        .collectFirst { case (name, base) if base == p => name }
+        .getOrElse(p.toString)
+    }
+
+    def exportBag(dirOut: BagPath, bagStoreBaseDir: Option[BaseDir])(inputLine: String): Try[Unit] = {
+      for {
+        itemId <- ItemId.fromString(inputLine.trim)
+        bagIdDir <- Try { (File(dirOut) / itemId.toString).createDirectory() }
+        (path, store) <- bagStores.copyToDirectory(itemId, bagIdDir.path, fromStore = bagStoreBaseDir)
+        _ = logger.info(s"$inputLine: bag exported to $path from bag store: ${ bagStores.getStoreName(store) } }")
+      } yield ()
+    }.recover {
+      case e: IllegalArgumentException => logger.error(s"$inputLine: IllegalArgumentException ${ e.getMessage }")
+      case _: NoSuchBagException => logger.error(s"$inputLine: bag not found")
+      case t: Throwable => logger.error("Not expected exception",t)
+        Failure(t)
+    }
 
     def copyToDirectory(itemId: ItemId, output: Path, skipCompletion: Boolean = false, fromStore: Option[BaseDir] = None, forceInactive: Boolean = false): Try[(Path, BaseDir)] = {
       fromStore

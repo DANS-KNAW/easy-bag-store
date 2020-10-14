@@ -15,8 +15,9 @@
  */
 package nl.knaw.dans.easy.bagstore.command
 
+import better.files.File
 import nl.knaw.dans.easy.bagstore.service.ServiceWiring
-import nl.knaw.dans.easy.bagstore.{ BaseDir, ItemId }
+import nl.knaw.dans.easy.bagstore.{ BaseDir, ItemId, NoSuchBagException }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
@@ -24,7 +25,7 @@ import scala.annotation.tailrec
 import scala.io.StdIn
 import scala.language.{ postfixOps, reflectiveCalls }
 import scala.util.control.NonFatal
-import scala.util.{ Success, Try }
+import scala.util.{ Failure, Success, Try }
 
 object Command extends App with CommandLineOptionsComponent with ServiceWiring with DebugEnhancedLogging {
 
@@ -46,12 +47,20 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
       BagStore(baseDir)
         .add(cmd.bag(), cmd.uuid.toOption, skipStage = cmd.move())
         .map(bagId => s"Added bag with bag-id: $bagId to bag store: $baseDir")
+    case Some(cmd @ commandLine.export) =>
+      val dirOut = cmd.outputDir()
+      File(cmd.items()).lines
+        .withFilter(!_.trim.isEmpty)
+        .withFilter(!_.trim.startsWith("#"))
+        .map(bagStores.exportBag(dirOut, bagStoreBaseDir))
+        .collectFirst { case Failure(e) => Failure(e) }
+        .getOrElse(Success("No fatal errors, see logging for details"))
     case Some(cmd @ commandLine.get) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
         (path, store) <- bagStores.copyToDirectory(itemId, cmd.outputDir(), cmd.skipCompletion(), bagStoreBaseDir, cmd.forceInactive())
-        storeName = getStoreName(store)
-      } yield s"Retrieved item with item-id: $itemId to ${ path } from bag store: $storeName"
+        storeName = bagStores.getStoreName(store)
+      } yield s"Retrieved item with item-id: $itemId to $path from bag store: $storeName"
     case Some(cmd @ commandLine.stream) =>
       for {
         itemId <- ItemId.fromString(cmd.itemId())
@@ -69,7 +78,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
           val includeInactive = cmd.all() || cmd.inactive()
           bagStores.enumBags(includeActive, includeInactive, bagStoreBaseDir).map(_.foreach(println(_)))
         }
-        .map(_ => "Done enumerating" + bagStoreBaseDir.map(b => s" (limited to BagStore: ${ getStoreName(b) })").getOrElse(""))
+        .map(_ => "Done enumerating" + bagStoreBaseDir.map(b => s" (limited to BagStore: ${ bagStores.getStoreName(b) })").getOrElse(""))
     case Some(cmd @ commandLine.deactivate) =>
       for {
         itemId <- ItemId.fromString(cmd.bagId())
@@ -118,12 +127,6 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     bagStores.storeShortnames
       .map { case (name, base) => s"- $name -> $base" }
       .mkString("\n")
-  }
-
-  private def getStoreName(p: BaseDir): String = {
-    bagStores.storeShortnames
-      .collectFirst { case (name, base) if base == p => name }
-      .getOrElse(p.toString)
   }
 
   @tailrec

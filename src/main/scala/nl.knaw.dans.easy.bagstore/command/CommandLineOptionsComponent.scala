@@ -47,6 +47,7 @@ trait CommandLineOptionsComponent {
          |${ _________ }| list
          |${ _________ }| add [-m,--move] [-u,--uuid <uuid>] <bag>
          |${ _________ }| get [-d,--directory <dir>] [-f, --force-inactive] [-s,--skip-completion] <item-id>
+         |${ _________ }| export [-d,--directory <dir>] [-b, --bagid-list <file>]
          |${ _________ }| stream [-f, --force-inactive] [--format zip|tar] <item-id>
          |${ _________ }| enum [[-a,--all] [-e,--exclude-directories] [-i,--inactive] [-f, --force-inactive] <bag-id>]
          |${ _________ }| locate [-f,--file-data-location] <item-id>
@@ -116,6 +117,17 @@ trait CommandLineOptionsComponent {
       footer(SUBCOMMAND_SEPARATOR)
     }
     addSubcommand(get)
+
+    val export = new Subcommand("export") {
+      descr("Exports bags to directories named with the bag-id of the bag. The bags are always valid, so virtually valid bags in the store are first completed.")
+      val outputDir: ScallopOption[Path] = opt(name = "directory", short = 'd',
+        descr = "directory in which to put the exported bags (default = .)",
+        default = Some(Paths.get(".")))
+      val items: ScallopOption[Path] = opt[Path](name = "bagid-list", short = 'b', required = true,
+        descr = "newline-separated list of ids of the bags to export")
+      footer(SUBCOMMAND_SEPARATOR)
+    }
+    addSubcommand(export)
 
     val stream = new Subcommand("stream") {
       descr("Retrieves an item by streaming it to the standard output")

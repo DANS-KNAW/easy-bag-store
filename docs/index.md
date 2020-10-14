@@ -9,6 +9,7 @@ SYNOPSIS
           list
         | add [-m,--move] [-u,--uuid <uuid>] <bag>
         | get [-d,--directory <dir>] [-f, --force-inactive] [-s,--skip-completion] <item-id>
+        | export [-d,--directory <dir>] [-b, --bagid-list <file>]
         | stream [-f, --force-inactive] [-f,--format zip|tar] <item-id>
         | enum [[-a,--all] [-f, --force-inactive] [-e,--exclude-directories] \ 
             [-i,--inactive] <bag-id>]
