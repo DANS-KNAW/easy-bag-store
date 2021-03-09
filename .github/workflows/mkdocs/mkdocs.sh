@@ -17,7 +17,6 @@
 
 set -e
 
-#REMOTE="https://${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}"
 REMOTE="https://@github.com/${GITHUB_REPOSITORY}"
 git remote set-url origin ${REMOTE}
 
