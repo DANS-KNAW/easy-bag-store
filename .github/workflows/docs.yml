@@ -26,5 +26,5 @@ jobs:
             ${{ runner.os }}-pip-
             ${{ runner.os }}-
       - name: Run script
-        run: bash ./.mkdocs/mkdocs.sh
+        run: bash .github/workflows/mkdocs/mkdocs.sh
         shell: bash
