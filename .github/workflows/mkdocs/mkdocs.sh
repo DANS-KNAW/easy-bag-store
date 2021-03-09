@@ -20,7 +20,7 @@ set -e
 REMOTE="https://${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}"
 git remote set-url origin ${REMOTE}
 
-pip install -r .github/worfklows/mkdocs/requirements.txt
+pip install -r .github/workflows/mkdocs/requirements.txt
 
 echo "START installing DANS mkdocs theme..."
 git clone https://github.com/Dans-labs/mkdocs-dans $HOME/mkdocs-dans
