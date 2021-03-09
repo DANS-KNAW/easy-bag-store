@@ -1,0 +1,725 @@
+
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      
+      
+      
+      
+        <meta name="lang:clipboard.copy" content="Copy to clipboard">
+      
+        <meta name="lang:clipboard.copied" content="Copied to clipboard">
+      
+        <meta name="lang:search.language" content="en">
+      
+        <meta name="lang:search.pipeline.stopwords" content="True">
+      
+        <meta name="lang:search.pipeline.trimmer" content="True">
+      
+        <meta name="lang:search.result.none" content="No matching documents">
+      
+        <meta name="lang:search.result.one" content="1 matching document">
+      
+        <meta name="lang:search.result.other" content="# matching documents">
+      
+        <meta name="lang:search.tokenizer" content="[\s\-]+">
+      
+      <link rel="shortcut icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.0.4, mkdocs-dans-4.4.1">
+    
+    
+      
+        <title>easy-bag-store</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/application.27a306a7.css">
+      
+      
+    
+    
+      <script src="assets/javascripts/modernizr.74668098.js"></script>
+    
+    
+      
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,400i,700|Glegoo:300,400,400i,700|Ubuntu+Mono&display=swap">
+        <style>.body-type,body,input{font-family:"Open Sans",sans-serif}.head-type,h1,h2,h3,h4,h5{font-family:"Glegoo",serif}.code-type,code,kbd,pre{font-family:"Ubuntu Mono",monospace}</style>
+      
+    
+    <link rel="stylesheet" href="assets/fonts/material-icons.css">
+    
+    
+    
+      
+    
+    
+  </head>
+  
+    <body dir="ltr">
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="__github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
+    
+      <a href="#manual" tabindex="1" class="md-skip">
+        Skip to content
+      </a>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href="https://dans.knaw.nl/en" title="Data Archiving and Networked Services (DANS)" class="md-header-nav__button md-logo">
+          <img src="assets/images/DANS.gif" height="50">
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href="." title="easy-bag-store" class="md-header-nav__button md-logo">
+          
+            <i class="md-icon"></i>
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="__drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <div class="md-flex__ellipsis md-header-nav__title head-type" data-md-component="title">
+          
+            <span class="md-header-nav__topic">
+              easy-bag-store
+              
+            </span>
+            <span class="md-header-nav__topic">
+              
+                Manual
+              
+              
+            </span>
+          
+        </div>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
+          
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query" data-md-state="active">
+      <label class="md-icon md-search__icon" for="__search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
+        &#xE5CD;
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
+            
+
+
+  
+
+<a href="https://github.com/DANS-KNAW/easy-bag-store/" title="Go to repository" class="md-source" data-md-source="github">
+  
+    <div class="md-source__icon">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <use xlink:href="#__github" width="24" height="24"></use>
+      </svg>
+    </div>
+  
+  <div class="md-source__repository">
+    DANS-KNAW/easy-bag-store
+  </div>
+</a>
+          </div>
+        </div>
+      
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+        
+      
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title head-type md-nav__title--site" for="__drawer">
+    <a href="." title="easy-bag-store" class="md-nav__button md-logo">
+      
+        <i class="md-icon"></i>
+      
+    </a>
+    easy-bag-store
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+<a href="https://github.com/DANS-KNAW/easy-bag-store/" title="Go to repository" class="md-source" data-md-source="github">
+  
+    <div class="md-source__icon">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <use xlink:href="#__github" width="24" height="24"></use>
+      </svg>
+    </div>
+  
+  <div class="md-source__repository">
+    DANS-KNAW/easy-bag-store
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active head-type" for="__toc">
+        Manual
+      </label>
+    
+    <a href="." title="Manual" class="md-nav__link md-nav__link--active head-type">
+      Manual
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title head-type" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#synopsis" title="SYNOPSIS" class="md-nav__link head-type">
+    SYNOPSIS
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description" title="DESCRIPTION" class="md-nav__link head-type">
+    DESCRIPTION
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command-line-tool" title="Command line tool" class="md-nav__link head-type">
+    Command line tool
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http-service" title="HTTP service" class="md-nav__link head-type">
+    HTTP service
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#arguments" title="ARGUMENTS" class="md-nav__link head-type">
+    ARGUMENTS
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation-and-configuration" title="INSTALLATION AND CONFIGURATION" class="md-nav__link head-type">
+    INSTALLATION AND CONFIGURATION
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-from-source" title="BUILDING FROM SOURCE" class="md-nav__link head-type">
+    BUILDING FROM SOURCE
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="definitions/" title="Definitions" class="md-nav__link head-type">
+      Definitions
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="tutorial/" title="Tutorial" class="md-nav__link head-type">
+      Tutorial
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="to-api/" title="HTTP API" class="md-nav__link head-type">
+      HTTP API
+    </a>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title head-type" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#synopsis" title="SYNOPSIS" class="md-nav__link head-type">
+    SYNOPSIS
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description" title="DESCRIPTION" class="md-nav__link head-type">
+    DESCRIPTION
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command-line-tool" title="Command line tool" class="md-nav__link head-type">
+    Command line tool
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http-service" title="HTTP service" class="md-nav__link head-type">
+    HTTP service
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#arguments" title="ARGUMENTS" class="md-nav__link head-type">
+    ARGUMENTS
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation-and-configuration" title="INSTALLATION AND CONFIGURATION" class="md-nav__link head-type">
+    INSTALLATION AND CONFIGURATION
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-from-source" title="BUILDING FROM SOURCE" class="md-nav__link head-type">
+    BUILDING FROM SOURCE
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/DANS-KNAW/easy-bag-store/edit/master/docs/index.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                
+                
+                <h1 id="manual">MANUAL<a class="headerlink" href="#manual" title="Permanent link">&para;</a></h1>
+<h2 id="synopsis">SYNOPSIS<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code>easy-bag-store [-b,--base-dir &lt;dir&gt;|-s,--store-name &lt;name&gt;]
+    # operations on items in a bag store
+      list
+    | add [-m,--move] [-u,--uuid &lt;uuid&gt;] &lt;bag&gt;
+    | get [-d,--directory &lt;dir&gt;] [-f, --force-inactive] [-s,--skip-completion] &lt;item-id&gt;
+    | export [-d,--directory &lt;dir&gt;] [-b, --bagid-list &lt;file&gt;]
+    | stream [-f, --force-inactive] [-f,--format zip|tar] &lt;item-id&gt;
+    | enum [[-a,--all] [-f, --force-inactive] [-e,--exclude-directories] \ 
+        [-i,--inactive] &lt;bag-id&gt;]
+    | locate [-f,--file-data-location] &lt;item-id&gt;
+    | deactivate &lt;bag-id&gt;
+    | reactivate &lt;bag-id&gt;
+
+    # operations on bags outside a bag store
+      prune &lt;bag-dir&gt; &lt;ref-bag-id&gt;...
+    | complete [-f,--keep-fetchtxt] &lt;bag-dir&gt;
+    | validate &lt;bag-dir&gt;
+
+    # start as HTTP service
+      run-service
+</code></pre></div>
+
+<h2 id="description">DESCRIPTION<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
+<p>A bag store is a way to store and identify data packages following a few very simple rules. See the <a href="definitions/">bag-store</a> page
+for a quasi-formal description and see the <a href="tutorial/">tutorial</a> page for a more informal, hands-on introduction. The <code>easy-bag-store</code> 
+command line tool and HTTP-service facilitate the management of one or more bag stores, but use of these tools is optional; 
+the whole point of the bag store concept is that it should be fairly easy to implement your own tools for working with it.</p>
+<h3 id="command-line-tool">Command line tool<a class="headerlink" href="#command-line-tool" title="Permanent link">&para;</a></h3>
+<p>By using the <code>easy-bag-store</code> command you can manage a bag store from the command line. The sub-commands in above 
+<a href="#synopsis">SYNOPSIS</a> are subdivided into two groups:</p>
+<ul>
+<li>Sub-commands that target items in the bag store. These implement operations that change, check or retrieve items in a bag store.</li>
+<li>Sub-commands that target bags outside a bag store. These are typically bags that are intended to be 
+  added to a bag store later, or that have just been retrieved from one. These sub-commands still work in the context of one or
+  more bag stores, because the bag directories they operate on may contain <a href="definitions/#local-item-uri">local references</a> to bags in those stores.</li>
+</ul>
+<p>Some of the sub-commands require you to specify the store context you want to use. The store to operate on can be specified
+in one of two ways:</p>
+<ul>
+<li>With the <code>--store</code> option. This expects the shortname of a store, which is mapped to a base directory in the <code>stores.properties</code>
+  configuration file.</li>
+<li>By specifying the base directory directly, using the <code>--base-dir</code> option.</li>
+</ul>
+<p>If you call a sub-command that requires a store context, without providing one, you are prompted for a store shortname.</p>
+<h3 id="http-service">HTTP service<a class="headerlink" href="#http-service" title="Permanent link">&para;</a></h3>
+<p><code>easy-bag-store</code> can also be executed as a service that accepts HTTP requests, using the sub-command <code>run-service</code>. <code>initd</code> and
+<code>systemd</code> scripts are provided, to facilitate deployment on a Unix-like system (see <a href="#installation-and-configuration">INSTALLATION AND CONFIGURATION</a>).</p>
+<p>For details about the service API see the <a href="api.html">OpenAPI specification</a>.</p>
+<h2 id="arguments">ARGUMENTS<a class="headerlink" href="#arguments" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code>  -b, --base-dir  &lt;arg&gt;     bag store base-dir to use
+  -s, --store-name  &lt;arg&gt;   Configured store to use
+      --help                Show help message
+      --version             Show version of this program
+
+Subcommand: list - Lists the bag stores for which a shortname has been defined. These are the bag stores
+that are also accessible through the HTTP interface.
+
+      --help   Show help message
+---
+
+Subcommand: add - Adds a bag to the bag-store
+  -m, --move          move (rather than copy) the bag when adding it to the bag
+                      store
+  -u, --uuid  &lt;arg&gt;   UUID to use as bag-id for the bag
+      --help          Show help message
+
+ trailing arguments:
+  bag (required)   the (unserialized) bag to add
+---
+
+Subcommand: get - Retrieves an item by copying it to the specified directory (default: current directory).
+  -d, --directory  &lt;arg&gt;   directory in which to put the item (default = .)
+  -s, --skip-completion    do not complete an incomplete bag
+      --help               Show help message
+
+ trailing arguments:
+  item-id (required)   item-id of the item to copy
+---
+
+Subcommand: stream - Retrieves an item by streaming it to the standard output
+      --format  &lt;arg&gt;   stream item packaged in this format (tar|zip)
+      --help            Show help message
+
+ trailing arguments:
+  item-id (required)   item-id of the item to stream
+---
+
+Subcommand: enum - Enumerates bags or Files
+  -a, --all                   enumerate all bags, including inactive ones
+  -e, --exclude-directories   enumerate only regular files, not directories
+  -d, --inactive              only enumerate inactive bags
+      --help                  Show help message
+
+ trailing arguments:
+  &lt;bagId&gt; (not required)   bag of which to enumerate the Files
+---
+
+Subcommand: locate - Locates the item with &lt;item-id&gt; on the file system
+  -f, --file-data-location   resolve to file-data-location
+      --help                 Show help message
+
+ trailing arguments:
+  &lt;item-id&gt; (required)   the item to locate
+---
+
+Subcommand: deactivate - Marks a bag as inactive
+      --help   Show help message
+
+ trailing arguments:
+  &lt;bag-id&gt; (required)   bag to mark as inactive
+---
+
+Subcommand: reactivate - Reactivates an inactive bag
+      --help   Show help message
+
+ trailing arguments:
+  &lt;bag-id&gt; (required)   inactive bag to re-activate
+---
+
+Subcommand: prune - Removes Files from bag, that are already found in reference bags, replacing them with fetch.txt references
+      --help   Show help message
+
+ trailing arguments:
+  &lt;bag-dir&gt; (required)         bag directory to prune
+  &lt;ref-bag-id&gt;... (required)   One or more bag-ids of bags in the bag store to
+                               check for redundant Files
+---
+
+Subcommand: complete - Resolves fetch.txt references from the bag store and copies them into &lt;bag-dir&gt;
+  -k, --keep-fetchtxt   do not delete fetch.txt, if present
+      --help            Show help message
+
+ trailing arguments:
+  &lt;bag-dir&gt; (required)   bag directory to complete
+---
+
+Subcommand: validate - Checks that &lt;bag-dir&gt; is a virtually-valid bag
+      --help   Show help message
+
+ trailing arguments:
+  &lt;bag-dir&gt; (required)   bag directory to validate
+---
+
+Subcommand: run-service - Starts the EASY Bag Store as a daemon that services HTTP requests
+      --help   Show help message
+---
+</code></pre></div>
+
+<h2 id="installation-and-configuration">INSTALLATION AND CONFIGURATION<a class="headerlink" href="#installation-and-configuration" title="Permanent link">&para;</a></h2>
+<p>Currently this project is build only as an RPM package for RHEL7/CentOS7 and later. The RPM will install the binaries to
+<code>/opt/dans.knaw.nl/easy-bag-store</code>, the configuration files to <code>/etc/opt/dans.knaw.nl/easy-bag-store</code>,
+and will install the service script for <code>systemd</code>. It will also set up a default bag store
+at <code>/srv/dans.kanw.nl/bag-store</code>.</p>
+<h2 id="building-from-source">BUILDING FROM SOURCE<a class="headerlink" href="#building-from-source" title="Permanent link">&para;</a></h2>
+<p>Prerequisites:</p>
+<ul>
+<li>Java 8 or higher</li>
+<li>Maven 3.3.3 or higher</li>
+<li>RPM</li>
+</ul>
+<p>Steps:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>git clone https://github.com/DANS-KNAW/easy-bag-store.git
+<span class="nb">cd</span> easy-bag-store
+mvn install
+</code></pre></div>
+</td></tr></table>
+<p>If the <code>rpm</code> executable is found at <code>/usr/local/bin/rpm</code>, the build profile that includes the RPM 
+packaging will be activated. If <code>rpm</code> is available, but at a different path, then activate it by using
+Maven's <code>-P</code> switch: <code>mvn -Pprm install</code>.</p>
+                
+                  
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+        
+          <a href="definitions/" title="Definitions" class="md-flex md-footer-nav__link md-footer-nav__link--next head-type" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                Definitions
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        <div>
+          
+          powered by
+          <a href="https://www.mkdocs.org">MkDocs</a>
+          and
+          <a href="https://squidfunk.github.io/mkdocs-material/">
+            Material for MkDocs</a>
+          customised by
+          <a href="https://github.com/Dans-labs">Dans-labs</a>
+        </div>
+      </div>
+      <div class="md-footer-dans">
+  <div>DANS is an institute of KNAW and NWO</div>
+  <div>
+    <a href="https://dans.knaw.nl/en" title="Data Archiving and Networked Services (DANS)"><img class="md-footer-dans__img" src="assets/images/DANS.gif" height="50"></a>
+    <a target="_blank" href="https://www.knaw.nl/en"><img src="assets/images/knaw.png" height="50"></a>
+    <a target="_blank" href="https://www.nwo.nl/en"><img src="assets/images/nwo.png" height="50"></a>
+  </div>
+  <div><i>Driven by data</i></div>
+</div>
+      
+  <link rel="stylesheet" href="assets/fonts/font-awesome.css">
+  <style>.md-footer-social__desc{font-family:"Open Sans",sans-serif;-webkit-font-smoothing:auto}</style>
+  <ul class="md-footer-social">
+    
+    <li class="md-footer-social__li">
+      <a href="http://eepurl.com/dvnr8D" class="md-footer-social__link fa fa-envelope-square">
+        <span class="md-footer-social__desc">Newsletter</span>
+      </a>
+    </li>
+    
+    <li class="md-footer-social__li">
+      <a href="https://twitter.com/DANSKNAW" class="md-footer-social__link fa fa-twitter-square">
+        <span class="md-footer-social__desc">Twitter</span>
+      </a>
+    </li>
+    
+    <li class="md-footer-social__li">
+      <a href="https://www.youtube.com/user/DANSDataArchiving" class="md-footer-social__link fa fa-youtube-square">
+        <span class="md-footer-social__desc">YouTube</span>
+      </a>
+    </li>
+    
+    <li class="md-footer-social__li">
+      <a href="https://www.linkedin.com/company/dans" class="md-footer-social__link fa fa-linkedin-square">
+        <span class="md-footer-social__desc">LinkedIn</span>
+      </a>
+    </li>
+    
+
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="assets/javascripts/application.f780ca69.js"></script>
+      
+      <script>app.initialize({version:"1.0.4",url:{base:"."}})</script>
+      
+    
+  </body>
+</html>

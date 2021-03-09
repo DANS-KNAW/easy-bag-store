@@ -1,0 +1,1812 @@
+
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      
+      
+      
+      
+        <meta name="lang:clipboard.copy" content="Copy to clipboard">
+      
+        <meta name="lang:clipboard.copied" content="Copied to clipboard">
+      
+        <meta name="lang:search.language" content="en">
+      
+        <meta name="lang:search.pipeline.stopwords" content="True">
+      
+        <meta name="lang:search.pipeline.trimmer" content="True">
+      
+        <meta name="lang:search.result.none" content="No matching documents">
+      
+        <meta name="lang:search.result.one" content="1 matching document">
+      
+        <meta name="lang:search.result.other" content="# matching documents">
+      
+        <meta name="lang:search.tokenizer" content="[\s\-]+">
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.0.4, mkdocs-dans-4.4.1">
+    
+    
+      
+        <title>Tutorial - easy-bag-store</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/application.27a306a7.css">
+      
+      
+    
+    
+      <script src="../assets/javascripts/modernizr.74668098.js"></script>
+    
+    
+      
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,400i,700|Glegoo:300,400,400i,700|Ubuntu+Mono&display=swap">
+        <style>.body-type,body,input{font-family:"Open Sans",sans-serif}.head-type,h1,h2,h3,h4,h5{font-family:"Glegoo",serif}.code-type,code,kbd,pre{font-family:"Ubuntu Mono",monospace}</style>
+      
+    
+    <link rel="stylesheet" href="../assets/fonts/material-icons.css">
+    
+    
+    
+      
+    
+    
+  </head>
+  
+    <body dir="ltr">
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="__github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
+    
+      <a href="#tutorial" tabindex="1" class="md-skip">
+        Skip to content
+      </a>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href="https://dans.knaw.nl/en" title="Data Archiving and Networked Services (DANS)" class="md-header-nav__button md-logo">
+          <img src="../assets/images/DANS.gif" height="50">
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href=".." title="easy-bag-store" class="md-header-nav__button md-logo">
+          
+            <i class="md-icon"></i>
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="__drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <div class="md-flex__ellipsis md-header-nav__title head-type" data-md-component="title">
+          
+            <span class="md-header-nav__topic">
+              easy-bag-store
+              
+            </span>
+            <span class="md-header-nav__topic">
+              
+                Tutorial
+              
+              
+            </span>
+          
+        </div>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
+          
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query" data-md-state="active">
+      <label class="md-icon md-search__icon" for="__search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
+        &#xE5CD;
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
+            
+
+
+  
+
+<a href="https://github.com/DANS-KNAW/easy-bag-store/" title="Go to repository" class="md-source" data-md-source="github">
+  
+    <div class="md-source__icon">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <use xlink:href="#__github" width="24" height="24"></use>
+      </svg>
+    </div>
+  
+  <div class="md-source__repository">
+    DANS-KNAW/easy-bag-store
+  </div>
+</a>
+          </div>
+        </div>
+      
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+        
+      
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title head-type md-nav__title--site" for="__drawer">
+    <a href=".." title="easy-bag-store" class="md-nav__button md-logo">
+      
+        <i class="md-icon"></i>
+      
+    </a>
+    easy-bag-store
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+<a href="https://github.com/DANS-KNAW/easy-bag-store/" title="Go to repository" class="md-source" data-md-source="github">
+  
+    <div class="md-source__icon">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <use xlink:href="#__github" width="24" height="24"></use>
+      </svg>
+    </div>
+  
+  <div class="md-source__repository">
+    DANS-KNAW/easy-bag-store
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href=".." title="Manual" class="md-nav__link head-type">
+      Manual
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../definitions/" title="Definitions" class="md-nav__link head-type">
+      Definitions
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active head-type" for="__toc">
+        Tutorial
+      </label>
+    
+    <a href="./" title="Tutorial" class="md-nav__link md-nav__link--active head-type">
+      Tutorial
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title head-type" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#motivation" title="Motivation" class="md-nav__link head-type">
+    Motivation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" title="Prerequisites" class="md-nav__link head-type">
+    Prerequisites
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tutorial_1" title="Tutorial" class="md-nav__link head-type">
+    Tutorial
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#starting-up" title="Starting up" class="md-nav__link head-type">
+    Starting up
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-bag" title="Adding a bag" class="md-nav__link head-type">
+    Adding a bag
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enter-bag-store-operations" title="Enter: bag store operations" class="md-nav__link head-type">
+    Enter: bag store operations
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retrieving-an-item" title="Retrieving an item" class="md-nav__link head-type">
+    Retrieving an item
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-bag" title="A bag" class="md-nav__link head-type">
+    A bag
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-single-file" title="A single file" class="md-nav__link head-type">
+    A single file
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-directory" title="A directory" class="md-nav__link head-type">
+    A directory
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-an-updated-bag" title="Adding an updated bag" class="md-nav__link head-type">
+    Adding an updated bag
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#virtually-valid" title="Virtually-valid" class="md-nav__link head-type">
+    Virtually-valid
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pruning" title="Pruning" class="md-nav__link head-type">
+    Pruning
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#round-trip-adding-retrieving-completing" title="Round-trip: adding, retrieving, completing" class="md-nav__link head-type">
+    Round-trip: adding, retrieving, completing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-operations-and-commands" title="Other operations and commands" class="md-nav__link head-type">
+    Other operations and commands
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-http-service" title="Using the HTTP service" class="md-nav__link head-type">
+    Using the HTTP service
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#starting-the-service" title="Starting the service" class="md-nav__link head-type">
+    Starting the service
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getting-the-list-of-bag-stores" title="Getting the list of bag stores" class="md-nav__link head-type">
+    Getting the list of bag stores
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enumerating-bags-and-files" title="Enumerating bags and files" class="md-nav__link head-type">
+    Enumerating bags and files
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retrieving-one-file" title="Retrieving one file" class="md-nav__link head-type">
+    Retrieving one file
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retrieving-a-bag-or-a-directory" title="Retrieving a bag or a directory" class="md-nav__link head-type">
+    Retrieving a bag or a directory
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-an-updated-bag_1" title="Adding an (updated) bag" class="md-nav__link head-type">
+    Adding an (updated) bag
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-extended-motivation-of-bag-store-properties" title="Appendix: extended motivation of bag-store properties" class="md-nav__link head-type">
+    Appendix: extended motivation of bag-store properties
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simple" title="Simple" class="md-nav__link head-type">
+    Simple
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#open-standards" title="Open standards" class="md-nav__link head-type">
+    Open standards
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#software-independent" title="Software independent" class="md-nav__link head-type">
+    Software independent
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authenticity" title="Authenticity" class="md-nav__link head-type">
+    Authenticity
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#efficiency" title="Efficiency" class="md-nav__link head-type">
+    Efficiency
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modular-design" title="Modular design" class="md-nav__link head-type">
+    Modular design
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../to-api/" title="HTTP API" class="md-nav__link head-type">
+      HTTP API
+    </a>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title head-type" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#motivation" title="Motivation" class="md-nav__link head-type">
+    Motivation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" title="Prerequisites" class="md-nav__link head-type">
+    Prerequisites
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tutorial_1" title="Tutorial" class="md-nav__link head-type">
+    Tutorial
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#starting-up" title="Starting up" class="md-nav__link head-type">
+    Starting up
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-bag" title="Adding a bag" class="md-nav__link head-type">
+    Adding a bag
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enter-bag-store-operations" title="Enter: bag store operations" class="md-nav__link head-type">
+    Enter: bag store operations
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retrieving-an-item" title="Retrieving an item" class="md-nav__link head-type">
+    Retrieving an item
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-bag" title="A bag" class="md-nav__link head-type">
+    A bag
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-single-file" title="A single file" class="md-nav__link head-type">
+    A single file
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-directory" title="A directory" class="md-nav__link head-type">
+    A directory
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-an-updated-bag" title="Adding an updated bag" class="md-nav__link head-type">
+    Adding an updated bag
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#virtually-valid" title="Virtually-valid" class="md-nav__link head-type">
+    Virtually-valid
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pruning" title="Pruning" class="md-nav__link head-type">
+    Pruning
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#round-trip-adding-retrieving-completing" title="Round-trip: adding, retrieving, completing" class="md-nav__link head-type">
+    Round-trip: adding, retrieving, completing
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-operations-and-commands" title="Other operations and commands" class="md-nav__link head-type">
+    Other operations and commands
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-http-service" title="Using the HTTP service" class="md-nav__link head-type">
+    Using the HTTP service
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#starting-the-service" title="Starting the service" class="md-nav__link head-type">
+    Starting the service
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getting-the-list-of-bag-stores" title="Getting the list of bag stores" class="md-nav__link head-type">
+    Getting the list of bag stores
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enumerating-bags-and-files" title="Enumerating bags and files" class="md-nav__link head-type">
+    Enumerating bags and files
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retrieving-one-file" title="Retrieving one file" class="md-nav__link head-type">
+    Retrieving one file
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retrieving-a-bag-or-a-directory" title="Retrieving a bag or a directory" class="md-nav__link head-type">
+    Retrieving a bag or a directory
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-an-updated-bag_1" title="Adding an (updated) bag" class="md-nav__link head-type">
+    Adding an (updated) bag
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-extended-motivation-of-bag-store-properties" title="Appendix: extended motivation of bag-store properties" class="md-nav__link head-type">
+    Appendix: extended motivation of bag-store properties
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simple" title="Simple" class="md-nav__link head-type">
+    Simple
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#open-standards" title="Open standards" class="md-nav__link head-type">
+    Open standards
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#software-independent" title="Software independent" class="md-nav__link head-type">
+    Software independent
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authenticity" title="Authenticity" class="md-nav__link head-type">
+    Authenticity
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#efficiency" title="Efficiency" class="md-nav__link head-type">
+    Efficiency
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modular-design" title="Modular design" class="md-nav__link head-type">
+    Modular design
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/DANS-KNAW/easy-bag-store/edit/master/docs/tutorial.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                
+                
+                <h1 id="tutorial">Tutorial<a class="headerlink" href="#tutorial" title="Permanent link">&para;</a></h1>
+<h2 id="motivation">Motivation<a class="headerlink" href="#motivation" title="Permanent link">&para;</a></h2>
+<p>We created the bag store here at <a href="https://dans.knaw.nl/en">DANS</a>, because we needed a way to store our archival packages. Our 
+existing solution was becoming hard to maintain and evolve, so we decided to go back to the drawing board.
+We were looking for something with the following properties:</p>
+<ul>
+<li><strong>Simple</strong> </li>
+<li>Based on open <strong>standards</strong></li>
+<li><strong>Independent</strong> from any particular repository software</li>
+<li>Support archival package <strong>authenticity</strong></li>
+<li>Reasonably storage <strong>efficient</strong></li>
+<li>Extensible, <strong>modular</strong> design </li>
+</ul>
+<p>For our <a href="https://easy.dans.knaw.nl/doc/sword2.html">SWORDv2 deposit service</a> we had already decided on <a href="https://tools.ietf.org/html/draft-kunze-bagit">BagIt</a> as the exchange format. The simplest
+we could come up with, therefore, was just storing these bags in a directory on the file system. This is 
+essentially what a bag store is. However, to support all the above properties we had to put on some 
+additional constraints. As we go along I will introduce these constraints one by one and explain how 
+they support the properties. I shall use the high-lighted words a mnemonics to refer back to the items
+on the list. </p>
+<p><a href="#appendix-extended-motivation-of-bag-store-properties">Appendix</a> tries to give a more elaborate justification for above list of properties.  </p>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<p>You will need the following software. Newer versions will probably also work, but I have tested the tutorial
+with the versions specified here:</p>
+<ul>
+<li><a href="https://releases.hashicorp.com/vagrant/2.2.5/">Vagrant 2.2.5</a></li>
+<li><a href="https://www.virtualbox.org/wiki/Download_Old_Builds_6_0">VirtualBox 6.0.10</a></li>
+</ul>
+<h2 id="tutorial_1">Tutorial<a class="headerlink" href="#tutorial_1" title="Permanent link">&para;</a></h2>
+<h3 id="starting-up">Starting up<a class="headerlink" href="#starting-up" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p>Create a directory for this tutorial somewhere on your filesystem and start the vagrant project. </p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>mkdir easy-bag-store-tutorial
+<span class="nb">cd</span> easy-bag-store-tutorial
+vagrant init https://maven.dans.knaw.nl/releases/dans/knaw/nl/easy-bag-store-tutorial/2019-10-04/easy-bag-store-tutorial-2019-10-04.box
+vagrant up
+</code></pre></div>
+</td></tr></table>
+<p>The first time you run this tutorial, this will have to download the ~800M vagrant box so&mdash;depending on
+   your internet connection&mdash;that may take some minutes. If everything goes well, you will end up with
+   a virtual machine running CentOS 7 Linux and with <code>easy-bag-store</code> installed on it. Don't worry if using
+   Linux in your organization is not an option: the bag store does not <em>require</em> Linux; <code>easy-bag-store</code> 
+   only requires Java 8 or higher, and the bag store itself only requires a hierarchical file system.</p>
+</li>
+<li>
+<p>Now test that it is working; while in the <code>easy-bag-store-tutorial</code> directory type:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>vagrant ssh
+</code></pre></div>
+</td></tr></table>
+<p>This will log you in to the virtual machine, just as if you were logging in to a remote server. 
+   You should now see a prompt like this:</p>
+<div class="codehilite"><pre><span></span><code>Last login: Sun Oct 29 05:36:33 2017 from 10.0.2.2
+[vagrant@tutorial ~]$
+</code></pre></div>
+
+<p>The server's name is <code>test</code> and your user is called <code>vagrant</code>. You are currently in the user's 
+   home directory. If you type <code>pwd</code> (print working directory) and Enter, you will see this:</p>
+<div class="codehilite"><pre><span></span><code>[vagrant@tutorial ~]$ pwd
+/home/vagrant
+[vagrant@tutorial ~]$
+</code></pre></div>
+
+<p>(Don't do this now, but: you can leave the VM by type <code>exit</code> and Enter and you can stop it with 
+   <code>vagrant halt</code> from the <code>easy-bag-store-tutorial</code> directory. To start it again use <code>vagrant up</code>.)     </p>
+</li>
+</ol>
+<h3 id="adding-a-bag">Adding a bag<a class="headerlink" href="#adding-a-bag" title="Permanent link">&para;</a></h3>
+<ol>
+<li>First, we shall need some sample data. To make it a bit easier to use this tutorial we will use 
+   a data package called sample.zip, but by all means experiment with other data.</li>
+<li>
+<p>Download <a href="https://github.com/DANS-KNAW/easy-bag-store/raw/master/docs/res/sample.zip">sample.zip</a> to <code>vagrant</code>'s home directory: </p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>wget https://github.com/DANS-KNAW/easy-bag-store/raw/master/docs/res/sample.zip
+</code></pre></div>
+</td></tr></table>
+<p>This will place the file <code>sample.zip</code> in <code>/home/vagrant</code>. </p>
+</li>
+<li>
+<p>Now, type the following:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>unzip sample.zip
+</code></pre></div>
+</td></tr></table>
+<p>Output:        </p>
+<div class="codehilite"><pre><span></span><code>Archive:  sample.zip
+   creating: sample/
+  inflating: sample/README.TXT
+   creating: sample/img/
+  inflating: sample/img/image01.png
+  inflating: sample/img/image02.jpeg
+  inflating: sample/img/image03.jpeg
+   creating: sample/path/
+   creating: sample/path/with a/
+   creating: sample/path/with a/space/
+ extracting: sample/path/with a/space/file1.txt
+ extracting: sample/path/with a/space/檔案.txt
+</code></pre></div>
+
+<p>The last file has a Chinese file name, which can only be displayed by your terminal if it has fonts that include
+   Chinese characters. Otherwise they will probably show up as questions marks on your screen.           </p>
+</li>
+<li>
+<p>Next, we will turn the newly created <code>sample</code> directory into a bag. For this we will use 
+   <a href="https://github.com/LibraryOfCongress/bagit-java">a tool that was created by Library Of Congress</a>. It is already installed on the VM. Type the following command:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>bagit baginplace sample
+</code></pre></div>
+</td></tr></table>
+<p>The contents of <code>sample</code> has been moved to a subdirectory called <code>data</code>. The base
+   directory will contain files required by the BagIt format. To view the structure of the bag
+   use the <code>tree</code> utility:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>tree sample
+</code></pre></div>
+</td></tr></table>
+<p>Output:</p>
+<div class="codehilite"><pre><span></span><code>sample
+    ├── bag-info.txt
+    ├── bagit.txt
+    ├── data
+    │   ├── img
+    │   │   ├── image01.png
+    │   │   ├── image02.jpeg
+    │   │   └── image03.jpeg
+    │   ├── path
+    │   │   └── with a
+    │   │       └── space
+    │   │           ├── file1.txt
+    │   │           └── \346\252\224\346\241\210.txt
+    │   └── README.TXT
+    ├── manifest-md5.txt
+    └── tagmanifest-md5.txt
+</code></pre></div>
+
+<p>Note that <code>tree</code> apparently does not try to render the Chinese characters, but instead displays the 
+   UTF-8 byte sequences that encode them as octal numbers. </p>
+</li>
+<li>
+<p>At this point, we are ready to add the bag to the store:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>easy-bag-store add -u 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 sample
+</code></pre></div>
+</td></tr></table>
+<p>Output:</p>
+<div class="codehilite"><pre><span></span><code>OK: Added bag with bag-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 to \
+   bag store: /srv/dans.knaw.nl/bag-store
+</code></pre></div>
+
+<p>The bag-id must of course be unique. There are a lot of tools that can generate unique UUIDs for you,
+   for example the <code>uuidgen</code> command. If you leave off the <code>-u</code> option in above call, <code>easy-bag-store</code> will 
+   use the a Java Runtime Library function to generate a UUID. The great thing about UUIDs is 
+   that they can be minted decentrally while still guaranteed to be unique. For the
+   purpose of this tutorial, however, it is easier to reuse the above UUID, as this will allow
+   you to copy-paste the example commands in the next steps without having to edit them.  </p>
+</li>
+<li>
+<p>The default bag store is located in the directory <code>/srv/dans.knaw.nl/bag-store</code>. Check that
+   the bag was copied into the bag store:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>tree /srv/dans.knaw.nl/bag-store
+</code></pre></div>
+</td></tr></table>
+<p>Output:        </p>
+<div class="codehilite"><pre><span></span><code>/srv/dans.knaw.nl/bag-store
+└── 8e
+    └── eaeda43ae74be29f633db09b19db43
+        └── sample
+            ├── bag-info.txt
+            ├── bagit.txt
+            ├── data
+            │   ├── img
+            │   │   ├── image01.png
+            │   │   ├── image02.jpeg
+            │   │   └── image03.jpeg
+            │   ├── path
+            │   │   └── with a
+            │   │       └── space
+            │   │           ├── file1.txt
+            │   │           └── \346\252\224\346\241\210.txt
+            │   └── README.TXT
+            ├── manifest-md5.txt
+            └── tagmanifest-md5.txt
+</code></pre></div>
+
+<p>As you can see, the bag-id is used to form a path from the bag store base directory to a container in which
+   the bag is stored. The slashes must be put in the same places for all the bags in a bag store. So, in this case,
+   the first two characters of the bag-id form the name of the parent directory and the rest (stripped of dashes)
+   the child. Note that this "slashing pattern" strictly speaking doesn't need to be stored anywhere, as it 
+   will be implicitly recorded when adding the first bag. However, the <code>easy-bag-store</code> tool does use a configuration
+   setting for this, as "discovering" this every time would be inefficient (and impossible for the first bag).               </p>
+</li>
+</ol>
+<p>Wasn't that great? And it took only six steps and three pages to explain! At this point you may be thinking you might just 
+as well have copied the bag to the given path yourself, and that is quite true. Actually, that is the point of the bag store:
+to be so simple that manual operation would be feasible. This is how we attain the <strong>independence</strong> from
+any repository software that we talked about earlier.</p>
+<h4 id="enter-bag-store-operations">Enter: bag store operations<a class="headerlink" href="#enter-bag-store-operations" title="Permanent link">&para;</a></h4>
+<p>This is a good moment to introduce the rules of the bag store, because not only do we want it to be <strong>simple</strong> but also to
+support archival package <strong>authenticity</strong>. That is why we limit the allowed operations to the following: </p>
+<ul>
+<li><code>ADD</code> - add a <em>valid</em> bag (actually a "virtually-valid" bag, but we will come to that).</li>
+<li><code>GET</code> - read any part of the bag store.</li>
+<li><code>ENUM</code> - enumerate the bags and/or files in a bag store. </li>
+</ul>
+<p>Note that there is no <del><code>MODIFY</code></del>. By making the bag store "add-only"&mdash;carving the added bags in stone, as 
+it were&mdash;we are making it easier to guarantee the authenticity of the recorded data&mdash;at least, at the bit level. We might
+set the permissions on the archived files to read-only and even flag them as immutable.   </p>
+<p>This <em>does</em> mean, however, that if we should happen to add an invalid bag, we corrupt the bag store. So, 
+while manual operation is feasible in theory, in practise you would probably soon be developing some scripts to:</p>
+<ul>
+<li>verify that the bag you are about to add is (virtually) valid;</li>
+<li>change the file permissions of the contents of the bag to read-only, so as to prevent accidental modification;</li>
+<li>convert the UUID to a path correctly.</li>
+</ul>
+<p>These are precisely the things that <code>easy-bag-store add</code> does for you! To mess up, you now really have to make
+a conscious effort. </p>
+<p>So, let's now move on to an even simpler task: retrieving an item.</p>
+<h3 id="retrieving-an-item">Retrieving an item<a class="headerlink" href="#retrieving-an-item" title="Permanent link">&para;</a></h3>
+<p>To retrieve a bag or any part of it, we could actually simply read it from disk, and that would not violate
+the bag store rules. However, when referring to bag store items (bags, or files and directories in them) it 
+is often not convenient to use local paths. That is why they have <strong>item-id</strong><!---->s.</p>
+<p>The item-id of a bag (= bag-id) is the UUID under which it was stored. The item-id of a file or directory is 
+the bag-id with the file path appended to it. <a href="https://tools.ietf.org/html/rfc3986#section-2.1">Percent-encoding</a> of all characters except alphanumerical and the 
+underscore must be applied to the path segments.</p>
+<p>This way we further support <strong>authenticity</strong> because we have a simple mapping between the exact location where 
+each item is stored and its global identifier. The only extra information we need is the base directory of
+the bag store. Also note that we build on the open <strong>standard</strong><!---->s by using <a href="https://tools.ietf.org/html/rfc3986#section-2.1">the percent encoding scheme from the 
+URI definition (RFC3986)</a> .</p>
+<p>We can use <code>easy-bag-store</code> to find an item for us.</p>
+<h4 id="a-bag">A bag<a class="headerlink" href="#a-bag" title="Permanent link">&para;</a></h4>
+<ol>
+<li>
+<p>Let's first enumerate the bags in the store.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>easy-bag-store enum
+</code></pre></div>
+</td></tr></table>
+<p>Output:        </p>
+<div class="codehilite"><pre><span></span><code>8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+OK: Done enumerating
+</code></pre></div>
+
+<p>In your case the bag-id will of course be different and in the following steps you will need to use the one from your output
+   rather than the one given above.       </p>
+</li>
+<li>
+<p>Copy the bag to some output directory:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>easy-bag-store get 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+</code></pre></div>
+</td></tr></table>
+<p>Output:        </p>
+<div class="codehilite"><pre><span></span><code>FAILED: Output path already exists; not overwriting /home/vagrant/./sample
+</code></pre></div>
+
+</li>
+<li>
+<p>Yes, that is right. By default <code>easy-bag-store get</code> will try to copy the itme to the current directory.
+   However, that would overwrite the existing directory <code>sample</code>, which is probably not what you want.
+   You can specify a different output directory with the <code>-d</code> option:</p>
+<div class="codehilite"><pre><span></span><code>easy-bag-store get -d out 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+</code></pre></div>
+
+<p>The <code>out</code> directory will be created if it doesn't exist yet.</p>
+</li>
+<li>
+<p>Now to check that the bag you retrieved is equal to the one you added:</p>
+<div class="codehilite"><pre><span></span><code>diff -r sample out/sample
+</code></pre></div>
+
+</li>
+</ol>
+<p>No output here is good. It means the directories are the same. </p>
+<h4 id="a-single-file">A single file<a class="headerlink" href="#a-single-file" title="Permanent link">&para;</a></h4>
+<ol>
+<li>
+<p>Let's start by enumerating the files in our bag. This has the benefit that we don't have to 
+   perform the percent-encoding ourselves:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>easy-bag-store enum 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+</code></pre></div>
+</td></tr></table>
+<p>Output:</p>
+<div class="codehilite"><pre><span></span><code>8eeaeda4-3ae7-4be2-9f63-3db09b19db43/
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/bag%2Dinfo%2Etxt
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/bagit%2Etxt
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/README%2ETXT
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image01%2Epng
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02%2Ejpeg
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03%2Ejpeg
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/file1%2Etxt
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/%E6%AA%94%E6%A1%88%2Etxt
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/manifest%2Dmd5%2Etxt
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/tagmanifest%2Dmd5%2Etxt   
+OK: Done enumerating
+</code></pre></div>
+
+<p>Notice that:</p>
+<ul>
+<li>the Chinese characters, spaces, hyphens and full stops appear percent-encoded;</li>
+<li>the bag name ("sample" in this case) is not part of the identifier.      </li>
+</ul>
+</li>
+<li>
+<p>Select one of the item-ids from the output and:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>easy-bag-store get <span class="se">\</span>
+    8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03%2Ejpeg
+</code></pre></div>
+</td></tr></table>
+<p>Output:        </p>
+<div class="codehilite"><pre><span></span><code>OK: Retrieved item with \
+  item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03%2Ejpeg to \
+  ./image03.jpg from bag store: default
+</code></pre></div>
+
+<p>We have now copied the selected file to the current directory, which you can check with a simple
+<code>ls</code> call.</p>
+</li>
+</ol>
+<h4 id="a-directory">A directory<a class="headerlink" href="#a-directory" title="Permanent link">&para;</a></h4>
+<ol>
+<li>
+<p>What if we want to get all the files in a specific directory, say, <code>sample/data/img</code>? Let's try that.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>easy-bag-store get 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img
+</code></pre></div>
+</td></tr></table>
+<p>Output:     </p>
+<div class="codehilite"><pre><span></span><code>FAILED: Source &#39;/srv/dans.knaw.nl/bag-store/8e/eaeda43ae74be29f633db09b19db43/sample/data/img&#39; \
+  exists but is a directory
+</code></pre></div>
+
+<p>Alas, this hasn't been implemented yet! However, there is an alternative way of getting items, which
+   also supports getting directories: <em>archive streams</em>.</p>
+</li>
+<li>
+<p>To get the directory as a <a href="https://en.wikipedia.org/wiki/Tar_(computing)">TAR</a> archive stream, execute the following:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>easy-bag-store stream --format tar <span class="se">\</span>
+  8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img &gt; img.tar
+</code></pre></div>
+</td></tr></table>
+<p>Output:</p>
+<div class="codehilite"><pre><span></span><code>OK: Retrieved item with item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img to stream.
+</code></pre></div>
+
+</li>
+<li>
+<p>This will also work for complete bags and single files. Don't forget to redirect the stream to 
+   a file, or the TAR will be printed to your screen. You might also pipe the stream into the <code>tar</code>
+   extract command:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>easy-bag-store stream --format tar 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img <span class="p">|</span> tar x
+</code></pre></div>
+</td></tr></table>
+<p>Output:</p>
+<div class="codehilite"><pre><span></span><code>OK: Retrieved item with item-id: 8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img to stream.
+</code></pre></div>
+
+<p>To check this:       </p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>ls -l img
+</code></pre></div>
+</td></tr></table>
+<p>Output:        </p>
+<div class="codehilite"><pre><span></span><code>total 3144
+-rw-r--r--. 1 vagrant vagrant  422887 Sep 25  2017 image01.png
+-rw-r--r--. 1 vagrant vagrant   13829 Sep 25  2017 image02.jpeg
+-rw-r--r--. 1 vagrant vagrant 2775738 Sep 25  2017 image03.jpeg
+</code></pre></div>
+
+<p>This will extract the <code>img</code> directory in your current working directory, so effectively does what we
+   where trying to achieve at the beginning of this section.<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup></p>
+</li>
+</ol>
+<h3 id="adding-an-updated-bag">Adding an updated bag<a class="headerlink" href="#adding-an-updated-bag" title="Permanent link">&para;</a></h3>
+<p>Now guarding <strong>authenticity</strong> of your archival packages by disallowing any changes to them may seem
+a bit draconic. In the real world packages do get updated to correct errors, add newly available data, etc.
+How do we deal with that? The answer is: <em>in the simplest possible way; by adding a new version</em>. </p>
+<p>Keeping track of the versions is not built in to the bag store, but here is were <strong>modular</strong> design comes in:
+you can add that capability by simply adding appropriate metadata. That could be something as simple
+as a "version" metadata field to the <code>bag-info.txt</code> file, or something a bit more sophisticated. 
+Our <a href="https://github.com/DANS-KNAW/easy-bag-index">easy-bag-index</a> module records both a timestamp and a pointer to the base revision, the combination 
+of which is always enough to reconstruct the version history.</p>
+<h4 id="virtually-valid">Virtually-valid<a class="headerlink" href="#virtually-valid" title="Permanent link">&para;</a></h4>
+<p>An objection to such an approach could be, that you would be storing a lot of files 
+redundantly. After all, a package update may leave many files unchanged. The bag store supports 
+the <strong>efficient</strong> storage of collections of bags with common files. Instead of requiring 
+every bag to be valid according to <a href="https://tools.ietf.org/html/rfc8493#section-3">the BagIt definition of valid</a>, it must only be "virtually" valid. </p>
+<p>A bag is virtually-valid when:</p>
+<ul>
+<li>it is valid, <em>or</em>...</li>
+<li>it is incomplete, but has a <a href="https://tools.ietf.org/html/rfc8493#section-2.2.3">fetch.txt</a> with references to the missing files.</li>
+</ul>
+<p>The idea is that the only things we need to do to make the bag valid are:</p>
+<ol>
+<li>Download the files referenced from <code>fetch.txt</code> into the bag.</li>
+<li>Remove <code>fetch.txt</code> from the bag.</li>
+<li>Remove any entries for <code>fetch.txt</code> in the tag manifests, if present.</li>
+</ol>
+<p>If we can prove that this would be enough to make the bag valid, then it <em>is</em> virtually valid, 
+in other words: virtually-valid. Note that this term was introduced by us and is nowhere to be 
+found in the BagIt specifications document.</p>
+<p>So, now we can store a new version of an archival package, but for all the files that haven't been
+updated, we include a fetch reference to the already archived file. </p>
+<h4 id="pruning">Pruning<a class="headerlink" href="#pruning" title="Permanent link">&para;</a></h4>
+<p>OK, enough theory, let's try to create an update for our sample bag. The <code>easy-bag-store</code> tool has
+a command to help you strip your updated bag of unnecessary files.</p>
+<ol>
+<li>
+<p>Copy <code>sample</code> to <code>sample-updated</code>:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>cp -r sample sample-updated
+</code></pre></div>
+</td></tr></table>
+</li>
+<li>
+<p>Make a change to one of the data files in <code>sample-updated</code>, let's say the <code>README.TXT</code>:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nb">echo</span> <span class="s2">&quot;...and some more text&quot;</span> &gt;&gt; sample-updated/data/README.TXT
+</code></pre></div>
+</td></tr></table>
+</li>
+<li>
+<p>Let's also remove a file:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>rm sample-updated/data/img/image01.png
+</code></pre></div>
+</td></tr></table>
+</li>
+<li>
+<p>...and add one:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="nb">echo</span> <span class="s2">&quot;New file content&quot;</span> &gt; sample-updated/data/NEW.TXT
+</code></pre></div>
+</td></tr></table>
+</li>
+<li>
+<p>Update the checksums in the new bag, so that it is valid again:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>bagit update sample-updated
+bagit verifyvalid sample-updated
+</code></pre></div>
+</td></tr></table>
+</li>
+<li>
+<p>Make a copy of this updated bag, so that we can compare it later with the one we retrieve from the
+   bag store:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>cp -r sample-updated sample-updated-unpruned
+</code></pre></div>
+</td></tr></table>
+</li>
+<li>
+<p>Now let's strip the updated bag of files that are already archived, and therefore can be included by fetch-reference.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>easy-bag-store prune sample-updated 8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+</code></pre></div>
+</td></tr></table>
+</li>
+</ol>
+<p>Note that we provided as the second argument the bag-id of the bag in which the unchanged files 
+   where located. You may append as many bag-ids as you like. We call these bags "reference bags" or <strong>ref-bag</strong><!---->s.</p>
+<ol>
+<li>
+<p>Now let's have a look at <code>sample-updated</code>:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>tree sample-updated/
+</code></pre></div>
+</td></tr></table>
+<p>Output:        </p>
+<div class="codehilite"><pre><span></span><code>sample-updated/
+    ├── bag-info.txt
+    ├── bagit.txt
+    ├── data
+    │   ├── NEW.TXT
+    │   ├── path
+    │   │   └── with a
+    │   └── README.TXT
+    ├── fetch.txt
+    ├── manifest-md5.txt
+    └── tagmanifest-md5.txt
+</code></pre></div>
+
+</li>
+<li>
+<p>Yes, that's right: <em>all the other data files are gone</em>. Now take a look at the contents of <code>fetch.txt</code>:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>cat sample-updated/fetch.txt
+</code></pre></div>
+</td></tr></table>
+<p>Output:        </p>
+<div class="codehilite"><pre><span></span><code>http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/file1%2Etxt  0  data/path/with a/space/file1.txt
+http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02%2Ejpeg  13829  data/img/image02.jpeg
+http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/%E6%AA%94%E6%A1%88%2Etxt  34  data/path/with a/space/檔案.txt
+http://localhost/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03%2Ejpeg  2775738  data/img/image03.jpeg
+</code></pre></div>
+
+</li>
+</ol>
+<p>All the payload files from <code>sample</code> are included in <code>fetch.txt</code>, except <code>README.TXT</code> (which was
+   changed), <code>NEW.TXT</code> (which was added) and <code>image01.png</code> (which was removed).</p>
+<p>As you may have noticed, the URLs in <code>fetch.txt</code> all start with <code>http://localhost/</code>. These URLs are called
+<strong>local-file-uri</strong><!---->s. They will of course only really work, if&mdash;on this host&mdash;there is a web server to do the
+item-to-location mapping  as described earlier (looking in the correct bag store). We <em>could</em> set that up, but really what
+the local-file-uris are intended to do is point back into the same bag store that the <code>fetch.txt</code> file is stored in.
+That makes resolving the local-file-uri trivial, as leaving off <code>http://localhost/</code> gives you the item-id.</p>
+<p>The local-file-uris must never point to files outside the same bag store that their containing <code>fetch.txt</code> is in, even 
+if we set up the web server to give back the correct file. The reason for this rule is that we want to keep the bag 
+store self-contained. This supports <strong>authenticity</strong> of the archival packages. Being able to find all the files 
+in a packages obviously is a <em>sine qua non</em> for guaranteeing its authenticity. If we cannot even do that, we should 
+give up all claims of being a reliable archive.</p>
+<p>Note, that fetching items with <em>non-local</em> URLs is still sound practice. However, it is essential to consider how the 
+persistence of these URLs is guaranteed (and by whom). It <em>does</em> pose more challenges than keeping all the packages 
+locally in a common base directory.</p>
+<h4 id="round-trip-adding-retrieving-completing">Round-trip: adding, retrieving, completing<a class="headerlink" href="#round-trip-adding-retrieving-completing" title="Permanent link">&para;</a></h4>
+<p>Finally, to come full circle, we will show that the updated bag can be added, retrieved and completed to its
+full content.</p>
+<ol>
+<li>
+<p>Add the updated bag:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>easy-bag-store add -u d01fd36f-181c-419a-90eb-bbc7230d6a86 sample-updated
+</code></pre></div>
+</td></tr></table>
+<p>Again, we are forcing a specific UUID for convenience. </p>
+</li>
+<li>
+<p>Retrieve it again from the bag store:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>easy-bag-store get -d out-updated d01fd36f-181c-419a-90eb-bbc7230d6a86
+</code></pre></div>
+</td></tr></table>
+</li>
+<li>
+<p>Verify that <code>sample-updated-unpruned</code> and <code>out-updated/sample-updated</code> are equal</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>diff -r sample-updated-unpruned out-updated/sample-updated
+</code></pre></div>
+</td></tr></table>
+<p>Again, if you see any output from the last command, that means the directories are different and something 
+   went wrong. </p>
+</li>
+</ol>
+<p>As you can see, the <code>get</code> subcommand will, by default, also complete the bag by fetching any files
+   that were pruned away before. You can also skip the "completing" step with the <code>-s</code> option. You may then use
+   the <code>complete</code> subcommand to complete the bag after retrieval from the bag store.</p>
+<h4 id="other-operations-and-commands">Other operations and commands<a class="headerlink" href="#other-operations-and-commands" title="Permanent link">&para;</a></h4>
+<p>You have now seen the most important bag store operations in action: <code>ADD</code>, <code>ENUM</code> and <code>GET</code>. The command line
+tool implements these as the subcommands <code>add</code>, <code>enum</code> and <code>get</code>/<code>stream</code>, respectively. Furthermore, you have seen the utility subcommands
+<code>prune</code> and <code>complete</code> that help you convert between virtually-valid and valid bags. For a list of all the available subcommands
+type:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>easy-bag-store --help
+</code></pre></div>
+</td></tr></table>
+<p>For more exceptional situations the bag store allows you to <code>DEACTIVATE</code> a bag. This will mark it as hidden, while
+you can still reference files in it. The main use case for this operation is, when you turn out to have created an
+incorrect version history for a sequence of bags, which can of course not be amended by adding more versions. A planned
+tutorial in <a href="https://github.com/DANS-KNAW/easy-bag-index">easy-bag-index</a> will explain this feature. It should probably not be used for anything else.</p>
+<p>Support for an <code>ERASE</code> operation, which will overwrite the contents of a file with a tombstone message is also planned.
+This operation is also <em>not</em> intended for regular use cases, but rather for situations where there is a strict legal
+obligation to destroy data. However, in such cases a filtering migration might be a better option.</p>
+<h3 id="using-the-http-service">Using the HTTP service<a class="headerlink" href="#using-the-http-service" title="Permanent link">&para;</a></h3>
+<p>For simple scenarios, working with the command line interface of the bag store tool is quite sufficient. However, 
+when building a complete archival system on top of the bag store, it may be more convenient to have an HTTP based interface.
+Fortunately, such an interface exists. We will briefly explore it here. </p>
+<p>The examples work with the command line tool <a href="https://curl.haxx.se/">cURL</a>, which is installed on the VM.</p>
+<h4 id="starting-the-service">Starting the service<a class="headerlink" href="#starting-the-service" title="Permanent link">&para;</a></h4>
+<ol>
+<li>
+<p>Start the service:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>sudo systemctl start easy-bag-store
+sudo systemctl status easy-bag-store
+</code></pre></div>
+</td></tr></table>
+<p>Output:</p>
+<div class="codehilite"><pre><span></span><code>● easy-bag-store.service - EASY Bag Store Service
+   Loaded: loaded (/usr/lib/systemd/system/easy-bag-store.service; disabled; vendor preset: disabled)
+  Drop-In: /etc/systemd/system/easy-bag-store.service.d
+           └─override.conf
+   Active: active (running) since Fri 2019-10-04 12:31:17 UTC; 63ms ago
+ Main PID: 19358 (java)
+   CGroup: /system.slice/easy-bag-store.service
+           └─19358 /bin/java -Dlogback.configurationFile=/etc/opt/dans.knaw.nl/easy-bag-store/logback-service.xml -Dapp.home=/opt/dans.knaw.nl/easy-bag-store -Dorg.scala...
+
+Oct 04 12:31:17 tutorial systemd[1]: Started EASY Bag Store Service.
+</code></pre></div>
+
+</li>
+<li>
+<p>Optionally, you can enable the service, so that it will automatically start on system boot:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>sudo systemctl <span class="nb">enable</span> easy-bag-store
+</code></pre></div>
+</td></tr></table>
+</li>
+</ol>
+<h4 id="getting-the-list-of-bag-stores">Getting the list of bag stores<a class="headerlink" href="#getting-the-list-of-bag-stores" title="Permanent link">&para;</a></h4>
+<ol>
+<li>
+<p>Check that the service is running. By default the service listens on port 20110. This can be configured in 
+   <code>/etc/opt/dans.knaw.nl/easy-bag-store/application.properties</code>.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>curl http://localhost:20110/
+</code></pre></div>
+</td></tr></table>
+<p>Output:        </p>
+<div class="codehilite"><pre><span></span><code>EASY Bag Store is running v1.4.1
+.
+Available stores at &lt;http://localhost:20110/stores&gt;
+Bags from all stores at &lt;http://localhost:20110/bags&gt;
+</code></pre></div>
+
+<p>Even though the current API is rather basic, we have tried to adhere to the <a href="https://en.wikipedia.org/wiki/HATEOAS">HATEOAS</a> principle, so you can 
+   follow the links given in the response to navigate the service.</p>
+</li>
+<li>
+<p>Let's see what bag stores are available:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>curl http://localhost:20110/stores
+</code></pre></div>
+</td></tr></table>
+<p>Output:        </p>
+<div class="codehilite"><pre><span></span><code>&lt;http://localhost:20110/stores/default&gt;
+</code></pre></div>
+
+<p>It turns out there is only one store on this VM. It <em>is</em> possible to have multiple stores. One use case for this could
+   be when some of your archival packages contain sensitive data that must be stored with an added level of security.</p>
+</li>
+<li>
+<p>We follow the link to the one store:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>curl http://localhost:20110/stores/default
+</code></pre></div>
+</td></tr></table>
+<p>Output:        </p>
+<div class="codehilite"><pre><span></span><code>Bag store &#39;default&#39;.
+Bags for this store at &lt;http://localhost:20110/stores/default/bags&gt;
+</code></pre></div>
+
+</li>
+</ol>
+<p>We see we can access the bags in this particular bag store. </p>
+<h4 id="enumerating-bags-and-files">Enumerating bags and files<a class="headerlink" href="#enumerating-bags-and-files" title="Permanent link">&para;</a></h4>
+<ol>
+<li>
+<p>Enumerate all the bags in your bag store:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>curl http://localhost:20110/stores/default/bags
+</code></pre></div>
+</td></tr></table>
+<p>You will get the list of all the bags currently in your bag store:</p>
+<div class="codehilite"><pre><span></span><code>8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+d01fd36f-181c-419a-90eb-bbc7230d6a86
+</code></pre></div>
+
+</li>
+<li>
+<p>Pick one UUID and use it in the following:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>curl http://localhost:20110/stores/default/bags/8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+</code></pre></div>
+</td></tr></table>
+<p>Output: </p>
+<div class="codehilite"><pre><span></span><code>Item 8eeaeda4-3ae7-4be2-9f63-3db09b19db43 is not a regular file.
+</code></pre></div>
+
+<p>We need to specify the media type we want to accept. Currently, for a bag you can choose between
+   <code>text/plain</code>, <code>application/zip</code> and <code>application/x-tar</code>. <code>text/plain</code> will give you a listing of the regular
+   files in the bag.</p>
+</li>
+<li>
+<p>Let's get the list of files in the bag:   </p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>curl -H <span class="s1">&#39;Accept: text/plain&#39;</span> <span class="se">\</span>
+  http://localhost:20110/stores/default/bags/8eeaeda4-3ae7-4be2-9f63-3db09b19db43
+</code></pre></div>
+</td></tr></table>
+<p>Output:</p>
+<div class="codehilite"><pre><span></span><code>8eeaeda4-3ae7-4be2-9f63-3db09b19db43/bag%2Dinfo%2Etxt
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/bagit%2Etxt
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/README%2ETXT
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image01%2Epng
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02%2Ejpeg
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image03%2Ejpeg
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/file1%2Etxt
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/path/with%20a/space/%E6%AA%94%E6%A1%88%2Etxt
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/manifest%2Dmd5%2Etxt
+8eeaeda4-3ae7-4be2-9f63-3db09b19db43/tagmanifest%2Dmd5%2Etxt
+</code></pre></div>
+
+</li>
+</ol>
+<h4 id="retrieving-one-file">Retrieving one file<a class="headerlink" href="#retrieving-one-file" title="Permanent link">&para;</a></h4>
+<ol>
+<li>To download one file, just put its item-id in place of the bag-id, and don't specify a media type:<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>wget http://localhost:20110/stores/default/bags/8eeaeda4-3ae7-4be2-9f63-3db09b19db43/data/img/image02%2Ejpeg
+</code></pre></div>
+</td></tr></table>
+<p>I am using <code>wget</code> for a change; this will also work with <code>curl</code>, but don't forget to redirect the output to a file.</p>
+</li>
+</ol>
+<h4 id="retrieving-a-bag-or-a-directory">Retrieving a bag or a directory<a class="headerlink" href="#retrieving-a-bag-or-a-directory" title="Permanent link">&para;</a></h4>
+<ol>
+<li>
+<p>To download the contents of a bag (or a directory) simply use its item-id and specify the desired format in the 
+   <code>Accept</code> header:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>curl -H <span class="s1">&#39;Accept: application/x-tar&#39;</span> <span class="se">\</span>
+  http://localhost:20110/stores/default/bags/8eeaeda4-3ae7-4be2-9f63-3db09b19db43 &gt; mybag.tar
+</code></pre></div>
+</td></tr></table>
+<p>Output:</p>
+<div class="codehilite"><pre><span></span><code>% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 3147k    0 3147k    0     0  44.3M      0 --:--:-- --:--:-- --:--:-- 45.1M
+</code></pre></div>
+
+</li>
+<li>
+<p>Check the contents of <code>mybag.tar</code>, without extracting it:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>tar tf mybag.tar
+</code></pre></div>
+</td></tr></table>
+<p>Output:</p>
+<div class="codehilite"><pre><span></span><code>sample/bag-info.txt
+sample/bagit.txt
+sample/data/README.TXT
+sample/data/img/image01.png
+sample/data/img/image02.jpeg
+sample/data/img/image03.jpeg
+sample/data/path/with a/space/file1.txt
+sample/data/path/with a/space/檔案.txt
+sample/manifest-md5.txt
+sample/tagmanifest-md5.txt
+</code></pre></div>
+
+</li>
+<li>
+<p>We can do the same with the updated bag. As you will remember, it was pruned of files that were already in the 
+   first version. When we download it, it will automatically be completed:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>curl -H <span class="s1">&#39;Accept: application/x-tar&#39;</span> <span class="se">\</span>
+          http://localhost:20110/stores/default/bags/d01fd36f-181c-419a-90eb-bbc7230d6a86 &gt; mybag-updated.tar
+mkdir out-mybag-updated
+tar -C out-mybag-updated -xf mybag-updated.tar
+diff -r out-mybag-updated/sample-updated/ sample-updated-unpruned/
+</code></pre></div>
+</td></tr></table>
+<p>Output:</p>
+<div class="codehilite"><pre><span></span><code>Only in out-mybag-updated/sample-updated/: fetch.txt
+</code></pre></div>
+
+<p>Okay, so there is a small catch here: the <code>fetch.txt</code> file is not removed after completion.<sup id="fnref:2"><a class="footnote-ref" href="#fn:2">2</a></sup> Except for that,
+however, the downloaded bag is the same as the unpruned bag we added earlier.</p>
+</li>
+<li>
+<p>Now we will also get a directory as a zipped file. To show off we will get a directory that is only "virtually"
+   present in the bag store:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>curl -H <span class="s1">&#39;Accept: application/zip&#39;</span> <span class="se">\</span>
+          http://localhost:20110/stores/default/bags/d01fd36f-181c-419a-90eb-bbc7230d6a86/data/img <span class="se">\</span>
+            &gt; mybag-updated-img.zip
+mkdir out-mybag-updated-img
+unzip -d out-mybag-updated-img mybag-updated-img.zip
+diff -r out-mybag-updated-img/img sample-updated-unpruned/data/img
+</code></pre></div>
+</td></tr></table>
+<p>Again, the <code>diff</code> command tells you that your are getting back exactly the same as you put in earlier.
+To prove that these files were included by reference, execute the following command:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>tree /srv/dans.knaw.nl/bag-store/d0/1fd36f181c419a90ebbbc7230d6a86
+</code></pre></div>
+</td></tr></table>
+<p>Output:</p>
+<div class="codehilite"><pre><span></span><code>/srv/dans.knaw.nl/bag-store/d0/1fd36f181c419a90ebbbc7230d6a86
+└── sample-updated
+    ├── bag-info.txt
+    ├── bagit.txt
+    ├── data
+    │   ├── NEW.TXT
+    │   ├── path
+    │   │   └── with\ a
+    │   └── README.TXT
+    ├── fetch.txt
+    ├── manifest-md5.txt
+    └── tagmanifest-md5.txt
+</code></pre></div>
+
+<p>As you can see the directory <code>data/img</code> is not present in this bag. Isn't that magic now?</p>
+</li>
+</ol>
+<h4 id="adding-an-updated-bag_1">Adding an (updated) bag<a class="headerlink" href="#adding-an-updated-bag_1" title="Permanent link">&para;</a></h4>
+<p>As with the command-line-interface, you can also add a bag through the HTTP-interface. We will add an update of the 
+previous bag and also use "auto-pruning" by adding a special file called <code>refbags.txt</code>. (Yes, a bit hacky, I know.)</p>
+<ol>
+<li>
+<p>Let's first create yet another updated version of our previous bag:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code><span class="c1"># Copy the last version</span>
+rm -fr sample-updated-unpruned2* <span class="c1"># Just to be sure </span>
+cp -r sample-updated-unpruned sample-updated-unpruned2
+
+<span class="c1"># Just change the NEXT.txt</span>
+<span class="nb">echo</span> <span class="s2">&quot;...newer is better&quot;</span> &gt;&gt; sample-updated-unpruned2/data/NEW.TXT
+
+<span class="c1"># Make it valid </span>
+bagit update sample-updated-unpruned2/
+
+<span class="c1"># Add a refbags.txt with the UUIDs of the previous to revisions</span>
+<span class="nb">echo</span> <span class="s2">&quot;8eeaeda4-3ae7-4be2-9f63-3db09b19db43&quot;</span> &gt; sample-updated-unpruned2/refbags.txt
+<span class="nb">echo</span> <span class="s2">&quot;d01fd36f-181c-419a-90eb-bbc7230d6a86&quot;</span> &gt;&gt; sample-updated-unpruned2/refbags.txt
+
+<span class="c1"># Zip the bag</span>
+zip -r sample-updated-unpruned2.zip sample-updated-unpruned2
+</code></pre></div>
+</td></tr></table>
+</li>
+<li>
+<p>Now upload it to a new UUID with an HTTP <code>PUT</code>-call. This operation is secured with a username/password.
+   Needless to say you should configure safer values that the defaults (in <code>/etc/opt/dans.knaw.nl/easy-bag-store/application.properties</code>)
+   and also make sure that this configuration file can be read only by the <code>easy-bag-store</code> user.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><code>curl -u easy-bag-store:changeme <span class="se">\</span>
+  -X PUT --data-binary @sample-updated-unpruned2.zip <span class="se">\</span>
+  -H <span class="s1">&#39;Content-Type: application/zip&#39;</span> <span class="se">\</span>
+   http://localhost:20110/stores/default/bags/7f4323ed-ad68-4543-b9ba-c08c5d2e24d9
+</code></pre></div>
+</td></tr></table>
+<p>Notice that we have to mint a UUID prior to the call and that you need to specify the mediatype of the content.</p>
+</li>
+</ol>
+<p>We shall leave verifying that the bag was correctly pruned and getting it back as an exercise to the reader.           </p>
+<h2 id="appendix-extended-motivation-of-bag-store-properties">Appendix: extended motivation of bag-store properties<a class="headerlink" href="#appendix-extended-motivation-of-bag-store-properties" title="Permanent link">&para;</a></h2>
+<p>As stated in the introduction to this tutorial, the motivation for creating the bag-store format and service was derived
+from the wish to get away from the complexity and dependency on specific software that characterized our previous archival system.
+Here I summarize some properties that we are trying to realize in the new archive. </p>
+<h3 id="simple">Simple<a class="headerlink" href="#simple" title="Permanent link">&para;</a></h3>
+<p>First of all: don't create more complexity than inherently present in the problem space. Sofware developers have been known
+to violate this rule&mdash;from time to time. </p>
+<h3 id="open-standards">Open standards<a class="headerlink" href="#open-standards" title="Permanent link">&para;</a></h3>
+<p>Using open standards is one means of outsourcing the complexity of part of your problem space. For example, by using the BagIt-specs
+we avoided the need to design a packaging format for our archival packages. Also, we were able to reuse the <code>fetch.txt</code> file to
+store the package-versions more efficiently.   </p>
+<h3 id="software-independent">Software independent<a class="headerlink" href="#software-independent" title="Permanent link">&para;</a></h3>
+<p>This goes in tandem with simplicity and open standards. If the way your packages are store depends on specific software, you 
+may have to reverse-engineer the packaging format if at some point you need to move away from that software. The simpler the
+packaging format the easier it becomes to build new software that can work with it. If it uses open standards, there will probably
+even be software for it already.</p>
+<h3 id="authenticity">Authenticity<a class="headerlink" href="#authenticity" title="Permanent link">&para;</a></h3>
+<p>A core concern in a digital archive is the authenticity of the data stored. Collecting and storing evidence of the authenticity
+is key. The data and the evidence need to be guarded at the lower levels by fixity metadata. BagIt does a good job here, by defining the standard
+locations to store checksums.</p>
+<h3 id="efficiency">Efficiency<a class="headerlink" href="#efficiency" title="Permanent link">&para;</a></h3>
+<p>Simplicity may easily become very wasteful. That is why (reasonable) efficiency is also on our list.
+Efficiency was a concern to the extent that storing each revision of a deposit as a separate bag would result in many files 
+being stored redundantly. The fetch-references are a simple way to avoid that in most cases. </p>
+<h3 id="modular-design">Modular design<a class="headerlink" href="#modular-design" title="Permanent link">&para;</a></h3>
+<p>Having read up to here, you may be surprised at how little the bag-store is concerned with. It is hardly a complete digital
+preservation system! This is by design. The bag-store is supposed to only concern itself with the packaging information and 
+fixity of the [AIP]. It is the lower layer on which other layers are being built. The <a href="https://github.com/DANS-KNAW/dans-bagit-profile">DANS BagIt Profile</a> adds rules and 
+metadata schemas for bags stored in the DANS Archive. The <a href="https://github.com/DANS-KNAW/easy-bag-index">easy-bag-index</a> services uses that to retrieve the revision history
+of a dataset. In this way we plan to build more services that extend the functionality of the bag-store.   </p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p>There is a slight catch when getting a complete bag this way: if it contains a 
+<code>fetch.txt</code>, this will <em>not</em> be removed, leaving the resulting bag technically incomplete. However, 
+this is easily fixed by removing <code>fetch.txt</code> yourself, along with any entries for it in the tag manifests.&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p>In the BagIt specs prior to V1.0 there was an ambiguity about whether such a bag was to be considered valid.
+It was possible to read <a href="https://tools.ietf.org/html/draft-kunze-bagit-14#section-3">the section on completeness in the BagIt specs</a> as saying that whenever there was a <code>fetch.txt</code> file,
+the bag could not be valid. This has been removed from V1.0, so we'll consider the point as academic.&#160;<a class="footnote-backref" href="#fnref:2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+                
+                  
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href="../definitions/" title="Definitions" class="md-flex md-footer-nav__link md-footer-nav__link--prev head-type" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                Definitions
+              </span>
+            </div>
+          </a>
+        
+        
+          <a href="../to-api/" title="HTTP API" class="md-flex md-footer-nav__link md-footer-nav__link--next head-type" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                HTTP API
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        <div>
+          
+          powered by
+          <a href="https://www.mkdocs.org">MkDocs</a>
+          and
+          <a href="https://squidfunk.github.io/mkdocs-material/">
+            Material for MkDocs</a>
+          customised by
+          <a href="https://github.com/Dans-labs">Dans-labs</a>
+        </div>
+      </div>
+      <div class="md-footer-dans">
+  <div>DANS is an institute of KNAW and NWO</div>
+  <div>
+    <a href="https://dans.knaw.nl/en" title="Data Archiving and Networked Services (DANS)"><img class="md-footer-dans__img" src="../assets/images/DANS.gif" height="50"></a>
+    <a target="_blank" href="https://www.knaw.nl/en"><img src="../assets/images/knaw.png" height="50"></a>
+    <a target="_blank" href="https://www.nwo.nl/en"><img src="../assets/images/nwo.png" height="50"></a>
+  </div>
+  <div><i>Driven by data</i></div>
+</div>
+      
+  <link rel="stylesheet" href="../assets/fonts/font-awesome.css">
+  <style>.md-footer-social__desc{font-family:"Open Sans",sans-serif;-webkit-font-smoothing:auto}</style>
+  <ul class="md-footer-social">
+    
+    <li class="md-footer-social__li">
+      <a href="http://eepurl.com/dvnr8D" class="md-footer-social__link fa fa-envelope-square">
+        <span class="md-footer-social__desc">Newsletter</span>
+      </a>
+    </li>
+    
+    <li class="md-footer-social__li">
+      <a href="https://twitter.com/DANSKNAW" class="md-footer-social__link fa fa-twitter-square">
+        <span class="md-footer-social__desc">Twitter</span>
+      </a>
+    </li>
+    
+    <li class="md-footer-social__li">
+      <a href="https://www.youtube.com/user/DANSDataArchiving" class="md-footer-social__link fa fa-youtube-square">
+        <span class="md-footer-social__desc">YouTube</span>
+      </a>
+    </li>
+    
+    <li class="md-footer-social__li">
+      <a href="https://www.linkedin.com/company/dans" class="md-footer-social__link fa fa-linkedin-square">
+        <span class="md-footer-social__desc">LinkedIn</span>
+      </a>
+    </li>
+    
+
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/application.f780ca69.js"></script>
+      
+      <script>app.initialize({version:"1.0.4",url:{base:".."}})</script>
+      
+    
+  </body>
+</html>

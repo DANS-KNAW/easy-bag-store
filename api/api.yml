@@ -1,0 +1,375 @@
+openapi: 3.0.0
+info:
+  title: Bag Store Service API
+  version: 1.2.4
+  description: |
+    This document specifies the Bag Store Service API. It provides HTTP access to one or more [bag store]s. This API
+    implements the [operations] `ADD`, `ENUM` and `GET`. The operations `DEACTIVATE`, `REACTIVATE`
+    and `ERASE` are *not* provided by this service API, as they should be used with care and only in very exceptional cases,
+    so certainly not in an automated workflow. The command line interface *does* provide these operations (except
+    `ERASE`, which has been defined, but not implemented yet).
+
+    The `ENUM` and `GET` operations are available both per bag store and for all the bag stores together. The
+    `ADD` operation must specify the store to operate on.
+
+    [bag store]: 03_definitions.html#bagstore
+    [operations]: 03_definitions.html#operations
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: 'http://tutorial.dans.knaw.nl'
+    description: Local test VM
+
+paths:
+  /:
+    get:
+      summary: Returns a description of the service.
+      description:
+        This is the starting place for navigating the Bag Store Service. It returns a description of the service.
+      responses:
+        200:
+          description: Description of the service
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: A plain text, human readable description of the service
+                example: |
+                  Bag Store Service is running.
+                  List of stores at <http://test.dans.knaw.nl/stores>
+                  List of bags at <http://test.dans.knaw.nl/bags>
+          links:
+            stores:
+              description: Links to a list of available bag stores.
+              operationId: getStores
+            bags:
+              description: Links to a list of all the bags in the bag store managed by this service.
+              operationId: getBags
+        500:
+          $ref: '#/components/responses/Unavailable'
+
+  /bags:
+    get:
+      summary: Enumerates the bag-ids in all the bag stores.
+      description: |
+        Returns the list of bag-ids in the bag stores managed by this service. The items are returned
+        per store in order of modification date of the bag, in alphabetical order of the store storenames.
+        Since the bag itself is immutable this order should be fairly stable. As the list of bags can
+        potentially become very long, this request also supports two optional parameters to retrieve
+        only part of the list.
+      parameters:
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        200:
+          $ref: '#/components/responses/EnumBagsOk'
+
+  /bags/{uuid}:
+    get:
+      summary: Returns a representation of a bag in any of the bag stores managed by this service.
+      description: |
+        All the managed bag stores are searched for this bag; only if it is not found in any of them, a 404 is returned.
+        Depending on the `Accept` header in the request the response is:
+
+        * the list of item-ids of the items in the bag or the content of those items, or
+        * serialized in an archiving format such as ZIP or TAR.
+      parameters:
+        - $ref: '#/components/parameters/Uuid'
+        - $ref: '#/components/parameters/IncludeDirectories'
+      responses:
+        200:
+          $ref: '#/components/responses/GetBagOk'
+        400:
+          description: Bad request.
+        404:
+          description: The bag could not be found in any of the bag stores managed by this service.
+        410:
+          description: The bag was found, but `INACTIVE`.
+
+  /bags/{uuid}/{path}:
+    get:
+      summary: Returns an item from a bag in any of the bag stores managed by this service.
+      description: |
+        An item is a directory or file in a bag.
+
+         * The item fetched is specified by the path of the requested files within the bag.
+         * The path may consist of more than one component.
+
+        ```
+        example path:
+           for file:      /path/to/file
+           in bag:        40594b6d-8378-4260-b96b-13b57beadf7c/
+           {uuid}/{path}: 40594b6d-8378-4260-b96b-13b57beadf7c/path/to/file
+        ```
+
+        Both directories and regular files can be returned as TAR or ZIP, but only regular
+        files will be returned if the `Accept` header is absent.
+
+      parameters:
+        - $ref: '#/components/parameters/Uuid'
+        - $ref: '#/components/parameters/FilePath'
+      responses:
+        200:
+          $ref: '#/components/responses/GetItemFromBagOk'
+        400:
+          description: Bad request.
+        404:
+          description: The item could not be found.
+        410:
+          description: The bag containing the item is `INACTIVE`.
+
+  /stores:
+    get:
+      operationId: getStores
+      summary: Returns a list of the available bag stores.
+      responses:
+        200:
+          description:
+            A list of stores is returned
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: |
+                  Available stores:
+                  <http://test.dans.knaw.nl/store1>
+                  <http://test.dans.knaw.nl/store2>
+          links:
+            stores:
+              operationId: getStoreInfo
+              parameters:
+                - store
+
+
+
+  /stores/{store}:
+    get:
+      operationId: getStoreInfo
+      summary: Displays information about this bag store.
+      parameters:
+        - $ref: '#/components/parameters/Store'
+      responses:
+        200:
+          description:
+            A list of bags is returned for the given store.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: |
+                  Bag store 'my-store'.
+                  Bags for this store at <http://test.dans.knaw.nl/my-store/bags>
+        400:
+          description: Bad request.
+        404:
+          description: "This store does not exist or is not managed by this service."
+
+  /stores/{store}/bags:
+    get:
+      summary: Enumerates the bag-ids in the specified bag store.
+      description: |
+        The same as the `/bags` operation, but limited to the specified store.
+      parameters:
+        - $ref: '#/components/parameters/Store'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        200:
+          $ref: '#/components/responses/EnumBagsOk'
+
+  /stores/{store}/bags/{uuid}:
+    get:
+      summary: Returns a representation of a bag in the specified bag store.
+      description: |
+        Depending on the `Accept` header in the request the response is:
+
+        * the list of item-ids of the items in the bag or the content of those items, or
+        * serialized in an archiving format such as ZIP or TAR.
+      parameters:
+        - $ref: '#/components/parameters/Uuid'
+        - $ref: '#/components/parameters/Store'
+        - $ref: '#/components/parameters/IncludeDirectories'
+      responses:
+        200:
+          $ref: '#/components/responses/GetBagOk'
+        400:
+          description: Bad request.
+        404:
+          description: The bag could not be found in any of the bag stores managed by this service.
+        409:
+          description: The bag was found, but `INACTIVE`.
+    put:
+      summary: |
+        Adds a bag to the specified bag store. The bag sent by the client MAY contain a file
+        called `refbags.txt` in the base directory of the bag. If that file exists it MUST contain
+        a newline-separated list of UUIDs pointing to existing bags.
+      parameters:
+        - $ref: '#/components/parameters/Store'
+        - $ref: '#/components/parameters/Uuid'
+      requestBody:
+        content:
+          application/zip:
+            schema:
+              description: the bag to add, serialized as ZIP file
+              type: string
+              format: binary
+      responses:
+        201:
+          description: The bag was correctly created.
+        400:
+          description: |
+            The bag was rejected by the bag store. The reason will be included in the response
+            entity. Some possible causes are:
+
+            * The UUID is already assigned to a bag in one of the managed stores.
+            * The UUID was syntactically incorrect.
+            * The bag is not virtually-valid.
+            * The bag contained a `refbags.txt` file but it contained no data, or malformed data or
+              references to non-existent bags.
+        415:
+          description: Unsupported media type
+        503:
+          description: |
+            "The server cannot fulfil the request because of a temporary situation. If possible, the
+            reason will be explained in the response entity. Some possible causes are:
+             * There is not enough disk space to store the bag."
+
+  /stores/{store}/bags/{uuid}/{path}:
+    get:
+      summary: Returns an item from a bag in the specified bag store.
+      description: |
+        An item is a directory or file in a bag.
+
+        * The item fetched is specified by the path of the requested files within the bag.
+        * The path may consist of more than one component.
+
+        ```
+        example path:
+           for file:      /path/to/file
+           in bag:        40594b6d-8378-4260-b96b-13b57beadf7c/
+           {uuid}/{path}: 40594b6d-8378-4260-b96b-13b57beadf7c/path/to/file
+        ```
+
+        Both directories and regular files can be returned as TAR or ZIP, but only regular
+        files will be returned if the `Accept` header is absent.
+
+      parameters:
+        - $ref: '#/components/parameters/Store'
+        - $ref: '#/components/parameters/Uuid'
+        - $ref: '#/components/parameters/FilePath'
+      responses:
+        200:
+          $ref: '#/components/responses/GetItemFromBagOk'
+        400:
+          description: Bad request.
+        404:
+          description: The item could not be found.
+        409:
+          description: The bag containing the item is `INACTIVE`.
+
+components:
+
+  parameters:
+    Offset:
+      in: query
+      name: offset
+      schema:
+        type: integer
+      required: false
+      description: "Skip *offset* bags. (**TODO: implement this**)"
+    Limit:
+      in: query
+      name: limit
+      schema:
+        type: integer
+      required: false
+      description: "Return no more than *limit* bag-ids. (**TODO: implement this**)"
+    IncludeDirectories:
+      in: query
+      name: includeDirectories
+      schema:
+        type: boolean
+      required: false
+      description: |
+        Whether to return directories as items in a text/plain representation. If the `Accept` header
+        of the request is set to anything else than `text/plain`, this parameter is ignored. (**TODO: implement this**)
+    Uuid:
+      in: path
+      name: uuid
+      schema:
+        type: string
+      required: true
+      description: The bag-id of the targeted bag
+    FilePath:
+      in: path
+      name: path
+      schema:
+        type: string
+      required: true
+      description: The the path location of targeted items within a bag.
+    Store:
+      in: path
+      name: store
+      schema:
+        type: string
+      required: true
+      description: the shortname of the store to use
+
+
+  responses:
+    Unavailable:
+      description: Service is unavailable because of an error.
+
+    EnumBagsOk:
+      description: list of bag-ids
+      content:
+        text/plain:
+          schema:
+            description: new-line separated list
+            type: string
+            examples: |
+              2b475349-e138-4406-b715-bc3502872bae
+              3d37bae1-78af-4cc8-ab44-565aa0e228b5
+              13b02c95-b0e8-4718-bd77-5e6f096ccd19
+
+    GetBagOk:
+      description: A file or directory was found and retrieved
+      content:
+        text/plain:
+          schema:
+            description: new-line separated list
+            type: string
+            example:
+              2b475349-e138-4406-b715-bc3502872bae/my/first/file.txt 2b475349-e138-4406-b715-bc3502872bae/my/second/file.txt
+        application/zip:
+          schema:
+            description: the content in ZIP format
+            type: string
+            format: binary
+        application/x-tar:
+          schema:
+            description: the content in TAR format
+            type: string
+            format: binary
+
+    GetItemFromBagOk:
+      description:
+        The bag is returned in the requested format
+      content:
+        application/zip:
+          schema:
+            description: the content in ZIP format
+            type: string
+            format: binary
+        application/x-tar:
+          schema:
+            description: the content in TAR format
+            type: string
+            format: binary
+        "<not set>":
+          schema:
+            description: the content of a file in the format that it is stored in
+            type: string
+            format: binary
