@@ -3,8 +3,6 @@ Tutorial
 
 Motivation
 ----------
-**Another actions test**
-
 We created the bag store here at [DANS], because we needed a way to store our archival packages. Our 
 existing solution was becoming hard to maintain and evolve, so we decided to go back to the drawing board.
 We were looking for something with the following properties:
