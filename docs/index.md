@@ -60,6 +60,8 @@ If you call a sub-command that requires a store context, without providing one, 
 
 For details about the service API see the [OpenAPI specification].
 
+Test
+
 [OpenAPI specification]: ./api.html
 [local references]: definitions.md#local-item-uri
 
