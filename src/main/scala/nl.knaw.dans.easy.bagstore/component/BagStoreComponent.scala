@@ -232,8 +232,6 @@ trait BagStoreComponent {
           _ = debug(s"refbags tempfile: $maybeRefbags")
           valid <- fileSystem.isVirtuallyValid(path).recover { case _: BagReaderException => Left("Could not read bag") }
           _ <- valid.fold(msg => Failure(InvalidBagException(bagId, msg)), _ => Success(()))
-          _ <- maybeRefbags.map(pruneWithReferenceBags(path)).getOrElse(Success(()))
-          _ = debug("bag succesfully pruned")
           container <- fileSystem.toContainer(bagId)
           _ = Files.createDirectories(container)
           _ <- fileSystem.makePathAndParentsInBagStoreGroupWritable(container)
