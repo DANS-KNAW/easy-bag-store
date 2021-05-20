@@ -402,30 +402,6 @@ class StoresServletSpec extends TestSupportFixture
     }
   }
 
-  it should "store and prune multiple revisions of a bagsequence" in {
-    val uuid1 = "11111111-1111-1111-1111-111111111111"
-    val uuid2 = "11111111-1111-1111-1111-111111111112"
-    val uuid3 = "11111111-1111-1111-1111-111111111113"
-
-    putBag(uuid1, testBagUnprunedA)
-    putBag(uuid2, testBagUnprunedB)
-    putBag(uuid3, testBagUnprunedC)
-
-    val pruned = Paths.get("src/test/resources/bags/basic-sequence-pruned")
-
-    pathsEqual(pruned.resolve("a"), store1.resolve("11/111111111111111111111111111111/a")) shouldBe true
-
-    pathsEqual(pruned.resolve("b"), store1.resolve("11/111111111111111111111111111112/b"), "fetch.txt", "tagmanifest-md5.txt") shouldBe true
-    // BagProcessing.complete causes the order in b/tagmanifest-md5.txt to change...
-    Source.fromFile(pruned.resolve("b/tagmanifest-md5.txt").toFile).getLines().toList should
-      contain theSameElementsAs Source.fromFile(store1.resolve("11/111111111111111111111111111112/b/tagmanifest-md5.txt").toFile).getLines().toList
-
-    pathsEqual(pruned.resolve("c"), store1.resolve("11/111111111111111111111111111113/c"), "fetch.txt", "tagmanifest-md5.txt") shouldBe true
-    // BagProcessing.complete causes the order in c/tagmanifest-md5.txt to change...
-    Source.fromFile(pruned.resolve("c/tagmanifest-md5.txt").toFile).getLines().toList should
-      contain theSameElementsAs Source.fromFile(store1.resolve("11/111111111111111111111111111113/c/tagmanifest-md5.txt").toFile).getLines().toList
-  }
-
   it should "make an identity with get/:bagstore/bags/:uuid" in {
     def retrieveBag(uuid: String, bagName: String): Unit = {
       get(s"/store1/bags/$uuid", params = Map.empty, headers = Map("Accept" -> "application/zip")) {
@@ -542,16 +518,6 @@ class StoresServletSpec extends TestSupportFixture
     put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedEmptyRefBag), headers = basicAuthenticationAndZipContentType) {
       status shouldBe 400
       body shouldBe InvalidBagException(bagId, "the bag contains an empty refbags.txt").getMessage
-    }
-  }
-
-  it should "fail when an invalid refbags.txt is provided" in {
-    val content = "invalid content"
-    createZipWithInvalidOrEmptyRefBag(content)
-    val uuid = "11111111-1121-1111-1111-111111111111"
-    put(s"/store1/bags/$uuid", body = Files.readAllBytes(testBagUnprunedEmptyRefBag), headers = basicAuthenticationAndZipContentType) {
-      status shouldBe 400
-      body shouldBe s"String '$content' is not a UUID"
     }
   }
 
