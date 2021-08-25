@@ -17,13 +17,12 @@ package nl.knaw.dans.easy.bagstore.component
 
 import java.io.{ InputStream, OutputStream }
 import java.nio.file.{ Files, Path }
-import java.util.UUID
+import java.util.{ Date, UUID }
+import java.text.SimpleDateFormat
 
-import better.files.Dsl.SymbolicOperations
 import better.files.File
 import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
 import nl.knaw.dans.easy.bagstore._
-import nl.knaw.dans.easy.bagstore.command.Command.{ BagPath, bagStoreBaseDir, bagStores, logger }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
@@ -35,6 +34,7 @@ trait BagStoresComponent {
   this: FileSystemComponent with BagProcessingComponent with BagStoreComponent with DebugEnhancedLogging =>
 
   val bagStores: BagStores
+  val simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
 
   trait BagStores {
     def storeShortnames: Map[String, BaseDir]
@@ -89,12 +89,13 @@ trait BagStoresComponent {
         }
     }
 
-    def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false, fromStore: Option[BaseDir] = None): Try[Seq[BagId]] = {
+    def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false, fromStore: Option[BaseDir] = None, fromDate: Option[Date] = Option(simpleDateFormat.parse("1980-01-01T00:00:00"))): Try[Seq[BagId]] = {
+      val date = fromDate.getOrElse(simpleDateFormat.parse("1980-01-01T00:00:00"))
       fromStore
-        .map(BagStore(_).enumBags(includeActive, includeInactive))
+        .map(BagStore(_).enumBags(includeActive, includeInactive, date))
         .getOrElse {
           storeShortnames.values.toStream
-            .map(BagStore(_).enumBags(includeActive, includeInactive))
+            .map(BagStore(_).enumBags(includeActive, includeInactive, date))
             .collectResults
             .map(_.reduceOption(_ ++ _).getOrElse(Seq.empty))
         }

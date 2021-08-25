@@ -20,7 +20,7 @@ import java.util.UUID
 
 import nl.knaw.dans.lib.string._
 import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
-import nl.knaw.dans.easy.bagstore.{ ArchiveStreamType, ConfigurationComponent }
+import nl.knaw.dans.easy.bagstore.{ ArchiveStreamType, ConfigurationComponent, FromDateException }
 import org.rogach.scallop.{ ScallopConf, ScallopOption, Subcommand, ValueConverter, singleArgConverter, stringConverter }
 
 trait CommandLineOptionsComponent {
@@ -49,7 +49,7 @@ trait CommandLineOptionsComponent {
          |${ _________ }| get [-d,--directory <dir>] [-f, --force-inactive] [-s,--skip-completion] <item-id>
          |${ _________ }| export [-d,--directory <dir>] [-b, --bagid-list <file>]
          |${ _________ }| stream [-f, --force-inactive] [--format zip|tar] <item-id>
-         |${ _________ }| enum [[-a,--all] [-e,--exclude-directories] [-i,--inactive] [-f, --force-inactive] <bag-id>]
+         |${ _________ }| enum [[-a,--all] [-e,--exclude-directories] [-i,--inactive] [-f, --force-inactive] <bag-id>] [-d, --from-date]
          |${ _________ }| locate [-f,--file-data-location] <item-id>
          |${ _________ }| deactivate <bag-id>
          |${ _________ }| reactivate <bag-id>
@@ -151,6 +151,8 @@ trait CommandLineOptionsComponent {
         descr = "enumerate only regular files, not directories")
       val forceInactive: ScallopOption[Boolean] = opt(name = "force-inactive", short = 'f',
         descr = "force retrieval of an inactive item (by default inactive items are not retrieved)")
+      val fromDate: ScallopOption[String] = opt(name = "from-date", short = 'd',
+        descr = "Enumerate only bags that are created after this time. Format is yyyy-MM-ddTHH:mm:ss (e.g. 2021-08-25T10:25:10")
       val bagId: ScallopOption[String] = trailArg[String](name = "<bagId>",
         descr = "bag of which to enumerate the Files",
         required = false)

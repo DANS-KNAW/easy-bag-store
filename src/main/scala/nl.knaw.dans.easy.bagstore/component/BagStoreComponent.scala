@@ -17,8 +17,7 @@ package nl.knaw.dans.easy.bagstore.component
 
 import java.io.OutputStream
 import java.nio.file.{ Files, Path, Paths }
-import java.util.UUID
-
+import java.util.{ Date, UUID }
 import nl.knaw.dans.easy.bagstore.ArchiveStreamType.ArchiveStreamType
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error._
@@ -37,10 +36,10 @@ trait BagStoreComponent {
 
     implicit val baseDir: BaseDir
 
-    def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false): Try[Seq[BagId]] = Try {
+    def enumBags(includeActive: Boolean = true, includeInactive: Boolean = false, date: Date): Try[Seq[BagId]] = Try {
       trace(includeActive, includeInactive)
 
-      managed(fileSystem.walkStore)
+      managed(fileSystem.walkStore(date))
         .acquireAndGet(_.iterator().asScala.toStream
           // TODO: is there a better way to fail fast than using .get?
           .map(p => fileSystem.fromLocation(p).flatMap(_.toBagId).get)

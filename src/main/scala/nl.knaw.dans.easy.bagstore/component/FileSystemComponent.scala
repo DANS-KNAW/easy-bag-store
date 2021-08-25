@@ -19,7 +19,7 @@ import java.net.URI
 import java.nio.file._
 import java.nio.file.attribute.{ BasicFileAttributes, PosixFilePermission }
 import java.util.stream.{ Stream => JStream }
-import java.util.{ UUID, Set => JSet }
+import java.util.{ Date, UUID, Set => JSet }
 
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error._
@@ -49,9 +49,10 @@ trait FileSystemComponent extends DebugEnhancedLogging {
     /**
      * @return Lazily populated JStream with bags in this base directory
      */
-    def walkStore(implicit baseDir: BaseDir): JStream[BagPath] = {
+    def walkStore(date: Date)(implicit baseDir: BaseDir): JStream[BagPath] = {
       Files.walk(baseDir, uuidPathComponentSizes.size, FileVisitOption.FOLLOW_LINKS)
         .filter(baseDir.relativize(_).getNameCount == uuidPathComponentSizes.size)
+        .filter(Files.getLastModifiedTime(_).toMillis > date.getTime)
     }
 
     def fromLocation(path: Path)(implicit baseDir: BaseDir): Try[ItemId] = {
