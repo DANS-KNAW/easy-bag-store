@@ -14,6 +14,8 @@ BCC=$6
 TMPDIR=/tmp
 DATE=$(date +%Y-%m-%d)
 REPORT=$TMPDIR/$BAGSTORE-dois-$DATE.csv
+MINDEPTH=3
+MAXDEPTH=5
 
 
 if [ "$FROM" == "" ]; then
@@ -43,7 +45,7 @@ exit_if_failed() {
 }
 
 echo -n "Creating list of DOIs in bag-store $BAGSTORE..."
-find $BAGSTORES_BASEDIR/$BAGSTORE/ -mindepth 3 -maxdepth 5 -name 'dataset.xml' | xargs cat | grep 'id-type:DOI' | sed -r 's/^.*>(10\.[^<]+)<.*$/\1/' > $REPORT
+find $BAGSTORES_BASEDIR/$BAGSTORE/ -mindepth $MINDEPTH -maxdepth $MAXDEPTH -name 'dataset.xml' | xargs cat | grep 'xsi:type="id-type:DOI"' | sed -r 's/^.*>(10\.[^<]+)<.*$/\1/' > $REPORT
 exit_if_failed "DOI list creation failed"
 
 echo -n "Compressing report..."
