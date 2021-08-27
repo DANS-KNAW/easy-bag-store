@@ -43,8 +43,11 @@ exit_if_failed() {
 }
 
 echo -n "Creating list of DOIs in bag-store $BAGSTORE..."
-find $BAGSTORES_BASEDIR/$BAGSTORE/ -name 'dataset.xml' | xargs cat | grep 'id-type:DOI' | sed -r 's/^.*>(.*)<.*$/\1/' > $REPORT
+find $BAGSTORES_BASEDIR/$BAGSTORE/ -mindepth 3 -maxdepth 5 -name 'dataset.xml' | xargs cat | grep 'id-type:DOI' | sed -r 's/^.*>(10\.[^<]+)<.*$/\1/' > $REPORT
 exit_if_failed "DOI list creation failed"
+
+echo -n "Compressing report..."
+zip ${REPORT}.zip $REPORT
 
 echo -n "Getting total disk usage of bag-store $BAGSTORE..."
 DISK_USAGE=$(du -cbsh $BAGSTORES_BASEDIR/$BAGSTORE)
@@ -52,5 +55,5 @@ exit_if_failed "disk space usage report failed"
 
 echo -n "Sending e-mail..."
 echo -e "bag-store: $BAGSTORE\ndisk usage: $DISK_USAGE\nDOI list: see attached file" | \
-mail -s "$DARK_HOST Report: status of bag-store: $BAGSTORE" -a $REPORT $BCC_EMAILS $FROM_EMAIL $TO_EMAILS
+mail -s "$DARK_HOST Report: status of bag-store: $BAGSTORE" -a ${REPORT}.zip $BCC_EMAILS $FROM_EMAIL $TO_EMAILS
 exit_if_failed "sending of e-mail failed"
