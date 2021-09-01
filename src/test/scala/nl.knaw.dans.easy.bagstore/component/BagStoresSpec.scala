@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagstore.component
 
 import java.io.ByteArrayOutputStream
 import java.nio.file.{ Files, Paths }
-import java.util.UUID
+import java.text.SimpleDateFormat
 
 import better.files.File
 import nl.knaw.dans.easy.bagstore._
@@ -144,6 +144,18 @@ class BagStoresSpec extends TestSupportFixture
         inside(bagStore1.add(testBagUnprunedC)) { case Success(cis) =>
           inside(bagStores.enumBags().map(_.toList)) {
             case Success(bagIds) => bagIds should (have size 3 and contain only(ais, bis, cis))
+          }
+        }
+      }
+    }
+  }
+
+  it should "return no BagIds when the from-date is after the creation time of these bags" in {
+    inside(bagStore1.add(testBagUnprunedA)) { case Success(ais) =>
+      inside(bagStore1.add(testBagUnprunedB)) { case Success(bis) =>
+        inside(bagStore1.add(testBagUnprunedC)) { case Success(cis) =>
+          inside(bagStores.enumBags(true, false, None, Option(new SimpleDateFormat("yyyy-MM-dd").parse("2025-12-31"))).map(_.toList)) {
+            case Success(bagIds) => bagIds should (have size 0)
           }
         }
       }

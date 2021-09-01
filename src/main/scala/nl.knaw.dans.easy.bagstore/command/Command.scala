@@ -17,10 +17,13 @@ package nl.knaw.dans.easy.bagstore.command
 
 import better.files.File
 import nl.knaw.dans.easy.bagstore.service.ServiceWiring
-import nl.knaw.dans.easy.bagstore.{ BaseDir, ItemId, NoSuchBagException }
+import nl.knaw.dans.easy.bagstore.{ BaseDir, FromDateException, ItemId }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.rogach.scallop.ScallopOption
 
+import java.text.ParseException
+import java.util.Date
 import scala.annotation.tailrec
 import scala.io.StdIn
 import scala.language.{ postfixOps, reflectiveCalls }
@@ -76,7 +79,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
         .getOrElse {
           val includeActive = cmd.all() || !cmd.inactive()
           val includeInactive = cmd.all() || cmd.inactive()
-          bagStores.enumBags(includeActive, includeInactive, bagStoreBaseDir).map(_.foreach(println(_)))
+          bagStores.enumBags(includeActive, includeInactive, bagStoreBaseDir, getDate(cmd.fromDate)).map(_.foreach(println(_)))
         }
         .map(_ => "Done enumerating" + bagStoreBaseDir.map(b => s" (limited to BagStore: ${ bagStores.getStoreName(b) })").getOrElse(""))
     case Some(cmd @ commandLine.deactivate) =>
@@ -122,6 +125,16 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     .doIfFailure { case NonFatal(e) => Console.err.println(s"FAILED: ${ e.getMessage }") }
 
   bagFacade.stop().unsafeGetOrThrow
+
+
+  private def getDate(fromDate: ScallopOption[String]): Option[Date] = {
+    try {
+      simpleDateFormat.setLenient(false)
+      fromDate.map(date => simpleDateFormat.parse(date)).toOption
+    } catch {
+      case _: ParseException => throw FromDateException(fromDate.getOrElse(""))
+    }
+  }
 
   private def listStores: String = {
     bagStores.storeShortnames

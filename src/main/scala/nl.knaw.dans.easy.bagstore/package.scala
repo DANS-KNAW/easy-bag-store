@@ -53,6 +53,7 @@ package object bagstore {
   case class InvalidBagException(bagId: BagId, msg: String) extends Exception(s"Bag $bagId is not a valid bag: $msg")
   case class NoRegularFileException(itemId: ItemId) extends Exception(s"Item $itemId is not a regular file.")
   case class UnsupportedMediaTypeException(givenType: String, acceptedType: String) extends Exception(s"media type $givenType is not supported by this API. Supported types are '$acceptedType'")
+  case class FromDateException(date: String) extends Exception(s"from-date $date is not a valid date, the correct format is yyyy-MM-ddTHH:mm:ss (e.g. 2021-08-25T10:25:10)")
 
   type BaseDir = Path
 
