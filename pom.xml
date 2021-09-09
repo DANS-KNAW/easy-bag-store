@@ -26,7 +26,7 @@
     <groupId>nl.knaw.dans.easy</groupId>
     <artifactId>easy-bag-store</artifactId>
     <packaging>jar</packaging>
-    <version>1.6.4-SNAPSHOT</version>
+    <version>1.7.0</version>
     <name>EASY Bag Store</name>
     <url>https://github.com/DANS-KNAW/easy-bag-store</url>
     <description>Manage one or more BagStores</description>
@@ -36,7 +36,7 @@
     </properties>
     <scm>
         <developerConnection>scm:git:https://github.com/DANS-KNAW/${project.artifactId}</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v1.7.0</tag>
     </scm>
     <dependencies>
         <dependency>
