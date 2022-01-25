@@ -12,8 +12,8 @@ Fixes EASY-
 * 
 * [ ] manual check of CLI in index.md (the usual ReadmeSpec is not figured out for the cake pattern)
 
-    mvn clean install -DskipTests
-    run.sh --help > data/help.txt`
+      mvn clean install -DskipTests
+      run.sh --help > data/help.txt`
 
   compare `data/help.txt` with `docs/index.md`
 
