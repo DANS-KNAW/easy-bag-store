@@ -100,8 +100,8 @@ ARGUMENTS
     
     Subcommand: export - Exports bags to directories named with the bag-id of the bag. The bags are always valid, so virtually valid bags in the store are first completed.
       -b, --bagid-list  <arg>   newline-separated list of ids of the bags to export
-      -d, --directory  <arg>    directory in which to put the exported bags
-                                (default = .)
+      -d, --directory  <arg>    existing empty directory in which to put the
+                                exported bags (default = .)
       -f, --force-inactive      force retrieval of an inactive item (by default
                                 inactive items are not retrieved)
       -h, --help                Show help message
@@ -120,8 +120,9 @@ ARGUMENTS
     Subcommand: enum - Enumerates bags or Files
       -a, --all                   enumerate all bags, including inactive ones
       -e, --exclude-directories   enumerate only regular files, not directories
-      -f, --force-inactive        force retrieval of an inactive item (by default
-                                  inactive items are not retrieved)
+      -f, --force-inactive        force enumeration of files of an inactive bag (by
+                                  default the files of an inactive bag are not
+                                  enumerated)
       -d, --from-date  <arg>      Enumerate only bags that are created after this
                                   time. Format is yyyy-MM-ddTHH:mm:ss (e.g.
                                   2021-08-25T10:25:10)
