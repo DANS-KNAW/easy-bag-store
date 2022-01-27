@@ -122,7 +122,7 @@ trait CommandLineOptionsComponent {
       descr("Exports bags to directories named with the bag-id of the bag. The bags are always valid, so virtually valid bags in the store are first completed.")
       val forceInactive: ScallopOption[Boolean] = opt(name = "force-inactive", short = 'f', descr = forceInactiveDescription)
       val outputDir: ScallopOption[Path] = opt(name = "directory", short = 'd',
-        descr = "directory in which to put the exported bags",
+        descr = "existing empty directory in which to put the exported bags",
         default = Some(Paths.get(".")))
       val items: ScallopOption[Path] = opt[Path](name = "bagid-list", short = 'b', required = true,
         descr = "newline-separated list of ids of the bags to export")
@@ -149,7 +149,8 @@ trait CommandLineOptionsComponent {
         descr = "enumerate all bags, including inactive ones")
       val excludeDirectories: ScallopOption[Boolean] = opt(name = "exclude-directories", short = 'e',
         descr = "enumerate only regular files, not directories")
-      val forceInactive: ScallopOption[Boolean] = opt(name = "force-inactive", short = 'f', descr = forceInactiveDescription)
+      val forceInactive: ScallopOption[Boolean] = opt(name = "force-inactive", short = 'f',
+        descr = "force enumeration of files of an inactive bag (by default the files of an inactive bag are not enumerated)")
       val fromDate: ScallopOption[String] = opt(name = "from-date", short = 'd',
         descr = "Enumerate only bags that are created after this time. Format is yyyy-MM-ddTHH:mm:ss (e.g. 2021-08-25T10:25:10)")
       val bagId: ScallopOption[String] = trailArg[String](name = "<bagId>",
