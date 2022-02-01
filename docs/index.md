@@ -9,9 +9,9 @@ SYNOPSIS
           list
         | add [-m,--move] [-u,--uuid <uuid>] <bag>
         | get [-d,--directory <dir>] [-f, --force-inactive] [-s,--skip-completion] <item-id>
-        | export [-d,--directory <dir>] [-b, --bagid-list <file>]
-        | stream [-f, --force-inactive] [-f,--format zip|tar] <item-id>
-        | enum [[-a,--all] [-f, --force-inactive] [-e,--exclude-directories] \ 
+        | export [-f, --force-inactive] [-d,--directory <dir>] [-b, --bagid-list <file>]
+        | stream [-f, --force-inactive] [--format zip|tar] <item-id>
+        | enum [[-a,--all] [-f, --force-inactive] [-e,--exclude-directories] [-d, --from-date] \ 
             [-i,--inactive] <bag-id>]
         | locate [-f,--file-data-location] <item-id>
         | deactivate <bag-id>
@@ -68,20 +68,20 @@ ARGUMENTS
 
       -b, --base-dir  <arg>     bag store base-dir to use
       -s, --store-name  <arg>   Configured store to use
-          --help                Show help message
-          --version             Show version of this program
+      -h, --help                Show help message
+      -v, --version             Show version of this program
     
     Subcommand: list - Lists the bag stores for which a shortname has been defined. These are the bag stores
     that are also accessible through the HTTP interface.
     
-          --help   Show help message
+      -h, --help   Show help message
     ---
     
     Subcommand: add - Adds a bag to the bag-store
       -m, --move          move (rather than copy) the bag when adding it to the bag
                           store
       -u, --uuid  <arg>   UUID to use as bag-id for the bag
-          --help          Show help message
+      -h, --help          Show help message
     
      trailing arguments:
       bag (required)   the (unserialized) bag to add
@@ -89,16 +89,29 @@ ARGUMENTS
     
     Subcommand: get - Retrieves an item by copying it to the specified directory (default: current directory).
       -d, --directory  <arg>   directory in which to put the item (default = .)
+      -f, --force-inactive     force retrieval of an inactive item (by default
+                               inactive items are not retrieved)
       -s, --skip-completion    do not complete an incomplete bag
-          --help               Show help message
+      -h, --help               Show help message
     
      trailing arguments:
       item-id (required)   item-id of the item to copy
     ---
     
+    Subcommand: export - Exports bags to directories named with the bag-id of the bag. The bags are always valid, so virtually valid bags in the store are first completed.
+      -b, --bagid-list  <arg>   newline-separated list of ids of the bags to export
+      -d, --directory  <arg>    existing empty directory in which to put the
+                                exported bags (default = .)
+      -f, --force-inactive      force retrieval of an inactive item (by default
+                                inactive items are not retrieved)
+      -h, --help                Show help message
+    ---
+    
     Subcommand: stream - Retrieves an item by streaming it to the standard output
-          --format  <arg>   stream item packaged in this format (tar|zip)
-          --help            Show help message
+      -f, --force-inactive   force retrieval of an inactive item (by default
+                             inactive items are not retrieved)
+      --format  <arg>        stream item packaged in this format (tar|zip)
+      -h, --help             Show help message
     
      trailing arguments:
       item-id (required)   item-id of the item to stream
@@ -107,8 +120,14 @@ ARGUMENTS
     Subcommand: enum - Enumerates bags or Files
       -a, --all                   enumerate all bags, including inactive ones
       -e, --exclude-directories   enumerate only regular files, not directories
-      -d, --inactive              only enumerate inactive bags
-          --help                  Show help message
+      -f, --force-inactive        force enumeration of files of an inactive bag (by
+                                  default the files of an inactive bag are not
+                                  enumerated)
+      -d, --from-date  <arg>      Enumerate only bags that are created after this
+                                  time. Format is yyyy-MM-ddTHH:mm:ss (e.g.
+                                  2021-08-25T10:25:10)
+      -i, --inactive              only enumerate inactive bags
+      -h, --help                  Show help message
     
      trailing arguments:
       <bagId> (not required)   bag of which to enumerate the Files
@@ -116,28 +135,30 @@ ARGUMENTS
     
     Subcommand: locate - Locates the item with <item-id> on the file system
       -f, --file-data-location   resolve to file-data-location
-          --help                 Show help message
+      -h, --help                 Show help message
     
      trailing arguments:
       <item-id> (required)   the item to locate
     ---
     
     Subcommand: deactivate - Marks a bag as inactive
-          --help   Show help message
+      -h, --help   Show help message
     
      trailing arguments:
       <bag-id> (required)   bag to mark as inactive
     ---
     
     Subcommand: reactivate - Reactivates an inactive bag
-          --help   Show help message
+      -h, --help   Show help message
     
      trailing arguments:
       <bag-id> (required)   inactive bag to re-activate
     ---
     
-    Subcommand: prune - Removes Files from bag, that are already found in reference bags, replacing them with fetch.txt references
-          --help   Show help message
+    Subcommand: prune - Removes Files from bag, that are already found in reference bags, replacing them with
+      fetch.txt references.
+    
+      -h, --help   Show help message
     
      trailing arguments:
       <bag-dir> (required)         bag directory to prune
@@ -146,22 +167,22 @@ ARGUMENTS
     ---
     
     Subcommand: complete - Resolves fetch.txt references from the bag store and copies them into <bag-dir>
-      -k, --keep-fetchtxt   do not delete fetch.txt, if present
-          --help            Show help message
+      -f, --keep-fetchtxt   do not delete fetch.txt, if present
+      -h, --help            Show help message
     
      trailing arguments:
       <bag-dir> (required)   bag directory to complete
     ---
     
     Subcommand: validate - Checks that <bag-dir> is a virtually-valid bag
-          --help   Show help message
+      -h, --help   Show help message
     
      trailing arguments:
       <bag-dir> (required)   bag directory to validate
     ---
-    
+      
     Subcommand: run-service - Starts the EASY Bag Store as a daemon that services HTTP requests
-          --help   Show help message
+      -h, --help   Show help message
     ---
 
 
