@@ -16,7 +16,6 @@
 package nl.knaw.dans.easy.bagstore.server
 
 import java.nio.file.Files
-
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.easy.bagstore.component.BagStoresComponent
 import nl.knaw.dans.lib.error._
@@ -25,7 +24,7 @@ import nl.knaw.dans.lib.logging.servlet.masked.MaskedAuthorizationHeader
 import org.joda.time.DateTime
 import org.scalatra._
 
-import scala.util.Failure
+import scala.util.{ Failure, Try }
 import scala.util.control.NonFatal
 
 trait BagsServletComponent {
@@ -79,6 +78,7 @@ trait BagsServletComponent {
 
     get("/:uuid/*") {
       val uuidStr = params("uuid")
+      val forceInactive = Try(params("forceInactive")).map(_ => true).getOrElse(false)
       multiParams("splat") match {
         case Seq(path) =>
           ItemId.fromString(s"""$uuidStr/${ path }""")
@@ -86,8 +86,8 @@ trait BagsServletComponent {
               case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
             }
             .flatMap(itemId => {
-              debug(s"Retrieving item $itemId")
-              bagStores.copyToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType), response.outputStream)
+              debug(s"Retrieving item $itemId forceInactive=$forceInactive")
+              bagStores.copyToStream(itemId, request.header("Accept").flatMap(acceptToArchiveStreamType), response.outputStream, forceInactive = forceInactive)
             })
             .map {
               case Some(filePath) =>

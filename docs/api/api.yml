@@ -60,6 +60,7 @@ paths:
         potentially become very long, this request also supports two optional parameters to retrieve
         only part of the list.
       parameters:
+        - $ref: '#/components/parameters/State'
         - $ref: '#/components/parameters/Offset'
         - $ref: '#/components/parameters/Limit'
       responses:
@@ -110,6 +111,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Uuid'
         - $ref: '#/components/parameters/FilePath'
+        - $ref: '#/components/parameters/ForceInactive'
       responses:
         200:
           $ref: '#/components/responses/GetItemFromBagOk'
@@ -272,6 +274,20 @@ paths:
 components:
 
   parameters:
+    State:
+      in: query
+      name: state
+      schema:
+        type: string
+      required: false
+      description: "Either 'all' or 'inactive'. Anything else or not specified implies active bags only."
+    ForceInactive:
+      in: query
+      name: forceInactive
+      schema:
+        type: boolean
+      required: false
+      description: "Whether to return files of a hidden bag."
     Offset:
       in: query
       name: offset
