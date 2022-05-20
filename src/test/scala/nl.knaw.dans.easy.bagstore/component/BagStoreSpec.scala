@@ -15,18 +15,17 @@
  */
 package nl.knaw.dans.easy.bagstore.component
 
-import java.net.URI
-import java.nio.file.attribute.{ PosixFilePermission, PosixFilePermissions }
-import java.nio.file.{ Files, Path, Paths }
-import java.util.UUID
-
 import better.files.File
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error.CompositeException
 import org.apache.commons.io.FileUtils
-import org.scalatest.{ Inspectors, OneInstancePerTest }
+import org.scalatest.{Inspectors, OneInstancePerTest}
 
-import scala.util.{ Failure, Success }
+import java.net.URI
+import java.nio.file.attribute.{PosixFilePermission, PosixFilePermissions}
+import java.nio.file.{Files, Path, Paths}
+import java.util.UUID
+import scala.util.{Failure, Success}
 
 class BagStoreSpec extends TestSupportFixture
   /*
@@ -184,5 +183,19 @@ class BagStoreSpec extends TestSupportFixture
           e.getMessage should include("Local-file-uri found in fetch.txt can not be found in the bag-store: ")
         })
     }
+  }
+  "story" should "add, deactivate and export a bag only with forceInactive" in {
+    val bagDir = File(testDir) / "export-bag"
+
+    val added = bagStore.add(testBagMinimal)
+    added shouldBe a[Success[_]]
+    val bagId = added.get
+    bagStore.deactivate(bagId) shouldBe a[Success[_]]
+    bagStore.copyToDirectory(bagId, bagDir.path) should matchPattern {
+      case Failure(e: InactiveException) if e.getMessage.contains("Tried to retrieve an inactive bag") =>
+    }
+    bagDir.list shouldBe empty
+    bagStore.copyToDirectory(bagId, bagDir.path, forceInactive = true) shouldBe a[Success[_]]
+    bagDir.list.toList.map(_.name) shouldBe List(".minimal-bag")
   }
 }

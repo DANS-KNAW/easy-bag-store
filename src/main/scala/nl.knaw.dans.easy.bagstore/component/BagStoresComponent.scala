@@ -47,11 +47,11 @@ trait BagStoresComponent {
         .getOrElse(p.toString)
     }
 
-    def exportBag(dirOut: BagPath, bagStoreBaseDir: Option[BaseDir])(inputLine: String): Try[Unit] = {
+    def exportBag(dirOut: BagPath, bagStoreBaseDir: Option[BaseDir], forceInactive: Boolean = false)(inputLine: String): Try[Unit] = {
       for {
         itemId <- ItemId.fromString(inputLine.trim)
         bagIdDir <- Try { (File(dirOut) / itemId.toString).createDirectory() }
-        (path, store) <- bagStores.copyToDirectory(itemId, bagIdDir.path, fromStore = bagStoreBaseDir)
+        (path, store) <- bagStores.copyToDirectory(itemId, bagIdDir.path, fromStore = bagStoreBaseDir, forceInactive = forceInactive)
         _ = logger.info(s"$inputLine: bag exported to $path from bag store: ${ bagStores.getStoreName(store) } }")
       } yield ()
     }.recover {

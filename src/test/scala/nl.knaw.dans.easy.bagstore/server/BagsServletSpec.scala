@@ -244,6 +244,20 @@ class BagsServletSpec extends TestSupportFixture
     }
   }
 
+  it should "retrieve an item within an inactive/hidden bag is requested with forceInactive" in {
+    val bagID = "01000000-0000-0000-0000-000000000001"
+    val itemId = bagID + "/bag-info.txt"
+    bagStore1.deactivate(BagId(UUID.fromString(bagID))) shouldBe a[Success[_]]
+    get(s"/$itemId?forceInactive") {
+      status shouldBe 200
+      body shouldBe """Payload-Oxum: 72.6
+                      |Bagging-Date: 2016-06-07
+                      |Bag-Size: 0.6 KB
+                      |Created: 2017-01-16T14:35:00.888+01:00
+                      |""".stripMargin
+    }
+  }
+
   // this calls enumFiles
   it should " fail when done on an inactive/ hidden bag when headers text/plain is provided" in {
     val bagID = "01000000-0000-0000-0000-000000000001"

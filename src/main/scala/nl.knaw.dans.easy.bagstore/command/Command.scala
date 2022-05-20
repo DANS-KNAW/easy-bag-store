@@ -53,9 +53,9 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring w
     case Some(cmd @ commandLine.export) =>
       val dirOut = cmd.outputDir()
       File(cmd.items()).lines
-        .withFilter(!_.trim.isEmpty)
+        .withFilter(_.trim.nonEmpty)
         .withFilter(!_.trim.startsWith("#"))
-        .map(bagStores.exportBag(dirOut, bagStoreBaseDir))
+        .map(bagStores.exportBag(dirOut, bagStoreBaseDir, forceInactive = cmd.forceInactive()))
         .collectFirst { case Failure(e) => Failure(e) }
         .getOrElse(Success("No fatal errors, see logging for details"))
     case Some(cmd @ commandLine.get) =>
