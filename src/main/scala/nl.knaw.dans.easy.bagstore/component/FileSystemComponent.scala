@@ -24,8 +24,8 @@ import java.util.{ Date, UUID, Set => JSet }
 import nl.knaw.dans.easy.bagstore._
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import nl.knaw.dans.lib.string._
 import org.apache.commons.io.FileUtils
+import org.apache.commons.lang.StringUtils
 
 import scala.collection.JavaConverters._
 import scala.util.{ Failure, Success, Try }
@@ -112,11 +112,11 @@ trait FileSystemComponent extends DebugEnhancedLogging {
         // The path part after the base-uri is basically the item-id, but in a Path object.
         val itemIdPath = if (baseUriPath.toString.nonEmpty) baseUriPath.relativize(path)
                          else path
-        if (itemIdPath.toString.isBlank)
+        if (StringUtils.isBlank(itemIdPath.toString))
           Failure(IncompleteItemUriException("base-uri by itself is not an item-uri"))
         else {
           val uuidStr = formatUuidStrCanonically(itemIdPath.getName(0).toString.filterNot(_ == '-'))
-          uuidStr.toUUID.toTry
+          Try(getUUID(uuidStr))
             .map {
               case uuid if itemIdPath.getNameCount > 1 => FileId(BagId(uuid), itemIdPath.subpath(1, itemIdPath.getNameCount))
               case uuid if uri.toString.endsWith("/") => FileId(BagId(uuid), Paths.get(""))

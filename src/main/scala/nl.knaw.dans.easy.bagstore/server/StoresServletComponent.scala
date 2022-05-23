@@ -163,7 +163,7 @@ trait StoresServletComponent {
       val requestContentType = Option(request.getHeader("Content-Type"))
       bagStores.getBaseDirByShortname(bagStore)
         .map(base => {
-          uuidStr.toUUID.toTry
+          Try(getUUID(uuidStr))
             .flatMap(validateContentTypeHeader(requestContentType, _))
             .flatMap(bagStores.putBag(request.getInputStream, base, _))
             .map(bagId => Created(headers = Map(
