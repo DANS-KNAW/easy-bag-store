@@ -116,7 +116,7 @@ trait FileSystemComponent extends DebugEnhancedLogging {
           Failure(IncompleteItemUriException("base-uri by itself is not an item-uri"))
         else {
           val uuidStr = formatUuidStrCanonically(itemIdPath.getName(0).toString.filterNot(_ == '-'))
-          uuidStr.toUUID.toTry
+          Try(getUUID(uuidStr))
             .map {
               case uuid if itemIdPath.getNameCount > 1 => FileId(BagId(uuid), itemIdPath.subpath(1, itemIdPath.getNameCount))
               case uuid if uri.toString.endsWith("/") => FileId(BagId(uuid), Paths.get(""))
