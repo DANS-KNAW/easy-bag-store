@@ -1,6 +1,0 @@
-http://localhost/00000000-0000-0000-0000-000000000001/data/z  12  data/z
-http://localhost/00000000-0000-0000-0000-000000000001/data/sub/w  12  data/sub/w
-http://localhost/00000000-0000-0000-0000-000000000001/data/y  12  data/y-old
-http://localhost/00000000-0000-0000-0000-000000000002/data/x  12  data/x
-http://localhost/00000000-0000-0000-0000-000000000001/data/sub/u  12  data/sub-copy/u
-http://localhost/00000000-0000-0000-0000-000000000002/data/y  24  data/y
